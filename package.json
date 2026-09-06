@@ -1,0 +1,42 @@
+{
+  "name": "star-survivors",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "星际幸存者 — a sci-fi Vampire Survivors-like built with Phaser 4 + TypeScript",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 4173 --strictPort",
+    "assets": "npm run assets:fetch && npm run assets:floor && npm run assets:atlas && npm run assets:audio",
+    "assets:fetch": "node scripts/fetch-assets.mjs",
+    "assets:floor": "node scripts/build-floor.mjs",
+    "assets:atlas": "node scripts/build-atlas.mjs",
+    "assets:audio": "node scripts/copy-audio.mjs",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test:unit": "vitest run",
+    "test:e2e": "playwright test",
+    "bench": "playwright test --project=bench",
+    "verify": "npm run typecheck && npm run lint && npm run test:unit && npm run test:e2e"
+  },
+  "dependencies": {
+    "phaser": "4.2.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^26.4.1",
+    "eslint": "^10.10.0",
+    "free-tex-packer-core": "^0.3.9",
+    "globals": "^17.12.0",
+    "jimp": "^1.6.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.69.0",
+    "vite": "^7.3.6",
+    "vitest": "^5.0.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
+  }
+}

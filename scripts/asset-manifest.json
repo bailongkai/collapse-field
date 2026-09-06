@@ -1,0 +1,541 @@
+{
+  "packs": [
+    "space-shooter-remastered",
+    "space-shooter-extension",
+    "simple-space",
+    "alien-ufo-pack",
+    "sci-fi-rts",
+    "top-down-shooter",
+    "ui-pack-sci-fi",
+    "particle-pack",
+    "sci-fi-sounds",
+    "impact-sounds",
+    "interface-sounds",
+    "kenney-fonts"
+  ],
+  "resolvedUrls": {
+    "space-shooter-remastered": {
+      "url": "https://kenney.nl/media/pages/assets/space-shooter-remastered/2cbf3c45c8-1774771931/kenney_space-shooter-remastered.zip",
+      "sha256": "0edbe0ab5cda6c44901d8c42f150268fdfa0c8d48492098669f37e9c296929b5",
+      "bytes": 1108777
+    },
+    "space-shooter-extension": {
+      "url": "https://kenney.nl/media/pages/assets/space-shooter-extension/d0bd70032c-1677693518/kenney_space-shooter-extension.zip",
+      "sha256": "77efd54b343bbd123af8cc7f534446706731b9cf5a34f38d8fcc54e7245f9c91",
+      "bytes": 2840182
+    },
+    "simple-space": {
+      "url": "https://kenney.nl/media/pages/assets/simple-space/b9b0968a6b-1677578143/kenney_simple-space.zip",
+      "sha256": "a599dc29e9f9718844cc93eb02db34b19553903edb2e79a59d8fc067e6775bac",
+      "bytes": 318846
+    },
+    "alien-ufo-pack": {
+      "url": "https://kenney.nl/media/pages/assets/alien-ufo-pack/6bc775e714-1677667399/kenney_alien-ufo-pack.zip",
+      "sha256": "4d4df7fbf768487d2cd9772b64a1059a94c9b54e0b3095869560f187bc1acaaa",
+      "bytes": 418817
+    },
+    "sci-fi-rts": {
+      "url": "https://kenney.nl/media/pages/assets/sci-fi-rts/792bcb9cd5-1677693650/kenney_sci-fi-rts.zip",
+      "sha256": "093cb6adbd5aa3ae49da1c91ca3045251656df254c11903b3bfa8594a7a160ea",
+      "bytes": 2019242
+    },
+    "top-down-shooter": {
+      "url": "https://kenney.nl/media/pages/assets/top-down-shooter/230204340a-1677694684/kenney_top-down-shooter.zip",
+      "sha256": "433a2aa4fd6b617cd143528bf12622811ebe9c56fe1975bb664461b58cd2f2f5",
+      "bytes": 2626248
+    },
+    "ui-pack-sci-fi": {
+      "url": "https://kenney.nl/media/pages/assets/ui-pack-sci-fi/b67c2acd31-1724181109/kenney_ui-pack-space-expansion.zip",
+      "sha256": "4ae5a4949b71ba6c08bfb4d4708b3880915782f7deae7bc5872e1d56f0a668af",
+      "bytes": 768505
+    },
+    "particle-pack": {
+      "url": "https://kenney.nl/media/pages/assets/particle-pack/f8fe0f8cb8-1677578741/kenney_particle-pack.zip",
+      "sha256": "b631d4b07f7002549fdcf155f01141ad482f79f3440e4e301eed49ce5f1d8958",
+      "bytes": 15001764
+    },
+    "sci-fi-sounds": {
+      "url": "https://kenney.nl/media/pages/assets/sci-fi-sounds/6b296f9ecf-1677589334/kenney_sci-fi-sounds.zip",
+      "sha256": "119340f351a5098ad814f78719438c0da355a9ce8a4c8a3af6a8d48aa3d49e04",
+      "bytes": 5875104
+    },
+    "impact-sounds": {
+      "url": "https://kenney.nl/media/pages/assets/impact-sounds/87b4ddecda-1677589768/kenney_impact-sounds.zip",
+      "sha256": "029d734af1582474edf3a694d1b0cebc97c1c152f2f39fa34d4c2bafc5de77f8",
+      "bytes": 800850
+    },
+    "interface-sounds": {
+      "url": "https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip",
+      "sha256": "f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232",
+      "bytes": 834536
+    },
+    "kenney-fonts": {
+      "url": "https://kenney.nl/media/pages/assets/kenney-fonts/8d5435c213-1677661710/kenney_kenney-fonts.zip",
+      "sha256": "4e69a86eef3cd47e9d8207413868cd08bcddeb2dae4047dbd10362e2a7a16bac",
+      "bytes": 57786
+    }
+  },
+  "entries": [
+    {
+      "pack": "top-down-shooter",
+      "file": "PNG/Survivor 1/survivor1_gun.png",
+      "frame": "player",
+      "size": 44,
+      "atlas": "game"
+    },
+    {
+      "pack": "alien-ufo-pack",
+      "file": "PNG/shipBlue.png",
+      "frame": "enemy_drone",
+      "size": 34,
+      "atlas": "game"
+    },
+    {
+      "pack": "top-down-shooter",
+      "file": "PNG/Zombie 1/zo*mbie1_hold.png",
+      "frame": "enemy_infected",
+      "size": 40,
+      "atlas": "game"
+    },
+    {
+      "pack": "top-down-shooter",
+      "file": "PNG/Robot 1/robot1_gun.png",
+      "frame": "enemy_robot",
+      "size": 44,
+      "atlas": "game"
+    },
+    {
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Enemies/enemyRed3.png",
+      "frame": "enemy_interceptor",
+      "size": 32,
+      "atlas": "game"
+    },
+    {
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_08.png",
+      "frame": "enemy_mech",
+      "size": 56,
+      "atlas": "game"
+    },
+    {
+      "pack": "alien-ufo-pack",
+      "file": "PNG/shipPink_manned.png",
+      "frame": "enemy_mothership",
+      "size": 140,
+      "atlas": "game"
+    },
+    {
+      "pack": "space-shooter-extension",
+      "file": "PNG/Sprites/Ships/spaceShips_009.png",
+      "frame": "enemy_annihilator",
+      "size": 180,
+      "atlas": "game"
+    },
+    {
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Lasers/laserBlue07.png",
+      "frame": "bolt_laser",
+      "size": 24,
+      "atlas": "game"
+    },
+    {
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Lasers/laserGreen13.png",
+      "frame": "bolt_rail",
+      "size": 28,
+      "atlas": "game"
+    },
+    {
+      "pack": "space-shooter-remastered",
+      "file": "PNG/ufoBlue.png",
+      "frame": "orbit_drone",
+      "size": 28,
+      "atlas": "game"
+    },
+    {
+      "pack": "particle-pack",
+      "file": "PNG (Transparent)/circle_05.png",
+      "frame": "fx_ring",
+      "size": 128,
+      "atlas": "game"
+    },
+    {
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Power-ups/powerupBlue.png",
+      "frame": "gem_blue",
+      "size": 20,
+      "atlas": "game"
+    },
+    {
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Power-ups/powerupGreen.png",
+      "frame": "gem_green",
+      "size": 20,
+      "atlas": "game"
+    },
+    {
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Power-ups/powerupRed.png",
+      "frame": "gem_red",
+      "size": 20,
+      "atlas": "game"
+    },
+    {
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Power-ups/powerupYellow.png",
+      "frame": "gem_big",
+      "size": 32,
+      "atlas": "game"
+    },
+    {
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Power-ups/pill_red.png",
+      "frame": "pk_heal",
+      "size": 28,
+      "atlas": "game"
+    },
+    {
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Power-ups/bol*_silver.png",
+      "frame": "pk_vacuum",
+      "size": 28,
+      "atlas": "game"
+    },
+    {
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Power-ups/bolt_gold.png",
+      "frame": "pk_nuke",
+      "size": 28,
+      "atlas": "game"
+    },
+    {
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Power-ups/star_gold.png",
+      "frame": "pk_coin",
+      "size": 24,
+      "atlas": "game"
+    },
+    {
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_05.png",
+      "frame": "pk_chest",
+      "size": 48,
+      "atlas": "game"
+    },
+    {
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Lasers/laserBlue07.png",
+      "frame": "icon_guidedLaser",
+      "size": 40,
+      "atlas": "game"
+    },
+    {
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Lasers/laserGreen13.png",
+      "frame": "icon_railgun",
+      "size": 40,
+      "atlas": "game"
+    },
+    {
+      "pack": "space-shooter-remastered",
+      "file": "PNG/ufoBlue.png",
+      "frame": "icon_orbitalDrones",
+      "size": 40,
+      "atlas": "game"
+    },
+    {
+      "pack": "particle-pack",
+      "file": "PNG (Transparent)/circle_05.png",
+      "frame": "icon_empField",
+      "size": 40,
+      "atlas": "game"
+    },
+    {
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Power-ups/bolt_gold.png",
+      "frame": "icon_reactorCore",
+      "size": 40,
+      "atlas": "game"
+    },
+    {
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Power-ups/shield_silver.png",
+      "frame": "icon_nanoArmor",
+      "size": 40,
+      "atlas": "game"
+    },
+    {
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Power-ups/pill_red.png",
+      "frame": "icon_lifeCore",
+      "size": 40,
+      "atlas": "game"
+    },
+    {
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Power-ups/things_silver.png",
+      "frame": "icon_coolingSystem",
+      "size": 40,
+      "atlas": "game"
+    },
+    {
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Power-ups/star_bronze.png",
+      "frame": "icon_fieldAmp",
+      "size": 40,
+      "atlas": "game"
+    },
+    {
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Environment/scifiEnvironment_01.png",
+      "frame": "decor_0",
+      "size": 64,
+      "atlas": "game"
+    },
+    {
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Environment/scifiEnvironment_02.png",
+      "frame": "decor_1",
+      "size": 64,
+      "atlas": "game"
+    },
+    {
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Environment/scifiEnvironment_03.png",
+      "frame": "decor_2",
+      "size": 64,
+      "atlas": "game"
+    },
+    {
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Environment/scifiEnvironment_04.png",
+      "frame": "decor_3",
+      "size": 64,
+      "atlas": "game"
+    },
+    {
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Environment/scifiEnvironment_05.png",
+      "frame": "decor_4",
+      "size": 64,
+      "atlas": "game"
+    },
+    {
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Environment/scifiEnvironment_06.png",
+      "frame": "decor_5",
+      "size": 64,
+      "atlas": "game"
+    },
+    {
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Environment/scifiEnvironment_07.png",
+      "frame": "decor_6",
+      "size": 64,
+      "atlas": "game"
+    },
+    {
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Environment/scifiEnvironment_08.png",
+      "frame": "decor_7",
+      "size": 64,
+      "atlas": "game"
+    },
+    {
+      "pack": "particle-pack",
+      "file": "PNG (Transparent)/spark_04.png",
+      "frame": "p_spark",
+      "size": 32,
+      "atlas": "game"
+    },
+    {
+      "pack": "particle-pack",
+      "file": "PNG (Transparent)/smoke_01.png",
+      "frame": "p_smoke",
+      "size": 32,
+      "atlas": "game"
+    },
+    {
+      "pack": "particle-pack",
+      "file": "PNG (Transparent)/flare_01.png",
+      "frame": "p_flare",
+      "size": 32,
+      "atlas": "game"
+    },
+    {
+      "pack": "ui-pack-sci-fi",
+      "file": "PNG/Extra/Default/panel_glass.png",
+      "frame": "panel_glass",
+      "atlas": "ui"
+    },
+    {
+      "pack": "ui-pack-sci-fi",
+      "file": "PNG/Extra/Default/panel_glass_screws.png",
+      "frame": "panel_glass_screws",
+      "atlas": "ui"
+    },
+    {
+      "pack": "ui-pack-sci-fi",
+      "file": "PNG/Extra/Default/panel_rectangle.png",
+      "frame": "panel_rect",
+      "atlas": "ui"
+    },
+    {
+      "pack": "ui-pack-sci-fi",
+      "file": "PNG/Extra/Default/button_rectangle.png",
+      "frame": "button_rect",
+      "atlas": "ui"
+    },
+    {
+      "pack": "ui-pack-sci-fi",
+      "file": "PNG/Extra/Default/button_rectangle_depth.png",
+      "frame": "button_rect_depth",
+      "atlas": "ui"
+    },
+    {
+      "pack": "ui-pack-sci-fi",
+      "file": "PNG/Blue/Default/button_square_header_large_rectangle.png",
+      "frame": "button_blue",
+      "atlas": "ui"
+    },
+    {
+      "pack": "ui-pack-sci-fi",
+      "file": "PNG/Blue/Default/bar_round_large_l.png",
+      "frame": "bar_blue_l",
+      "atlas": "ui"
+    },
+    {
+      "pack": "ui-pack-sci-fi",
+      "file": "PNG/Blue/Default/bar_round_large_m.png",
+      "frame": "bar_blue_m",
+      "atlas": "ui"
+    },
+    {
+      "pack": "ui-pack-sci-fi",
+      "file": "PNG/Blue/Default/bar_round_large_r.png",
+      "frame": "bar_blue_r",
+      "atlas": "ui"
+    },
+    {
+      "pack": "ui-pack-sci-fi",
+      "file": "PNG/Red/Default/bar_round_large_l.png",
+      "frame": "bar_red_l",
+      "atlas": "ui"
+    },
+    {
+      "pack": "ui-pack-sci-fi",
+      "file": "PNG/Red/Default/bar_round_large_m.png",
+      "frame": "bar_red_m",
+      "atlas": "ui"
+    },
+    {
+      "pack": "ui-pack-sci-fi",
+      "file": "PNG/Red/Default/bar_round_large_r.png",
+      "frame": "bar_red_r",
+      "atlas": "ui"
+    },
+    {
+      "pack": "ui-pack-sci-fi",
+      "file": "PNG/Green/Default/bar_round_large_l.png",
+      "frame": "bar_green_l",
+      "atlas": "ui"
+    },
+    {
+      "pack": "ui-pack-sci-fi",
+      "file": "PNG/Green/Default/bar_round_large_m.png",
+      "frame": "bar_green_m",
+      "atlas": "ui"
+    },
+    {
+      "pack": "ui-pack-sci-fi",
+      "file": "PNG/Green/Default/bar_round_large_r.png",
+      "frame": "bar_green_r",
+      "atlas": "ui"
+    },
+    {
+      "pack": "ui-pack-sci-fi",
+      "file": "PNG/Extra/Default/bar_shadow_round_large_l.png",
+      "frame": "bar_bg_l",
+      "atlas": "ui"
+    },
+    {
+      "pack": "ui-pack-sci-fi",
+      "file": "PNG/Extra/Default/bar_shadow_round_large_m.png",
+      "frame": "bar_bg_m",
+      "atlas": "ui"
+    },
+    {
+      "pack": "ui-pack-sci-fi",
+      "file": "PNG/Extra/Default/bar_shadow_round_large_r.png",
+      "frame": "bar_bg_r",
+      "atlas": "ui"
+    }
+  ],
+  "floor": {
+    "pack": "sci-fi-rts",
+    "tiles": [
+      "PNG/Default size/Tile/scifiTile_29.png",
+      "PNG/Default size/Tile/scifiTile_30.png",
+      "PNG/Default size/Tile/scifiTile_31.png",
+      "PNG/Default size/Tile/scifiTile_29.png"
+    ],
+    "tileSize": 64,
+    "grid": 4
+  },
+  "font": {
+    "pack": "kenney-fonts",
+    "file": "Fonts/Kenney Future.ttf",
+    "out": "kenvector_future.ttf"
+  },
+  "audio": {
+    "fire": {
+      "pack": "sci-fi-sounds",
+      "file": "Audio/laserSmall_000.ogg"
+    },
+    "rail": {
+      "pack": "sci-fi-sounds",
+      "file": "Audio/laserSmall_003.ogg"
+    },
+    "emp": {
+      "pack": "sci-fi-sounds",
+      "file": "Audio/forceField_000.ogg"
+    },
+    "boss": {
+      "pack": "sci-fi-sounds",
+      "file": "Audio/lowFrequency_explosion_000.ogg"
+    },
+    "explode": {
+      "pack": "sci-fi-sounds",
+      "file": "Audio/explosionCrunch_000.ogg"
+    },
+    "hit": {
+      "pack": "impact-sounds",
+      "file": "Audio/impactMetal_light_000.ogg"
+    },
+    "death": {
+      "pack": "impact-sounds",
+      "file": "Audio/impactSoft_heavy_001.ogg"
+    },
+    "hurt": {
+      "pack": "impact-sounds",
+      "file": "Audio/impactMetal_heavy_000.ogg"
+    },
+    "gem": {
+      "pack": "interface-sounds",
+      "file": "Audio/pluck_001.ogg"
+    },
+    "levelup": {
+      "pack": "interface-sounds",
+      "file": "Audio/confirmation_002.ogg"
+    },
+    "pickup": {
+      "pack": "interface-sounds",
+      "file": "Audio/select_001.ogg"
+    },
+    "click": {
+      "pack": "interface-sounds",
+      "file": "Audio/click_001.ogg"
+    }
+  }
+}

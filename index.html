@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>星际幸存者</title>
+    <style>
+      @font-face {
+        font-family: 'kenvector_future';
+        src: url('./assets/fonts/kenvector_future.ttf') format('truetype');
+        font-display: swap;
+      }
+      html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+      #app { width: 100%; height: 100%; }
+      canvas { display: block; }
+      /* Force the webfont to be fetched early so document.fonts.load resolves quickly. */
+      #fontprobe { position: absolute; left: -9999px; top: -9999px; font-family: 'kenvector_future'; }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <span id="fontprobe">0123456789</span>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
