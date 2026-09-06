@@ -11,7 +11,13 @@ browser, Chinese interface with English available in the settings.
 npm install
 npm run assets     # downloads the Kenney CC0 packs and builds the atlases (only needed once)
 npm run dev        # http://localhost:5173
+npm run dev:lan    # also serves on the local network, for testing on a real phone
 ```
+
+To try it on a phone, run `npm run dev:lan` and open the network address it
+prints. Touch controls appear on the first touch. The emulated-phone specs cover
+the input and layout; frame rate on real hardware is the one thing they cannot
+tell you.
 
 The built asset atlases are committed, so `npm run assets` is only needed when
 changing what art the game uses.

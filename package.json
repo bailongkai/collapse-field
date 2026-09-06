@@ -6,6 +6,7 @@
   "description": "星际幸存者 — a sci-fi Vampire Survivors-like built with Phaser 4 + TypeScript",
   "scripts": {
     "dev": "vite",
+    "dev:lan": "vite --host",
     "build": "vite build",
     "preview": "vite preview --port 4173 --strictPort",
     "assets": "npm run assets:fetch && npm run assets:floor && npm run assets:atlas && npm run assets:audio",
