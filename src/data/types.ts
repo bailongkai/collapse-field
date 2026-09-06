@@ -48,8 +48,12 @@ export interface WeaponDef {
   /** length 7: additive deltas for L2..L8 */
   readonly levels: readonly Partial<WeaponParams>[];
   readonly visual: { frame: string; blend?: 'add' | 'normal'; tint?: number; sfx?: string };
-  /** reserved for meta progression */
-  readonly evolution?: { requires: string; into: string };
+  /** tint applied to the icon, used to mark an evolved weapon that shares its base's art */
+  readonly iconTint?: number;
+  /** at max level, owning this passive lets a supply chest evolve the weapon into `into` */
+  readonly evolution?: { readonly requires: string; readonly into: string };
+  /** never offered on level-up; only reachable through evolution */
+  readonly evolvedOnly?: boolean;
 }
 export interface PassiveDef {
   readonly id: string;
@@ -61,7 +65,7 @@ export interface PassiveDef {
   readonly perLevel: StatBlock;
 }
 
-export type EnemyBehaviorId = 'chase' | 'line' | 'boss' | 'reaper';
+export type EnemyBehaviorId = 'chase' | 'line' | 'boss' | 'reaper' | 'ranged' | 'dasher';
 export type GemTier = 'blue' | 'green' | 'red' | 'none';
 export interface EnemyDef {
   readonly id: string;
@@ -83,6 +87,12 @@ export interface EnemyDef {
   readonly bossBar?: boolean;
   readonly drops?: readonly { pickup: string; chance: number }[];
   readonly deathFx: 'small' | 'big';
+  /** ranged behavior: hold this distance and fire at the player on an interval */
+  readonly ranged?: { readonly range: number; readonly intervalMs: number; readonly boltSpeed: number; readonly boltDamage: number };
+  /** dasher behavior: telegraph, then lunge at a multiple of base speed */
+  readonly dash?: { readonly triggerRange: number; readonly telegraphMs: number; readonly durationMs: number; readonly speedMult: number; readonly cooldownMs: number };
+  /** boss behavior: periodic charge plus reinforcements */
+  readonly boss?: { readonly chargeEveryMs: number; readonly telegraphMs: number; readonly chargeMs: number; readonly chargeSpeedMult: number; readonly summon: string; readonly summonCount: number; readonly summonEveryMs: number };
 }
 
 export interface WaveEntry {

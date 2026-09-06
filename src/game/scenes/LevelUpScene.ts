@@ -70,21 +70,28 @@ export class LevelUpScene extends Phaser.Scene {
     });
   }
 
-  private describe(choice: LevelUpChoice): { title: string; tag: string; body: string; icon: string } {
+  private describe(choice: LevelUpChoice): { title: string; tag: string; body: string; icon: string; iconTint?: number } {
     if (choice.kind === 'weapon') {
       const def = CONTENT.weapons[choice.id];
       const isNew = choice.toLevel === 1;
       const delta = isNew ? null : def.levels[choice.toLevel - 2];
-      const body = isNew
+      let body = isNew
         ? t(def.descKey)
         : describeDeltas(delta ?? {})
             .map((d) => tDynamic(d.key, { v: d.value }))
             .join(' · ');
+      // reaching max level is when the evolution becomes possible; say so on the card
+      if (!isNew && choice.toLevel === def.maxLevel && def.evolution) {
+        const passive = CONTENT.passives[def.evolution.requires];
+        const into = CONTENT.weapons[def.evolution.into];
+        if (passive && into) body += ` · ${t('evolve.hint', { passive: t(passive.nameKey), into: t(into.nameKey) })}`;
+      }
       return {
         title: t(def.nameKey),
         tag: isNew ? t('levelup.new_weapon') : t('levelup.level_to', { a: choice.toLevel - 1, b: choice.toLevel }),
         body: body || t(def.descKey),
         icon: def.icon,
+        iconTint: def.iconTint,
       };
     }
     if (choice.kind === 'passive') {
@@ -109,6 +116,7 @@ export class LevelUpScene extends Phaser.Scene {
     const container = this.add.container(this.scale.width / 2, y);
     const bg = this.add.nineslice(0, 0, 'ui', 'panel_rect', CARD_W, CARD_H, 16, 16, 16, 16).setTint(CARD_TINT);
     const icon = this.add.image(-CARD_W / 2 + 44, 0, 'game', info.icon).setDisplaySize(44, 44);
+    if (info.iconTint !== undefined) icon.setTint(info.iconTint);
     const title = this.add.text(-CARD_W / 2 + 84, -24, info.title, textStyle(22, { bold: true })).setOrigin(0, 0.5);
     const tag = this.add.text(CARD_W / 2 - 16, -24, info.tag, textStyle(16, { color: COLORS.accent })).setOrigin(1, 0.5);
     const body = this.add.text(-CARD_W / 2 + 84, 12, info.body, textStyle(15, { color: COLORS.dim, wrapWidth: CARD_W - 110 })).setOrigin(0, 0.5);

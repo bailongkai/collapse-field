@@ -41,6 +41,7 @@ export class IconRow {
       const def = kind === 'weapon' ? CONTENT.weapons[item.id] : CONTENT.passives[item.id];
       if (!def) continue;
       this.icons[i].setFrame(def.icon);
+      this.icons[i].setTint(kind === 'weapon' && 'iconTint' in def && def.iconTint !== undefined ? def.iconTint : 0xffffff);
       this.icons[i].setDisplaySize(this.size, this.size);
       this.icons[i].setVisible(true);
       this.levels[i].setText(String(item.level));

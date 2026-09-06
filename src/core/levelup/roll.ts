@@ -30,7 +30,7 @@ export function rollLevelUp(input: RollInput): LevelUpChoice[] {
 
   const collect = (
     kind: 'weapon' | 'passive',
-    defs: Readonly<Record<string, { id: string; rarity: number; maxLevel: number }>>,
+    defs: Readonly<Record<string, { id: string; rarity: number; maxLevel: number; evolvedOnly?: boolean; evolution?: { into: string } }>>,
     owned: readonly OwnedItem[],
     slots: number,
   ): void => {
@@ -38,6 +38,8 @@ export function rollLevelUp(input: RollInput): LevelUpChoice[] {
     const freeSlots = slots - owned.length;
     for (const def of Object.values(defs)) {
       if (excluded.has(def.id)) continue;
+      if (def.evolvedOnly) continue;
+      if (def.evolution && byId.has(def.evolution.into)) continue;
       const level = byId.get(def.id);
       if (level !== undefined) {
         if (level < def.maxLevel) candidates.push({ choice: { kind, id: def.id, toLevel: level + 1 }, weight: def.rarity });

@@ -27,6 +27,12 @@ export interface Enemy {
   isEvent: boolean;
   dmgMult: number;
   facing: number;
+  /** behavior-specific state machine: 0 = normal; meaning depends on the behavior */
+  aiState: number;
+  /** ms remaining in the current AI state */
+  aiTimer: number;
+  /** ms until the behavior's secondary timer fires (summons, shots) */
+  aiTimer2: number;
 }
 
 export function createEnemy(id: number): Enemy {
@@ -34,5 +40,6 @@ export function createEnemy(id: number): Enemy {
     id, serial: 0, active: false, defId: '', def: null, behavior: 'chase',
     x: 0, y: 0, hp: 0, maxHp: 0, radius: 0, kbx: 0, kby: 0, flashMs: 0,
     dirX: 0, dirY: 0, lineSpeed: 0, lifeMs: 0, isEvent: false, dmgMult: 1, facing: 0,
+    aiState: 0, aiTimer: 0, aiTimer2: 0,
   };
 }

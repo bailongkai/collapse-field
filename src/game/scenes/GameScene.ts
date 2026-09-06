@@ -200,7 +200,8 @@ export class GameScene extends Phaser.Scene {
         const dir = this.input_.read();
         this.sim.setInput(dir.x, dir.y);
       }
-      this.accumulator += Math.min(delta, MAX_FRAME_DELTA_MS) * this.timeScale;
+      const slow = this.slowMoUntil > performance.now() ? 0.3 : 1;
+      this.accumulator += Math.min(delta, MAX_FRAME_DELTA_MS) * this.timeScale * slow;
       let steps = 0;
       const simStart = performance.now();
       while (this.accumulator >= FIXED_DT_MS && steps < MAX_STEPS_PER_FRAME) {
@@ -255,9 +256,17 @@ export class GameScene extends Phaser.Scene {
     this.damageNumbers.update(deltaMs);
   }
 
-  private toast(text: string): void {
+  private toast(text: string, ms?: number): void {
     const hud = this.scene.get('Hud') as HudScene | undefined;
-    hud?.showToast(text);
+    hud?.showToast(text, ms);
+  }
+
+  private slowMoUntil = 0;
+
+  /** A brief dip in time scale as a beat after a big kill; purely presentational and off in tests. */
+  private slowMotion(ms: number): void {
+    if (app().testMode) return;
+    this.slowMoUntil = performance.now() + ms;
   }
 
   private slotCache: string[] = [];
@@ -299,6 +308,9 @@ export class GameScene extends Phaser.Scene {
         case 'chest':
           hook?.pushEvent('pickup:chest');
           break;
+        case 'evolve':
+          hook?.pushEvent(`evolve:${e.id}`);
+          break;
         case 'died':
           hook?.pushEvent('died');
           break;
@@ -338,8 +350,30 @@ export class GameScene extends Phaser.Scene {
           sfx.play('boss');
           break;
         case 'chest':
-          this.toast(t('toast.chest', { n: e.n }));
+          if (e.n > 0) this.toast(t('toast.chest', { n: e.n }));
           sfx.play('levelup');
+          break;
+        case 'evolve': {
+          const def = this.sim.reg.weapons[e.id];
+          this.toast(t('toast.evolve', { name: def ? t(def.nameKey) : e.id }), 3200);
+          this.cameras.main.flash(500, 255, 120, 220);
+          this.cameras.main.shake(300, 0.006);
+          sfx.play('levelup');
+          break;
+        }
+        case 'bossKilled':
+          this.toast(t('toast.bossKilled'), 3000);
+          this.cameras.main.flash(400, 255, 255, 255);
+          this.cameras.main.shake(700, 0.012);
+          this.slowMotion(650);
+          sfx.play('explode');
+          break;
+        case 'telegraph':
+          this.cameras.main.shake(200, 0.003);
+          sfx.play('boss');
+          break;
+        case 'enemyShot':
+          sfx.play('rail', { volume: 0.5 });
           break;
         case 'heal':
         case 'pickup':
@@ -372,7 +406,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private emptyBehaviorCounts(): Record<EnemyBehaviorId, number> {
-    return { chase: 0, line: 0, boss: 0, reaper: 0 };
+    return { chase: 0, line: 0, boss: 0, reaper: 0, ranged: 0, dasher: 0 };
   }
 
   private getState(): HookRunState {

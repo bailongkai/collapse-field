@@ -1,5 +1,8 @@
 import { KNOCKBACK_DECAY, KNOCKBACK_MAX } from '../../../config';
 import { chaseStep } from '../../enemies/behaviors/chase';
+import { rangedStep } from '../../enemies/behaviors/ranged';
+import { dasherStep } from '../../enemies/behaviors/dasher';
+import { bossStep } from '../../enemies/behaviors/boss';
 import type { Enemy } from '../entities/enemy';
 import type { Player } from '../entities/player';
 import type { World } from '../world';
@@ -29,8 +32,16 @@ export function stepEnemies(world: World, player: Player, dt: number, playerSpee
         }
         break;
       }
-      case 'chase':
+      case 'ranged':
+        rangedStep(world, e, player, dt);
+        break;
+      case 'dasher':
+        dasherStep(e, player, dt);
+        break;
       case 'boss':
+        bossStep(world, e, player, dt);
+        break;
+      case 'chase':
       default:
         chaseStep(e, player.x, player.y, dt);
         break;

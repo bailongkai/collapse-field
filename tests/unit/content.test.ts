@@ -24,8 +24,10 @@ describe('content', () => {
     expect(validateContent(frames)).toEqual([]);
   });
 
-  it('has the five prototype weapons and passives', () => {
-    expect(Object.keys(CONTENT.weapons)).toHaveLength(5);
+  it('has five base weapons, five evolutions and five passives', () => {
+    const weapons = Object.values(CONTENT.weapons);
+    expect(weapons.filter((w) => !w.evolvedOnly)).toHaveLength(5);
+    expect(weapons.filter((w) => w.evolvedOnly)).toHaveLength(5);
     expect(Object.keys(CONTENT.passives)).toHaveLength(5);
   });
 

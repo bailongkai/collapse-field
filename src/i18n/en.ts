@@ -21,6 +21,8 @@ export const en: Partial<Record<I18nKey, string>> = {
   'hud.kills': 'Kills',
   'hud.gold': 'Gold',
   'levelup.title': 'Level up!',
+  'toast.evolve': 'Weapon evolved: {name}',
+  'toast.bossKilled': 'Mothership destroyed!',
   'levelup.new_weapon': 'New weapon!',
   'levelup.new_passive': 'New item!',
   'levelup.gold': 'Gold +{n}',

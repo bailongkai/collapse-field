@@ -22,6 +22,12 @@ export function validateContent(frames?: ReadonlySet<string>): string[] {
     check(d.levels.length === d.maxLevel - 1, `weapon ${key}: expected ${d.maxLevel - 1} level deltas, got ${d.levels.length}`);
     frameOk(d.visual.frame, `weapon ${key}`);
     frameOk(d.icon, `weapon ${key} icon`);
+    if (d.evolution) {
+      check(CONTENT.passives[d.evolution.requires], `weapon ${key}: evolution requires unknown passive "${d.evolution.requires}"`);
+      check(CONTENT.weapons[d.evolution.into], `weapon ${key}: evolves into unknown weapon "${d.evolution.into}"`);
+      check(CONTENT.weapons[d.evolution.into]?.evolvedOnly, `weapon ${key}: evolution target "${d.evolution.into}" must be evolvedOnly`);
+    }
+    if (d.evolvedOnly) check(d.rarity === 0, `weapon ${key}: an evolution must have rarity 0`);
   }
   for (const [key, d] of Object.entries(CONTENT.passives)) {
     check(d.id === key, `passive ${key}: id mismatch`);
@@ -34,6 +40,9 @@ export function validateContent(frames?: ReadonlySet<string>): string[] {
     check(d.id === key, `enemy ${key}: id mismatch`);
     check(hasKey(d.nameKey), `enemy ${key}: missing i18n ${d.nameKey}`);
     frameOk(d.frame, `enemy ${key}`);
+    check(d.behavior !== 'ranged' || d.ranged, `enemy ${key}: ranged behavior needs a ranged config`);
+    check(d.behavior !== 'dasher' || d.dash, `enemy ${key}: dasher behavior needs a dash config`);
+    if (d.boss) check(CONTENT.enemies[d.boss.summon], `enemy ${key}: boss summons unknown enemy "${d.boss.summon}"`);
     for (const drop of d.drops ?? []) check(CONTENT.pickups[drop.pickup], `enemy ${key}: unknown drop "${drop.pickup}"`);
   }
   for (const [key, d] of Object.entries(CONTENT.pickups)) {

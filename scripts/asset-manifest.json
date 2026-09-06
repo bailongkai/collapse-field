@@ -105,10 +105,10 @@
       "atlas": "game"
     },
     {
-      "pack": "space-shooter-remastered",
-      "file": "PNG/Enemies/enemyRed3.png",
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_06.png",
       "frame": "enemy_interceptor",
-      "size": 32,
+      "size": 36,
       "atlas": "game"
     },
     {
@@ -469,6 +469,27 @@
       "file": "PNG/Default size/Structure/scifiStructure_13.png",
       "frame": "decor_7",
       "size": 64,
+      "atlas": "game"
+    },
+    {
+      "pack": "alien-ufo-pack",
+      "file": "PNG/shipGreen_manned.png",
+      "frame": "enemy_spitter",
+      "size": 42,
+      "atlas": "game"
+    },
+    {
+      "pack": "top-down-shooter",
+      "file": "PNG/Hitman 1/hitman1_stand.png",
+      "frame": "enemy_dasher",
+      "size": 42,
+      "atlas": "game"
+    },
+    {
+      "pack": "alien-ufo-pack",
+      "file": "PNG/laserGreen_burst.png",
+      "frame": "bolt_acid",
+      "size": 22,
       "atlas": "game"
     }
   ],

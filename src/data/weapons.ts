@@ -17,6 +17,7 @@ export const WEAPONS = {
     base: { damage: 10, cooldown: 1350, amount: 1, area: 1, speed: 1, duration: 150, pierce: Infinity, knockback: 1, interval: 100, hitCooldown: 0 },
     levels: [{ amount: 1 }, { damage: 5 }, { area: 0.1 }, { damage: 8 }, { area: 0.1 }, { damage: 8 }, { damage: 8 }],
     visual: { frame: 'fx_slash', blend: 'add', tint: 0x4fe0ff, sfx: 'fire' },
+    evolution: { requires: 'reactorCore', into: 'annihilationBlade' },
   },
   guidedLaser: {
     id: 'guidedLaser',
@@ -29,6 +30,7 @@ export const WEAPONS = {
     base: { damage: 10, cooldown: 1200, amount: 1, area: 1, speed: 1, duration: 1500, pierce: 1, knockback: 0.5, interval: 100, hitCooldown: 0 },
     levels: [{ amount: 1 }, { cooldown: -200 }, { amount: 1 }, { damage: 10 }, { amount: 1 }, { damage: 10 }, { amount: 1 }],
     visual: { frame: 'bolt_laser', sfx: 'fire' },
+    evolution: { requires: 'coolingSystem', into: 'fusionLance' },
   },
   railgun: {
     id: 'railgun',
@@ -41,6 +43,7 @@ export const WEAPONS = {
     base: { damage: 6.5, cooldown: 1000, amount: 1, area: 1, speed: 1, duration: 1200, pierce: 1, knockback: 0.3, interval: 80, hitCooldown: 0 },
     levels: [{ amount: 1 }, { amount: 1, damage: 5 }, { amount: 1 }, { pierce: 1 }, { amount: 1, damage: 5 }, { amount: 1 }, { pierce: 1 }],
     visual: { frame: 'bolt_rail', sfx: 'rail' },
+    evolution: { requires: 'nanoArmor', into: 'shredderRail' },
   },
   orbitalDrones: {
     id: 'orbitalDrones',
@@ -53,6 +56,7 @@ export const WEAPONS = {
     base: { damage: 10, cooldown: 3000, amount: 1, area: 1, speed: 1, duration: 3000, pierce: Infinity, knockback: 0.4, interval: 0, hitCooldown: 500 },
     levels: [{ amount: 1 }, { speed: 0.3, area: 0.1 }, { duration: 500, damage: 10 }, { amount: 1 }, { speed: 0.3, area: 0.1 }, { duration: 500, damage: 10 }, { amount: 1 }],
     visual: { frame: 'orbit_drone', sfx: 'fire' },
+    evolution: { requires: 'fieldAmp', into: 'satelliteArray' },
   },
   empField: {
     id: 'empField',
@@ -73,6 +77,43 @@ export const WEAPONS = {
       { area: 0.2, damage: 1 },
     ],
     visual: { frame: 'fx_ring', blend: 'add', tint: 0x40c0ff, sfx: 'emp' },
+    evolution: { requires: 'lifeCore', into: 'singularityField' },
+  },
+  // --- evolutions: reached only through a supply chest with the base weapon maxed and its passive owned
+  annihilationBlade: {
+    id: 'annihilationBlade', nameKey: 'weapon.annihilationBlade.name', descKey: 'weapon.annihilationBlade.desc',
+    icon: 'icon_plasmaBlade', iconTint: 0xff66aa, rarity: 0, maxLevel: 8, behavior: 'slash', evolvedOnly: true,
+    base: { damage: 60, cooldown: 900, amount: 3, area: 1.5, speed: 1, duration: 220, pierce: Infinity, knockback: 1.5, interval: 90, hitCooldown: 0 },
+    levels: [{}, {}, {}, {}, {}, {}, {}],
+    visual: { frame: 'fx_slash', blend: 'add', tint: 0xff66aa, sfx: 'fire' },
+  },
+  fusionLance: {
+    id: 'fusionLance', nameKey: 'weapon.fusionLance.name', descKey: 'weapon.fusionLance.desc',
+    icon: 'icon_guidedLaser', iconTint: 0xffd166, rarity: 0, maxLevel: 8, behavior: 'aimed', evolvedOnly: true,
+    base: { damage: 45, cooldown: 600, amount: 5, area: 1.3, speed: 1.4, duration: 1500, pierce: 4, knockback: 0.6, interval: 70, hitCooldown: 0 },
+    levels: [{}, {}, {}, {}, {}, {}, {}],
+    visual: { frame: 'bolt_laser', tint: 0xffd166, sfx: 'fire' },
+  },
+  shredderRail: {
+    id: 'shredderRail', nameKey: 'weapon.shredderRail.name', descKey: 'weapon.shredderRail.desc',
+    icon: 'icon_railgun', iconTint: 0xff7755, rarity: 0, maxLevel: 8, behavior: 'stream', evolvedOnly: true,
+    base: { damage: 24, cooldown: 700, amount: 8, area: 1.2, speed: 1.3, duration: 1200, pierce: 6, knockback: 0.4, interval: 50, hitCooldown: 0 },
+    levels: [{}, {}, {}, {}, {}, {}, {}],
+    visual: { frame: 'bolt_rail', tint: 0xff7755, sfx: 'rail' },
+  },
+  satelliteArray: {
+    id: 'satelliteArray', nameKey: 'weapon.satelliteArray.name', descKey: 'weapon.satelliteArray.desc',
+    icon: 'icon_orbitalDrones', iconTint: 0x9fe6ff, rarity: 0, maxLevel: 8, behavior: 'orbit', evolvedOnly: true,
+    base: { damage: 40, cooldown: 400, amount: 5, area: 1.4, speed: 1.3, duration: 9000, pierce: Infinity, knockback: 0.6, interval: 0, hitCooldown: 400 },
+    levels: [{}, {}, {}, {}, {}, {}, {}],
+    visual: { frame: 'orbit_drone', tint: 0x9fe6ff, sfx: 'fire' },
+  },
+  singularityField: {
+    id: 'singularityField', nameKey: 'weapon.singularityField.name', descKey: 'weapon.singularityField.desc',
+    icon: 'icon_empField', iconTint: 0xcc88ff, rarity: 0, maxLevel: 8, behavior: 'aura', evolvedOnly: true,
+    base: { damage: 18, cooldown: Infinity, amount: 0, area: 2.0, speed: 1, duration: 0, pierce: Infinity, knockback: 0.8, interval: 0, hitCooldown: 600 },
+    levels: [{}, {}, {}, {}, {}, {}, {}],
+    visual: { frame: 'fx_ring', blend: 'add', tint: 0xcc88ff, sfx: 'emp' },
   },
 } as const satisfies Record<string, WeaponDef>;
 

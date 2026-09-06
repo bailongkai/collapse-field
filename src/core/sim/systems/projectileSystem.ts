@@ -4,13 +4,16 @@ import type { Enemy } from '../entities/enemy';
 import type { Projectile } from '../entities/projectile';
 
 export type DamageFn = (e: Enemy, dmg: number, dirX: number, dirY: number, knockback: number) => void;
+export type HurtPlayerFn = (raw: number, sourceId: string) => void;
+
+const PLAYER_RADIUS = 16;
 
 /**
  * Moves projectiles, resolves their hits and recycles them. Each projectile remembers the enemy
  * serials it has already hit, so one bolt cannot hit the same enemy twice while several bolts of
  * the same volley can each hit it once.
  */
-export function stepProjectiles(world: World, dtMs: number, damage: DamageFn): void {
+export function stepProjectiles(world: World, dtMs: number, damage: DamageFn, hurtPlayer: HurtPlayerFn): void {
   const dt = dtMs / 1000;
   world.projectiles.forEach((p) => {
     if (p.kind === 'bolt') {
@@ -19,14 +22,27 @@ export function stepProjectiles(world: World, dtMs: number, damage: DamageFn): v
     }
     p.ttlMs -= dtMs;
 
-    if (p.kind === 'slash') resolveSlash(world, p, damage);
+    if (p.hostile) resolveHostile(world, p, hurtPlayer);
+    else if (p.kind === 'slash') resolveSlash(world, p, damage);
     else if (p.kind === 'bolt') resolveBolt(world, p, damage);
 
     if (p.ttlMs <= 0 || p.pierce < 0) {
       p.hitSerials.length = 0;
+      p.hostile = false;
       world.projectiles.free(p);
     }
   });
+}
+
+/** Enemy fire: one hit on the player ends the bolt; it never touches enemies. */
+function resolveHostile(world: World, p: Projectile, hurtPlayer: HurtPlayerFn): void {
+  const pl = world.player;
+  const rr = p.radius + PLAYER_RADIUS;
+  const dx = pl.x - p.x;
+  const dy = pl.y - p.y;
+  if (dx * dx + dy * dy > rr * rr) return;
+  hurtPlayer(p.damage, 'bolt');
+  p.pierce = -1; // recycled by the caller
 }
 
 function resolveSlash(world: World, p: Projectile, damage: DamageFn): void {

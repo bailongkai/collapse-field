@@ -8,7 +8,7 @@ import { setPlayerInput, stepPlayer } from './systems/playerSystem';
 import { applyKnockback, stepEnemies } from './systems/enemySystem';
 import { stepSeparation } from './systems/separationSystem';
 import { Spawner, spawnEnemy, spawnRingRadius, type SpawnOptions } from './systems/spawnSystem';
-import { stepContact } from './systems/collisionSystem';
+import { applyPlayerDamage, stepContact } from './systems/collisionSystem';
 import { dropForEnemy } from './systems/dropSystem';
 import { stepWeapons } from './systems/weaponSystem';
 import { stepProjectiles } from './systems/projectileSystem';
@@ -220,7 +220,14 @@ export class Simulation {
     this.weaponCtx.stats = stats;
     this.weaponCtx.rng = world.rng;
     stepWeapons(world.weaponInstances, this.weaponCtx, FIXED_DT_MS);
-    stepProjectiles(world, FIXED_DT_MS, (e, dmg, dx, dy, kb) => this.damageEnemy(e, dmg, dx, dy, kb));
+    stepProjectiles(
+      world,
+      FIXED_DT_MS,
+      (e, dmg, dx, dy, kb) => this.damageEnemy(e, dmg, dx, dy, kb),
+      (raw, source) => {
+        if (applyPlayerDamage(world, stats, run.god, raw, source) > 0) this.onPlayerHurt(false);
+      },
+    );
 
     const contact = stepContact(world, stats, run.god);
     if (contact.damage > 0 || contact.fatal) this.onPlayerHurt(contact.fatal);
@@ -318,11 +325,59 @@ export class Simulation {
         world.events.push('nuke', c.x, c.y, this.killAllOnScreen(), c.def.id);
         break;
       case 'chest': {
+        // a chest evolves an eligible weapon in preference to handing out levels
+        const evolved = this.evolveEligibleWeapon();
+        if (evolved) {
+          world.events.push('chest', c.x, c.y, 0, c.def.id, true);
+          break;
+        }
         const upgraded = this.grantWeaponLevels(effect.weaponLevels);
         world.events.push('chest', c.x, c.y, upgraded, c.def.id, true);
         break;
       }
     }
+  }
+
+  /** A weapon that can evolve right now: maxed, with its paired passive owned. */
+  evolvableWeapon(): { id: string; into: string } | null {
+    for (const w of this.run.weapons) {
+      const def = this.reg.weapons[w.id];
+      const evo = def?.evolution;
+      if (!evo || w.level < def.maxLevel) continue;
+      if (!this.run.passives.some((p) => p.id === evo.requires)) continue;
+      if (!this.reg.weapons[evo.into]) continue;
+      return { id: w.id, into: evo.into };
+    }
+    return null;
+  }
+
+  /** Replaces the first evolvable weapon with its evolution, in the same slot. Returns the new id. */
+  evolveEligibleWeapon(): string | null {
+    const target = this.evolvableWeapon();
+    if (!target) return null;
+    const into = this.reg.weapons[target.into];
+    const owned = this.run.weapons.find((w) => w.id === target.id)!;
+    owned.id = target.into;
+    owned.level = into.maxLevel; // evolutions do not level; treating them as maxed keeps them off the offer
+    const inst = this.world.weaponInstances.find((i) => i.defId === target.id);
+    if (inst) {
+      inst.defId = target.into;
+      inst.level = into.maxLevel;
+      inst.cooldownLeft = 0;
+      inst.volleyLeft = 0;
+      inst.activeCount = 0;
+      inst.lastHitTick.fill(-1e9);
+    }
+    // any drones or bolts the old weapon owned are recycled, so the evolution starts clean
+    this.world.projectiles.forEach((p) => {
+      if (!p.hostile && inst && p.weaponSlot === inst.slot) {
+        p.hitSerials.length = 0;
+        this.world.projectiles.free(p);
+      }
+    });
+    this.refreshStats();
+    this.world.events.push('evolve', this.world.player.x, this.world.player.y, 0, target.into, true);
+    return target.into;
   }
 
   /** Chest reward: raises random owned weapons that are not yet maxed. */

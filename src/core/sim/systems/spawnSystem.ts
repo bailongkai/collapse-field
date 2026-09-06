@@ -68,8 +68,11 @@ export function spawnEnemy(world: World, defId: string, o: SpawnOptions = {}): E
   e.lineSpeed = def.speed * (o.speedMult ?? 1);
   // line enemies are removed by position once they have crossed the view; this is only a safety
   // net for one that somehow never does, so it is far longer than any crossing
-  e.lifeMs = 40000;
+  e.lifeMs = def.behavior === 'boss' && def.boss ? def.boss.chargeEveryMs : 40000;
   e.facing = 0;
+  e.aiState = 0;
+  e.aiTimer = 0;
+  e.aiTimer2 = 0;
   world.onEnemySpawn(e.id);
   world.events.push('spawn', e.x, e.y, 0, defId);
   return e;
@@ -79,9 +82,11 @@ export function spawnEnemy(world: World, defId: string, o: SpawnOptions = {}): E
 export function spawnRing(world: World, defId: string, n: number, radius: number, o: SpawnOptions = {}): number {
   let spawned = 0;
   const phase = world.rng.next() * Math.PI * 2;
+  const cx = o.x ?? world.player.x;
+  const cy = o.y ?? world.player.y;
   for (let i = 0; i < n; i++) {
     const a = phase + (i / n) * Math.PI * 2;
-    const e = spawnEnemy(world, defId, { ...o, x: world.player.x + Math.cos(a) * radius, y: world.player.y + Math.sin(a) * radius });
+    const e = spawnEnemy(world, defId, { ...o, x: cx + Math.cos(a) * radius, y: cy + Math.sin(a) * radius });
     if (!e) break;
     spawned++;
   }

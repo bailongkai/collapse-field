@@ -50,13 +50,13 @@ export class ProjectileView {
         continue;
       }
 
-      const weaponId = weaponIdBySlot[p.weaponSlot];
+      const weaponId = p.hostile ? null : weaponIdBySlot[p.weaponSlot];
       const visual = weaponId ? weaponDef(weaponId).visual : null;
-      const frame = visual?.frame ?? (additive ? 'fx_slash' : 'bolt_laser');
+      const frame = p.hostile ? 'bolt_acid' : (visual?.frame ?? (additive ? 'fx_slash' : 'bolt_laser'));
       if (this.frames[p.id] !== frame) {
         this.frames[p.id] = frame;
         img.setFrame(frame);
-        if (visual?.tint !== undefined) img.setTint(visual.tint);
+        img.setTint(p.hostile ? 0x9dff5a : (visual?.tint ?? 0xffffff));
       }
       img.setVisible(true);
       img.setPosition(p.x, p.y);

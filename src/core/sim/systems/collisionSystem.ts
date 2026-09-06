@@ -20,6 +20,20 @@ const CONTACT_SLACK = 14;
  * Enemy-versus-player contact. One damage instance per step at most: the first overlapping enemy
  * lands the hit and starts the i-frame window. The reaper is exempt from every mitigation.
  */
+/**
+ * Applies one instance of damage to the player with armor, i-frames and god mode, and reports the
+ * amount dealt. Shared by contact and enemy fire so the two can never drift apart.
+ */
+export function applyPlayerDamage(world: World, stats: PlayerStats, god: boolean, raw: number, sourceId: string): number {
+  const p = world.player;
+  if (p.iframesMs > 0 || god) return 0;
+  const dmg = Math.max(1, Math.round(raw - stats.armor));
+  p.hp -= dmg;
+  p.iframesMs = IFRAME_MS;
+  world.events.push('hurt', p.x, p.y, dmg, sourceId, dmg >= stats.maxHealth * 0.2);
+  return dmg;
+}
+
 export function stepContact(world: World, stats: PlayerStats, god: boolean): ContactResult {
   const p = world.player;
   const out: ContactResult = { damage: 0, fatal: false };
@@ -51,15 +65,8 @@ export function stepContact(world: World, stats: PlayerStats, god: boolean): Con
     return out;
   }
 
-  if (p.iframesMs > 0 || hitEnemyIndex < 0) return out;
-  if (god) return out;
-
+  if (hitEnemyIndex < 0) return out;
   const e = world.enemies.items[hitEnemyIndex];
-  const raw = e.def!.damage * e.dmgMult;
-  const dmg = Math.max(1, Math.round(raw - stats.armor));
-  p.hp -= dmg;
-  p.iframesMs = IFRAME_MS;
-  out.damage = dmg;
-  world.events.push('hurt', p.x, p.y, dmg, e.defId, dmg >= stats.maxHealth * 0.2);
+  out.damage = applyPlayerDamage(world, stats, god, e.def!.damage * e.dmgMult, e.defId);
   return out;
 }
