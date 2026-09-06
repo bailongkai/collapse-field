@@ -57,6 +57,11 @@ The starting weapon fires from the first tick, so a test that measures a crowd
 has to account for it. `tests/unit/horde.test.ts` strips the weapons for exactly
 this reason.
 
+Touch input needs `input.activePointers` above the default of one, or a second
+finger never reaches a button while the virtual stick is held. `tests/e2e/
+mobile.spec.ts` covers that with real multi-finger events; it fails if the
+config is dropped.
+
 When gating on a command's exit status, do not pipe it into `head` or `tail`:
 the pipeline reports the last command's status and a failing test run will look
 like a pass.

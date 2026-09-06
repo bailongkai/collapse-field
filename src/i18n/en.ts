@@ -14,6 +14,8 @@ export const en: Partial<Record<I18nKey, string>> = {
   'settings.lang.zh': '中文',
   'settings.lang.en': 'English',
   'common.back': 'Back',
+  'orientation.rotate': 'Please rotate your device',
+  'orientation.hint': 'Turn it landscape to play',
   'common.loading': 'Loading…',
   'common.ok': 'OK',
   'hud.kills': 'Kills',

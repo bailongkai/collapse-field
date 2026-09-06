@@ -4,6 +4,8 @@ import { formatTime, onLocaleChanged, t } from '../../i18n';
 import { textStyle, COLORS } from '../ui/textStyles';
 import { DIGIT_FONT_KEY } from '../fonts/retroDigits';
 import { IconRow } from '../ui/iconRow';
+import { UiButton } from '../ui/button';
+import { app } from '../app';
 import type { GameScene } from './GameScene';
 
 /** Screen-space HUD. Runs in parallel with GameScene and only redraws when a value changes. */
@@ -21,7 +23,9 @@ export class HudScene extends Phaser.Scene {
   private weaponRow!: IconRow;
   private passiveRow!: IconRow;
   private last = { time: -1, level: -1, kills: -1, xp: -1, build: '' };
+  private pauseButton: UiButton | null = null;
   private offLocale: (() => void) | null = null;
+  private offTouch: (() => void) | null = null;
 
   constructor() {
     super('Hud');
@@ -41,6 +45,19 @@ export class HudScene extends Phaser.Scene {
     this.bossName = this.add.text(GAME_W / 2, GAME_H - 58, '', textStyle(16, { bold: true, color: COLORS.warn })).setOrigin(0.5).setVisible(false);
     this.toast = this.add.text(GAME_W / 2, 120, '', textStyle(22, { bold: true, color: COLORS.gold, stroke: true })).setOrigin(0.5).setVisible(false);
 
+    // touch players have no Escape key, so they get a button once touch is detected
+    const touch = app().touch;
+    this.pauseButton = new UiButton(this, GAME_W - 60, 130, {
+      id: 'hud.pause',
+      label: '❚❚',
+      width: 72,
+      height: 56,
+      fontSize: 22,
+      onPress: () => (this.scene.get('Game') as GameScene | undefined)?.openPause(),
+    });
+    this.pauseButton.setVisible(touch.active);
+    this.offTouch = touch.onChange((on) => this.pauseButton?.setVisible(on));
+
     this.weaponRow = new IconRow(this, 34, 52, 6, 32);
     this.passiveRow = new IconRow(this, 34, 92, 6, 32);
 
@@ -51,6 +68,9 @@ export class HudScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.offLocale?.();
       this.offLocale = null;
+      this.offTouch?.();
+      this.offTouch = null;
+      this.pauseButton = null;
     });
   }
 

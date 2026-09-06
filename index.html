@@ -2,14 +2,53 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="theme-color" content="#05070c" />
     <title>星际幸存者</title>
     <!-- inline empty icon: stops the browser requesting /favicon.ico, which would log a 404 -->
     <link rel="icon" href="data:," />
     <style>
-      html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+      html, body {
+        margin: 0;
+        height: 100%;
+        background: #000;
+        overflow: hidden;
+        /* a game canvas must never scroll, zoom or show a tap flash under a finger */
+        touch-action: none;
+        overscroll-behavior: none;
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+      }
       #app { width: 100%; height: 100%; }
-      canvas { display: block; }
+      canvas { display: block; touch-action: none; }
+
+      /* portrait guard: the game is laid out for landscape */
+      #orientation-gate {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        background: #05070c;
+        color: #e8f1ff;
+        font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        text-align: center;
+        padding: 24px;
+      }
+      #orientation-gate.visible { display: flex; }
+      #orientation-gate .rotate-icon { font-size: 64px; color: #4fe0ff; animation: rotate-hint 2.4s ease-in-out infinite; }
+      #orientation-gate .rotate-title { margin: 0; font-size: 22px; font-weight: bold; }
+      #orientation-gate .rotate-hint { margin: 0; font-size: 15px; color: #9fb3c8; }
+      @keyframes rotate-hint {
+        0%, 40% { transform: rotate(0deg); }
+        60%, 100% { transform: rotate(90deg); }
+      }
     </style>
   </head>
   <body>

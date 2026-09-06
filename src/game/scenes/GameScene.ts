@@ -6,6 +6,7 @@ import { DEFAULT_STAGE_ID } from '../../data/stages';
 import type { EnemyBehaviorId, StatKey } from '../../data/types';
 import type { RunEnd } from '../../core/sim/runState';
 import { InputController } from '../input/inputController';
+import { VirtualJoystick } from '../input/touchControls';
 import { FloorView } from '../view/floorView';
 import { PlayerView } from '../view/playerView';
 import { EnemyView } from '../view/enemyView';
@@ -32,6 +33,8 @@ export interface GameSceneData {
 export class GameScene extends Phaser.Scene {
   sim!: Simulation;
   private input_!: InputController;
+  private joystick!: VirtualJoystick;
+  private offTouch: (() => void) | null = null;
   private floorView!: FloorView;
   private playerView!: PlayerView;
   private enemyView!: EnemyView;
@@ -84,6 +87,12 @@ export class GameScene extends Phaser.Scene {
     this.damageNumbers = new DamageNumbers(this, this.layers.numbers);
     this.fxView = new FxView(this, this.layers.fx);
     this.input_ = new InputController(this);
+    // the stick draws above every world layer but below the HUD scene
+    this.joystick = new VirtualJoystick(this, 1000);
+    this.input_.setJoystick(this.joystick);
+    const touch = app().touch;
+    this.joystick.setEnabled(touch.active);
+    this.offTouch = touch.onChange((on) => this.joystick.setEnabled(on));
 
     this.cameras.main.startFollow(this.playerView.gameObject, true, 0.12, 0.12);
     this.cameras.main.centerOn(0, 0);
@@ -110,6 +119,9 @@ export class GameScene extends Phaser.Scene {
     this.scene.stop('LevelUp');
     this.scene.stop('Pause');
     this.profiler.detach();
+    this.offTouch?.();
+    this.offTouch = null;
+    this.joystick.destroy();
     window.__game?.detach();
     this.floorView.destroy();
     this.playerView.destroy();

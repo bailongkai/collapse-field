@@ -23,11 +23,15 @@ the mothership comes at 5:00 and 10:00, and at 15:00 an invulnerable reaper
 arrives and ends the run however strong you are. Killing enemies drops XP; each
 level offers three upgrades to pick from.
 
-| | |
-|---|---|
-| Move | WASD or the arrow keys, gamepad stick |
-| Pause | Esc or P |
-| Level-up | 1-4, or arrows and Enter |
+| | Desktop | Touch |
+|---|---|---|
+| Move | WASD, arrow keys, gamepad stick | virtual stick: press anywhere in the lower screen and drag |
+| Pause | Esc or P | the button in the top right |
+| Level-up | 1-4, or arrows and Enter | tap a card |
+
+On a phone the game wants landscape; held upright it asks to be rotated. The
+touch controls stay hidden until the screen is actually touched, so a laptop
+with a touchscreen is not cluttered with them. `?touch=1` forces them on.
 
 Five weapons (等离子刃, 制导激光, 磁轨炮, 轨道无人机, EMP力场) and five passives,
 each to level 8 and 5 respectively, in six slots each.
@@ -56,9 +60,13 @@ read frame timings. Every Playwright spec drives the game through it.
 ## Verifying a change
 
 ```bash
-npm run verify     # types, lint, unit tests, functional specs, performance gates
+npm run verify     # types, lint, unit tests, functional specs, touch specs, performance gates
 npm run bench      # the same performance spec headed, on a real GPU
 ```
+
+Touch specs run against an emulated phone in landscape and drive the game with
+synthesised multi-finger touch events, so holding the stick while tapping a
+button is covered rather than assumed.
 
 Measured on an Apple M4 with 500 enemies, five maxed weapons and 300 gems on the
 field: simulation 0.22 ms, sprite sync 0.14 ms, render 0.55 ms, median frame

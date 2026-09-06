@@ -12,8 +12,10 @@ import { PauseScene } from './game/scenes/PauseScene';
 import { SettingsScene } from './game/scenes/SettingsScene';
 import { ResultsScene } from './game/scenes/ResultsScene';
 import { contentSummary } from './data';
+import { installOrientationGate } from './game/orientation';
 
 initApp();
+installOrientationGate();
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.WEBGL,
@@ -22,7 +24,9 @@ const config: Phaser.Types.Core.GameConfig = {
   height: GAME_H,
   backgroundColor: '#05070c',
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH, parent: 'app', width: GAME_W, height: GAME_H },
-  input: { gamepad: true },
+  // three simultaneous pointers: a thumb on the virtual stick, a second finger for a button, spare
+  // three simultaneous pointers: a thumb on the virtual stick, a second finger for a button, spare
+  input: { gamepad: true, activePointers: 3 },
   render: { antialias: true, roundPixels: false },
   fps: { target: 60, forceSetTimeOut: false },
   scene: [BootScene, PreloadScene, MenuScene, GameScene, HudScene, LevelUpScene, PauseScene, SettingsScene, ResultsScene],

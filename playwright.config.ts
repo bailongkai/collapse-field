@@ -1,4 +1,4 @@
-import { defineConfig } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
 
 /**
  * Headless Chromium has no real GPU, so WebGL falls back to SwiftShader. These flags make that
@@ -12,6 +12,7 @@ const HEADLESS_GL_ARGS = [
 ];
 
 const PERF_SPECS = ['**/perf.spec.ts', '**/afk.spec.ts'];
+const MOBILE_SPECS = ['**/mobile.spec.ts'];
 
 export default defineConfig({
   testDir: 'tests/e2e',
@@ -35,7 +36,17 @@ export default defineConfig({
   },
   projects: [
     // functional specs; safe to parallelise
-    { name: 'default', testIgnore: PERF_SPECS, workers: 4 },
+    { name: 'default', testIgnore: [...PERF_SPECS, ...MOBILE_SPECS], workers: 4 },
+    // a phone held landscape, with a real touchscreen and no keyboard
+    {
+      name: 'mobile',
+      testMatch: MOBILE_SPECS,
+      workers: 2,
+      use: {
+        ...devices['Pixel 7 landscape'],
+        launchOptions: { args: HEADLESS_GL_ARGS },
+      },
+    },
     // timing-sensitive specs: one worker, because measuring CPU time next to three other browsers
     // measures the machine's load, not the game
     { name: 'perf', testMatch: PERF_SPECS, workers: 1, timeout: 10 * 60_000 },

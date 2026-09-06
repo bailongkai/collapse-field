@@ -1,10 +1,12 @@
 import type Phaser from 'phaser';
+import type { VirtualJoystick } from './touchControls';
 
-/** Keyboard, gamepad and the debug-hook override collapsed into one direction vector. */
+/** Keyboard, gamepad, virtual stick and the debug-hook override collapsed into one direction. */
 export class InputController {
   private keys: Record<string, Phaser.Input.Keyboard.Key> = {};
   private override: { x: number; y: number } | null = null;
   private scene: Phaser.Scene;
+  private joystick: VirtualJoystick | null = null;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -12,6 +14,10 @@ export class InputController {
     if (kb) {
       this.keys = kb.addKeys('W,A,S,D,UP,LEFT,DOWN,RIGHT') as Record<string, Phaser.Input.Keyboard.Key>;
     }
+  }
+
+  setJoystick(joystick: VirtualJoystick | null): void {
+    this.joystick = joystick;
   }
 
   /** Sets a fixed direction that replaces real input until (0, 0) is passed. */
@@ -25,6 +31,11 @@ export class InputController {
 
   read(): { x: number; y: number } {
     if (this.override) return this.override;
+    // the virtual stick wins while it is being held: on a phone it is the only input there is
+    if (this.joystick?.isActive()) {
+      const dir = this.joystick.read();
+      if (dir.x !== 0 || dir.y !== 0) return dir;
+    }
     let x = 0;
     let y = 0;
     const k = this.keys;
@@ -44,5 +55,9 @@ export class InputController {
 
   reset(): void {
     this.scene.input.keyboard?.resetKeys();
+  }
+
+  hasTouchInput(): boolean {
+    return this.joystick?.isEnabled() ?? false;
   }
 }
