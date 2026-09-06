@@ -1,10 +1,17 @@
-import { FIXED_DT, FIXED_DT_MS, RUN_SECONDS } from '../../config';
-import type { PlayerStats, StatBlock, StatKey } from '../../data/types';
+import { FIXED_DT, FIXED_DT_MS, GAME_H, GAME_W, RUN_SECONDS } from '../../config';
+import type { PlayerStats, StatKey } from '../../data/types';
 import { CONTENT, characterDef, stageDef, type ContentRegistry } from '../content/registry';
 import { composeStats } from '../stats/composeStats';
 import { xpToReach } from '../stats/xpCurve';
 import { World } from './world';
 import { setPlayerInput, stepPlayer } from './systems/playerSystem';
+import { applyKnockback, stepEnemies } from './systems/enemySystem';
+import { stepSeparation } from './systems/separationSystem';
+import { Spawner, spawnEnemy, spawnRingRadius, type SpawnOptions } from './systems/spawnSystem';
+import { stepContact } from './systems/collisionSystem';
+import { dropForEnemy } from './systems/dropSystem';
+import type { Enemy } from './entities/enemy';
+import { PLAYER_BASE_SPEED } from '../../config';
 import type { LevelUpChoice, OwnedItem, RunEnd, RunPhase } from './runState';
 
 export interface SimulationOptions {
@@ -45,9 +52,10 @@ export class Simulation {
   readonly world: World;
   readonly reg: ContentRegistry = CONTENT;
   readonly run: RunState;
-  /** extra stat block applied by the debug hook's setStat */
-  private statOverrides: Record<string, number> = {};
+  /** debug-hook overrides: each key forces that stat to an exact value */
+  private forcedStats: Partial<Record<StatKey, number>> = {};
   private cachedStats: PlayerStats;
+  private spawner = new Spawner();
 
   constructor(opts: SimulationOptions) {
     this.world = new World(opts.seed);
@@ -90,7 +98,12 @@ export class Simulation {
   }
 
   private computeStats(): PlayerStats {
-    return composeStats(this.character, this.run.passives, this.reg, this.run.level, this.statOverrides as StatBlock);
+    const stats = composeStats(this.character, this.run.passives, this.reg, this.run.level);
+    const forced = this.forcedStats;
+    if (Object.keys(forced).length === 0) return stats;
+    const out = { ...stats } as Record<StatKey, number>;
+    for (const k of Object.keys(forced) as StatKey[]) out[k] = forced[k] as number;
+    return out;
   }
 
   /** Recomputes derived stats after a build change; keeps current HP but respects the new maximum. */
@@ -103,8 +116,9 @@ export class Simulation {
     this.run.hp = this.world.player.hp;
   }
 
+  /** Debug/test hook: pins a stat to an exact value until the run ends. */
   setStatOverride(key: StatKey, value: number): void {
-    this.statOverrides[key] = value;
+    this.forcedStats[key] = value;
     this.refreshStats();
   }
 
@@ -117,23 +131,101 @@ export class Simulation {
     if (this.run.phase !== 'running') return false;
     const dt = FIXED_DT;
     const { world, run } = this;
+    const stage = this.stage;
+    const stats = this.cachedStats;
 
     run.timeMs += FIXED_DT_MS;
     run.tick++;
 
-    stepPlayer(world.player, this.cachedStats, dt);
-
+    stepPlayer(world.player, stats, dt);
+    this.spawner.step(world, stage, run.timeMs, stats.curse, dt);
+    stepEnemies(world, world.player, dt, PLAYER_BASE_SPEED * stats.moveSpeed);
     world.rebuildGrid();
+    stepSeparation(world, world.rng, GAME_W, GAME_H);
 
-    run.hp = world.player.hp;
+    const contact = stepContact(world, stats, run.god, dt);
+    if (contact.damage > 0 || contact.fatal) this.onPlayerHurt(contact.fatal);
 
-    if (run.timeMs >= RUN_SECONDS * 1000 && !run.reaperSpawned) {
-      // the reaper event itself is added in M7; until then the timer simply ends the run
+    if (run.phase === 'running' && run.timeMs >= RUN_SECONDS * 1000) {
       run.phase = 'ended';
       run.ended = 'survived';
       world.events.push('survived', world.player.x, world.player.y, run.timeMs / 1000);
     }
+
+    run.hp = world.player.hp;
     return true;
+  }
+
+  /** Death check, with revival spending a charge and clearing the screen instead of ending the run. */
+  private onPlayerHurt(fatal: boolean): void {
+    const { run, world } = this;
+    if (world.player.hp > 0) return;
+    if (!fatal && this.cachedStats.revival > run.revivalsUsed) {
+      run.revivalsUsed++;
+      world.player.hp = Math.round(this.cachedStats.maxHealth * 0.5);
+      world.player.iframesMs = 2000;
+      this.killAllOnScreen();
+      world.events.push('revive', world.player.x, world.player.y, run.revivalsUsed);
+      return;
+    }
+    world.player.hp = 0;
+    run.hp = 0;
+    run.phase = 'ended';
+    run.ended = 'died';
+    world.events.push('died', world.player.x, world.player.y, run.timeMs / 1000);
+  }
+
+  /** Damage entry point shared by every weapon; handles knockback, flash, death and drops. */
+  damageEnemy(e: Enemy, dmg: number, dirX: number, dirY: number, knockback: number): void {
+    const def = e.def;
+    if (!def || def.invulnerable) return;
+    const rounded = Math.max(1, Math.round(dmg));
+    e.hp -= rounded;
+    e.flashMs = 80;
+    if (knockback > 0) applyKnockback(e, dirX, dirY, knockback * 240);
+    this.world.events.push('hit', e.x, e.y, rounded, e.defId, rounded >= e.maxHp * 0.5);
+    if (e.hp <= 0) this.killEnemy(e);
+  }
+
+  killEnemy(e: Enemy): void {
+    if (!e.active || !e.def) return;
+    const isBoss = e.behavior === 'boss';
+    this.run.kills++;
+    this.world.events.push('death', e.x, e.y, 0, e.defId, e.def.deathFx === 'big');
+    dropForEnemy(this.world, e, this.stage.gemCap);
+    if (isBoss) this.world.events.push('bossKilled', e.x, e.y, 0, e.defId, true);
+    this.world.enemies.free(e);
+  }
+
+  /** Kills every vulnerable enemy currently on screen (EMP pickup, revival). */
+  killAllOnScreen(): number {
+    let killed = 0;
+    this.world.enemies.forEach((e) => {
+      if (e.def?.invulnerable) return;
+      this.killEnemy(e);
+      killed++;
+    });
+    return killed;
+  }
+
+  /** Test/debug helper: place `n` enemies of `defId`, on the off-screen ring by default. */
+  spawn(defId: string, n: number, o: { ring?: boolean; radius?: number | 'offscreen'; x?: number; y?: number } = {}): number {
+    const stage = this.stage;
+    const ringR = spawnRingRadius(stage);
+    let spawned = 0;
+    for (let i = 0; i < n; i++) {
+      let opts: SpawnOptions;
+      if (o.x !== undefined || o.y !== undefined) {
+        opts = { x: o.x, y: o.y };
+      } else {
+        const radius = o.radius === 'offscreen' || o.radius === undefined ? (o.ring === false ? 200 : ringR) : o.radius;
+        const a = (i / Math.max(1, n)) * Math.PI * 2 + this.world.rng.next() * 0.1;
+        opts = { x: this.world.player.x + Math.cos(a) * radius, y: this.world.player.y + Math.sin(a) * radius };
+      }
+      if (!spawnEnemy(this.world, defId, opts)) break;
+      spawned++;
+    }
+    return spawned;
   }
 
   /** Runs `n` ticks, stopping early if the run leaves the running phase. Returns ticks executed. */

@@ -55,12 +55,20 @@ describe('Simulation', () => {
     expect(s.run.timeMs).toBeGreaterThan(t0);
   });
 
-  it('applies moveSpeed to travel distance', () => {
+  it('setStatOverride pins a stat to an exact value and scales travel distance', () => {
     const s = newSim();
     s.setStatOverride('moveSpeed', 0.5);
+    expect(s.stats.moveSpeed).toBe(0.5);
     s.setInput(1, 0);
     s.stepMany(60);
-    expect(s.world.player.x).toBeCloseTo(PLAYER_BASE_SPEED * 1.5, 1);
+    expect(s.world.player.x).toBeCloseTo(PLAYER_BASE_SPEED * 0.5, 1);
+  });
+
+  it('the player stands still until given input', () => {
+    const s = newSim();
+    s.stepMany(120);
+    expect(s.world.player.x).toBe(0);
+    expect(s.world.player.y).toBe(0);
   });
 
   it('regenerates health in whole points using the fractional carry', () => {

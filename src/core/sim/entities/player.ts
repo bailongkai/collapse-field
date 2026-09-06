@@ -3,7 +3,7 @@ export interface Player {
   y: number;
   hp: number;
   facing: number;
-  /** last input direction, normalised */
+  /** last input direction, normalised; zero means standing still */
   inputX: number;
   inputY: number;
   iframesMs: number;
@@ -12,5 +12,5 @@ export interface Player {
 }
 
 export function createPlayer(): Player {
-  return { x: 0, y: 0, hp: 100, facing: 0, inputX: 1, inputY: 0, iframesMs: 0, healFraction: 0 };
+  return { x: 0, y: 0, hp: 100, facing: 0, inputX: 0, inputY: 0, iframesMs: 0, healFraction: 0 };
 }

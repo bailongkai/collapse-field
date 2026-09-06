@@ -8,6 +8,7 @@ import type { RunEnd } from '../../core/sim/runState';
 import { InputController } from '../input/inputController';
 import { FloorView } from '../view/floorView';
 import { PlayerView } from '../view/playerView';
+import { EnemyView } from '../view/enemyView';
 import { Profiler } from '../../debug/profiler';
 import type { FrameStats, HookRunState, RunHandlers } from '../../debug/hook';
 import { rendererString } from '../../debug/hook';
@@ -26,6 +27,7 @@ export class GameScene extends Phaser.Scene {
   private input_!: InputController;
   private floorView!: FloorView;
   private playerView!: PlayerView;
+  private enemyView!: EnemyView;
   private profiler = new Profiler();
   private accumulator = 0;
   private timeScale = 1;
@@ -56,6 +58,7 @@ export class GameScene extends Phaser.Scene {
 
     this.floorView = new FloorView(this, this.sim.stage, this.layers.floor, this.layers.decor);
     this.playerView = new PlayerView(this, this.sim.character, this.layers.player);
+    this.enemyView = new EnemyView(this, this.layers.enemies);
     this.input_ = new InputController(this);
 
     this.cameras.main.startFollow(this.playerView.gameObject, true, 0.12, 0.12);
@@ -86,6 +89,7 @@ export class GameScene extends Phaser.Scene {
     window.__game?.detach();
     this.floorView.destroy();
     this.playerView.destroy();
+    this.enemyView.destroy();
   }
 
   openPause(): void {
@@ -143,7 +147,33 @@ export class GameScene extends Phaser.Scene {
     const p = this.sim.world.player;
     this.playerView.update(p, this.sim.run.hp, this.sim.stats.maxHealth, deltaMs);
     this.floorView.update(cam.midPoint.x, cam.midPoint.y, cam.scrollX, cam.scrollY);
-    this.sim.world.events.clear();
+    this.enemyView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y);
+    this.drainEvents();
+  }
+
+  /** Turns simulation events into presentation: shake, flashes and sounds, then clears the ring. */
+  private drainEvents(): void {
+    const buf = this.sim.world.events;
+    for (let i = 0; i < buf.length; i++) {
+      const e = buf.at(i);
+      switch (e.type) {
+        case 'hurt':
+          this.playerView.flashHurt();
+          this.cameras.main.shake(150, 0.006);
+          sfx.play('hurt');
+          break;
+        case 'death':
+          sfx.play(e.big ? 'explode' : 'death');
+          break;
+        case 'hit':
+          if (e.big) this.cameras.main.shake(120, 0.004);
+          sfx.play('hit');
+          break;
+        default:
+          break;
+      }
+    }
+    buf.clear();
   }
 
   // --- debug hook ------------------------------------------------------------
@@ -228,11 +258,13 @@ export class GameScene extends Phaser.Scene {
         this.sim.world.player.x = x;
         this.sim.world.player.y = y;
       },
-      spawn: () => this.notImplemented('spawn'),
+      spawn: (id: string, n: number, o) => this.sim.spawn(id, n, o),
       spawnBoss: () => this.notImplemented('spawnBoss'),
       spawnReaper: () => this.notImplemented('spawnReaper'),
       despawnReaper: () => this.notImplemented('despawnReaper'),
-      killAll: () => this.notImplemented('killAll'),
+      killAll: () => {
+        this.sim.killAllOnScreen();
+      },
       clearEnemies: () => this.sim.world.enemies.clear(),
       triggerEvent: () => this.notImplemented('triggerEvent'),
       spawnGems: () => this.notImplemented('spawnGems'),

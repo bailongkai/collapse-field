@@ -43,7 +43,7 @@ export class World {
     p.x = 0;
     p.y = 0;
     p.facing = 0;
-    p.inputX = 1;
+    p.inputX = 0;
     p.inputY = 0;
     p.iframesMs = 0;
     p.healFraction = 0;
