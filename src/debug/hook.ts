@@ -155,16 +155,15 @@ export function installHook(game: Phaser.Game, contentProvider: () => GameDebugA
     },
     async startRun(o = {}) {
       const seed = o.seed ?? app().seed ?? (Date.now() >>> 0);
-      const current = game.scene.getScenes(true);
-      for (const s of current) if (s.scene.key !== 'Boot' && s.scene.key !== 'Preload') s.scene.stop();
+      // Phaser processes scene starts and stops on frame boundaries, so tearing the old run down
+      // and starting the new one in the same tick can leave the scene stack half-dismantled.
+      for (const s of game.scene.getScenes(true)) {
+        if (s.scene.key !== 'Boot' && s.scene.key !== 'Preload') s.scene.stop();
+      }
+      await nextFrame(game);
       game.scene.start('Game', { seed, characterId: o.characterId, stageId: o.stageId });
-      await new Promise<void>((resolveReady) => {
-        const check = () => {
-          if (run && api.scene() === 'game') resolveReady();
-          else setTimeout(check, 16);
-        };
-        check();
-      });
+      await waitFor(() => run !== null && api.scene() === 'game');
+      await nextFrame(game); // let GameScene.create finish launching the HUD
     },
     getEvents() {
       return events.slice();
@@ -256,6 +255,25 @@ export function installHook(game: Phaser.Game, contentProvider: () => GameDebugA
   };
   window.__game = api;
   return api;
+}
+
+/** Resolves after the next game step, once Phaser has drained its scene queue. */
+function nextFrame(game: Phaser.Game): Promise<void> {
+  return new Promise<void>((resolve) => {
+    game.events.once('poststep', () => resolve());
+  });
+}
+
+function waitFor(predicate: () => boolean, timeoutMs = 10_000): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    const started = Date.now();
+    const check = (): void => {
+      if (predicate()) resolve();
+      else if (Date.now() - started > timeoutMs) reject(new Error('timed out waiting for the run to start'));
+      else setTimeout(check, 16);
+    };
+    check();
+  });
 }
 
 export function rendererString(game: Phaser.Game): string {

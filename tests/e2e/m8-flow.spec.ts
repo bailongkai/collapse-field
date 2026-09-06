@@ -1,0 +1,92 @@
+import { test, expect } from '@playwright/test';
+import { openGame, snap, state, ff, waitScene, expectScenes } from './helpers';
+
+test('M8: menu to game to pause to results to menu, driven the way a player would', async ({ page }) => {
+  const errors = await openGame(page, '?test=1&seed=71');
+
+  expect(await page.evaluate(() => window.__game.ui.press('menu.start'))).toBe(true);
+  await waitScene(page, 'game');
+  await expectScenes(page, ['Game', 'Hud']);
+
+  await page.keyboard.press('Escape');
+  await waitScene(page, 'pause');
+  expect(await page.evaluate(() => window.__game.ui.press('pause.resume'))).toBe(true);
+  await waitScene(page, 'game');
+
+  await page.evaluate(() => window.__game.godMode(true));
+  await ff(page, 30);
+  expect((await state(page)).time).toBeGreaterThan(25);
+
+  await page.evaluate(() => window.__game.endRun('died'));
+  await waitScene(page, 'results');
+  expect(await page.evaluate(() => window.__game.ui.press('results.menu'))).toBe(true);
+  await waitScene(page, 'menu');
+
+  expect(errors, errors.join('\n')).toEqual([]);
+});
+
+test('M8: three runs in a row leave no scenes or listeners behind', async ({ page }) => {
+  const errors = await openGame(page, '?test=1&seed=81');
+
+  for (let run = 0; run < 3; run++) {
+    await page.evaluate((seed) => window.__game.startRun({ seed }), 100 + run);
+    await waitScene(page, 'game');
+    await expectScenes(page, ['Game', 'Hud']);
+
+    // the profiler must count one run's frames, not one per run ever started
+    await page.evaluate(() => window.__game.profile.start());
+    await page.evaluate(() => window.__game.step(120));
+    const frames = (await page.evaluate(() => window.__game.profile.stop())).frames;
+    expect(frames, `run ${run} counted ${frames} frames`).toBeLessThan(20);
+
+    const s = await state(page);
+    expect(s.kills).toBe(0);
+    expect(s.weapons).toEqual([{ id: 'plasmaBlade', level: 1 }]);
+
+    await page.evaluate(() => window.__game.endRun('died'));
+    await waitScene(page, 'results');
+    expect(await page.evaluate(() => window.__game.ui.press('results.retry'))).toBe(true);
+    await waitScene(page, 'game');
+  }
+
+  const save = await page.evaluate(() => window.__game.save.get());
+  expect(save.runsPlayed).toBe(3);
+  expect(errors, errors.join('\n')).toEqual([]);
+});
+
+test('M8: the settings screen switches the language across the whole interface', async ({ page }) => {
+  const errors = await openGame(page, '?test=1');
+
+  expect(await page.evaluate(() => window.__game.ui.press('menu.settings'))).toBe(true);
+  await page.waitForFunction(() => window.__game.ui.buttons().some((b) => b.id === 'settings.lang.en'));
+  await snap(page, 'm8-settings');
+
+  await page.evaluate(() => window.__game.ui.press('settings.lang.en'));
+  await page.waitForFunction(() => window.__game.i18n.getLocale() === 'en');
+  expect(await page.evaluate(() => window.__game.i18n.t('menu.start'))).toBe('Start');
+
+  await page.evaluate(() => window.__game.ui.press('settings.back'));
+  await waitScene(page, 'menu');
+  await snap(page, 'm8-menu-en');
+
+  // the choice is persisted
+  expect((await page.evaluate(() => window.__game.save.get())).settings.locale).toBe('en');
+
+  await page.evaluate(() => window.__game.i18n.setLocale('zh-CN'));
+  expect(errors, errors.join('\n')).toEqual([]);
+});
+
+test('M8: audio stays inside its caps during real play', async ({ page }) => {
+  const errors = await openGame(page, '?debug=1&seed=91');
+  await page.evaluate(() => window.__game.startRun({ seed: 91 }));
+  await waitScene(page, 'game');
+  await page.evaluate(() => {
+    window.__game.godMode(true);
+    window.__game.giveWeapon('railgun', 6);
+    window.__game.spawn('drone', 200, { radius: 200 });
+  });
+  await page.waitForTimeout(2500);
+  const perf = await page.evaluate(() => window.__game.getPerf());
+  expect(perf.activeSounds).toBeLessThanOrEqual(16);
+  expect(errors, errors.join('\n')).toEqual([]);
+});

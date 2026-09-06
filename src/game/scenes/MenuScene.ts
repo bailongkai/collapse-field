@@ -65,6 +65,7 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private openSettings(): void {
-    if (this.scene.get('Settings')) this.scene.launch('Settings');
+    this.scene.launch('Settings');
+    this.scene.bringToTop('Settings');
   }
 }
