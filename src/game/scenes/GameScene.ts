@@ -164,10 +164,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   /** Called by the overlay; applies the pick and closes or re-rolls in place. */
-  applyLevelUpChoice(index: number): void {
-    if (!this.sim.applyChoice(index)) return;
+  applyLevelUpChoice(index: number): boolean {
+    if (!this.sim.applyChoice(index)) return false;
     this.scene.stop('LevelUp');
     if (this.sim.run.phase === 'levelup') this.openLevelUpOverlay();
+    return true;
   }
 
   override update(_time: number, delta: number): void {
@@ -422,13 +423,20 @@ export class GameScene extends Phaser.Scene {
         const started = performance.now();
         let done = 0;
         while (done < total) {
-          // resolve any pending offer first, otherwise the run would sit frozen for the whole span
+          // Resolve every pending offer before stepping again, otherwise the run sits frozen for
+          // the rest of the span. Crossing two thresholds at once leaves the phase on 'levelup'
+          // after the first pick, so this has to drain the queue rather than assume one pick ends it.
           if (this.sim.run.phase === 'levelup') {
             if (policy === 'none') break;
-            const choices = this.sim.run.choices ?? [];
-            const index = policy === 'random' ? Math.floor(Math.random() * choices.length) : 0;
-            this.applyLevelUpChoice(index);
-            if (this.sim.run.phase === 'levelup') break; // policy could not resolve it
+            let picks = 0;
+            while (this.sim.run.phase === 'levelup' && picks < 64) {
+              const choices = this.sim.run.choices ?? [];
+              if (choices.length === 0) break;
+              const index = policy === 'random' ? Math.floor(Math.random() * choices.length) : 0;
+              if (!this.applyLevelUpChoice(index)) break;
+              picks++;
+            }
+            if (this.sim.run.phase === 'levelup') break; // genuinely stuck
           }
           if (this.sim.run.phase !== 'running') break;
           const chunk = Math.min(600, total - done);

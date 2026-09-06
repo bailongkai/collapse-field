@@ -44,7 +44,6 @@ describe('balance', () => {
 
   it('reports the curve', () => {
     for (const r of results) {
-      // eslint-disable-next-line no-console
       console.log(`seed ${r.seed}: ${r.survivedSec}s, level ${r.level}, ${r.kills} kills, build: ${r.build}`);
     }
     expect(results).toHaveLength(3);

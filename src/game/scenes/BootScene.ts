@@ -20,14 +20,25 @@ export class BootScene extends Phaser.Scene {
     this.scene.start('Preload');
   }
 
+  /**
+   * Registers the display font from public/ and waits for it, with a timeout. The font is loaded
+   * through the FontFace API rather than an @font-face rule so the path stays relative to the
+   * document, which keeps the game working when it is served from a subpath.
+   */
   private async loadFonts(): Promise<void> {
     if (typeof document === 'undefined' || !('fonts' in document)) return;
     const timeout = new Promise<void>((r) => setTimeout(r, 2000));
-    const loads = Promise.all([
-      document.fonts.load('32px kenvector_future'),
-      document.fonts.load('16px "PingFang SC"'),
-    ]).then(() => undefined);
-    await Promise.race([loads, timeout]);
+    const load = (async () => {
+      try {
+        const face = new FontFace('kenvector_future', "url('assets/fonts/kenvector_future.ttf')");
+        await face.load();
+        document.fonts.add(face);
+      } catch {
+        // the CJK stack is a system font and always available; the display font is decorative
+      }
+      await document.fonts.load('16px "PingFang SC"').catch(() => undefined);
+    })();
+    await Promise.race([load, timeout]);
   }
 
   /** Touch every Phaser 4-sensitive API once so an incompatibility fails on day one, not at M6. */
