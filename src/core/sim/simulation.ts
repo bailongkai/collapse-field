@@ -1,5 +1,5 @@
 import { FIXED_DT, FIXED_DT_MS, REF_H, REF_W, RUN_SECONDS } from '../../config';
-import type { PlayerStats, StatKey } from '../../data/types';
+import type { PlayerStats, StatBlock, StatKey } from '../../data/types';
 import { CONTENT, characterDef, stageDef, type ContentRegistry } from '../content/registry';
 import { composeStats } from '../stats/composeStats';
 import { xpToReach } from '../stats/xpCurve';
@@ -38,6 +38,8 @@ export interface SimulationOptions {
    */
   viewW?: number;
   viewH?: number;
+  /** permanent bonuses from the save's upgrades, applied like an extra passive */
+  metaBonuses?: StatBlock;
 }
 
 export interface RunState {
@@ -80,12 +82,14 @@ export class Simulation {
   private autopilot = false;
   private viewW: number;
   private viewH: number;
+  private metaBonuses: StatBlock;
   private collected: PickupCollected[] = [];
   private weaponCtx: WeaponContext;
 
   constructor(opts: SimulationOptions) {
     this.viewW = opts.viewW ?? REF_W;
     this.viewH = opts.viewH ?? REF_H;
+    this.metaBonuses = opts.metaBonuses ?? {};
     this.world = new World(opts.seed);
     const ch = characterDef(opts.characterId);
     this.run = {
@@ -146,7 +150,7 @@ export class Simulation {
   }
 
   private computeStats(): PlayerStats {
-    const stats = composeStats(this.character, this.run.passives, this.reg, this.run.level);
+    const stats = composeStats(this.character, this.run.passives, this.reg, this.run.level, this.metaBonuses);
     const forced = this.forcedStats;
     if (Object.keys(forced).length === 0) return stats;
     const out = { ...stats } as Record<StatKey, number>;

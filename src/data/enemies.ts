@@ -28,7 +28,7 @@ export const ENEMIES = {
     behavior: 'chase', deathFx: 'big',
   },
   spitter: {
-    id: 'spitter', nameKey: 'enemy.spitter.name', frame: 'enemy_spitter', faceTarget: false,
+    id: 'spitter', nameKey: 'enemy.spitter.name', frame: 'enemy_spitter', faceTarget: true,
     hp: 22, damage: 6, speed: 55, radius: 18, gemTier: 'green', knockbackResist: 0.3,
     behavior: 'ranged', deathFx: 'small',
     ranged: { range: 260, intervalMs: 2400, boltSpeed: 240, boltDamage: 8 },

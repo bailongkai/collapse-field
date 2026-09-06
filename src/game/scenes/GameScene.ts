@@ -20,6 +20,7 @@ import type { FrameStats, HookRunState, RunHandlers } from '../../debug/hook';
 import { rendererString } from '../../debug/hook';
 import { sfx } from '../audio/sfx';
 import { app } from '../app';
+import { metaBonuses } from '../../core/save/upgrades';
 import { t } from '../../i18n';
 import type { HudScene } from './HudScene';
 
@@ -67,6 +68,7 @@ export class GameScene extends Phaser.Scene {
       stageId: data.stageId ?? DEFAULT_STAGE_ID,
       viewW: this.scale.width,
       viewH: this.scale.height,
+      metaBonuses: metaBonuses(app().save),
     });
 
     this.cameras.main.setBackgroundColor('#05070c');

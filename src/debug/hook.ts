@@ -7,7 +7,7 @@ import { getLocale, setLocale, tDynamic } from '../i18n';
 import { listButtons, pressButton } from '../game/ui/buttonRegistry';
 import { sfx } from '../game/audio/sfx';
 import { app } from '../game/app';
-import { loadSave } from '../core/save/saveData';
+import { loadSave, writeSave } from '../core/save/saveData';
 import { VERSION } from '../config';
 
 export type SceneName = 'boot' | 'preload' | 'menu' | 'game' | 'levelup' | 'pause' | 'results';
@@ -111,7 +111,7 @@ export interface GameDebugApi extends Omit<RunHandlers, 'profileStart' | 'profil
   screenshot(): Promise<string>;
   content(): { weapons: string[]; passives: string[]; enemies: string[]; pickups: string[] };
   i18n: { setLocale(l: Locale): void; getLocale(): Locale; t(k: string): string };
-  save: { get(): SaveData; reset(): void };
+  save: { get(): SaveData; reset(): void; addGold(n: number): void };
   mute(on: boolean): void;
   detach(): void;
   /** internal: used by scenes */
@@ -201,6 +201,11 @@ export function installHook(game: Phaser.Game, contentProvider: () => GameDebugA
     save: {
       get: () => loadSave(app().storage),
       reset: () => app().storage.clear(),
+      addGold: (n) => {
+        const ctx = app();
+        ctx.save = { ...ctx.save, gold: ctx.save.gold + n };
+        writeSave(ctx.storage, ctx.save);
+      },
     },
     mute(on) {
       sfx.setMuted(on);

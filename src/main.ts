@@ -10,6 +10,7 @@ import { HudScene } from './game/scenes/HudScene';
 import { LevelUpScene } from './game/scenes/LevelUpScene';
 import { PauseScene } from './game/scenes/PauseScene';
 import { SettingsScene } from './game/scenes/SettingsScene';
+import { ShopScene } from './game/scenes/ShopScene';
 import { ResultsScene } from './game/scenes/ResultsScene';
 import { contentSummary } from './data';
 import { installOrientationGate } from './game/orientation';
@@ -33,7 +34,7 @@ const config: Phaser.Types.Core.GameConfig = {
   input: { gamepad: true, activePointers: 3 },
   render: { antialias: true, roundPixels: false },
   fps: { target: 60, forceSetTimeOut: false },
-  scene: [BootScene, PreloadScene, MenuScene, GameScene, HudScene, LevelUpScene, PauseScene, SettingsScene, ResultsScene],
+  scene: [BootScene, PreloadScene, MenuScene, GameScene, HudScene, LevelUpScene, PauseScene, SettingsScene, ShopScene, ResultsScene],
 };
 
 const game = new Phaser.Game(config);

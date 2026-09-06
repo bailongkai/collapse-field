@@ -13,6 +13,8 @@ export class MenuScene extends Phaser.Scene {
   private best!: Phaser.GameObjects.Text;
   private startBtn!: UiButton;
   private settingsBtn!: UiButton;
+  private shopBtn!: UiButton;
+  private gold!: Phaser.GameObjects.Text;
   private offLocale: (() => void) | null = null;
 
   constructor() {
@@ -29,7 +31,9 @@ export class MenuScene extends Phaser.Scene {
     this.title = this.add.text(cx, 190, '', textStyle(64, { bold: true, color: COLORS.accent, stroke: true })).setOrigin(0.5);
     this.subtitle = this.add.text(cx, 250, '', textStyle(20, { color: COLORS.dim })).setOrigin(0.5);
     this.startBtn = new UiButton(this, cx, 360, { id: 'menu.start', label: '', width: 300, height: 64, fontSize: 26, onPress: () => this.startGame() });
-    this.settingsBtn = new UiButton(this, cx, 440, { id: 'menu.settings', label: '', width: 220, height: 50, fontSize: 20, onPress: () => this.openSettings() });
+    this.shopBtn = new UiButton(this, cx - 120, 440, { id: 'menu.shop', label: '', width: 220, height: 50, fontSize: 20, onPress: () => this.openShop() });
+    this.settingsBtn = new UiButton(this, cx + 120, 440, { id: 'menu.settings', label: '', width: 220, height: 50, fontSize: 20, onPress: () => this.openSettings() });
+    this.gold = this.add.text(this.scale.width - 16, 16, '', textStyle(18, { bold: true, color: COLORS.gold })).setOrigin(1, 0);
     this.hint = this.add.text(cx, 540, '', textStyle(16, { color: COLORS.dim })).setOrigin(0.5);
     this.best = this.add.text(cx, 580, '', textStyle(16, { color: COLORS.gold })).setOrigin(0.5);
     this.add.text(this.scale.width - 12, this.scale.height - 10, `v${VERSION} · Phaser ${Phaser.VERSION}`, textStyle(12, { color: COLORS.dim })).setOrigin(1, 1);
@@ -52,6 +56,8 @@ export class MenuScene extends Phaser.Scene {
     this.subtitle.setText(t('menu.subtitle'));
     this.startBtn.setLabel(t('menu.start'));
     this.settingsBtn.setLabel(t('menu.settings'));
+    this.shopBtn.setLabel(t('menu.shop'));
+    this.gold.setText(t('menu.gold', { n: app().save.gold }));
     this.hint.setText(t('menu.hint'));
     const save = app().save;
     this.best.setText(save.bestTimeSec > 0 ? t('menu.best', { t: formatTime(save.bestTimeSec) }) : '');
@@ -64,6 +70,11 @@ export class MenuScene extends Phaser.Scene {
     }
     const seed = app().seed ?? (Date.now() >>> 0);
     this.scene.start('Game', { seed });
+  }
+
+  private openShop(): void {
+    this.scene.launch('Shop');
+    this.scene.bringToTop('Shop');
   }
 
   private openSettings(): void {
