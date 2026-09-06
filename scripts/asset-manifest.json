@@ -287,62 +287,6 @@
       "atlas": "game"
     },
     {
-      "pack": "sci-fi-rts",
-      "file": "PNG/Default size/Environment/scifiEnvironment_01.png",
-      "frame": "decor_0",
-      "size": 64,
-      "atlas": "game"
-    },
-    {
-      "pack": "sci-fi-rts",
-      "file": "PNG/Default size/Environment/scifiEnvironment_02.png",
-      "frame": "decor_1",
-      "size": 64,
-      "atlas": "game"
-    },
-    {
-      "pack": "sci-fi-rts",
-      "file": "PNG/Default size/Environment/scifiEnvironment_03.png",
-      "frame": "decor_2",
-      "size": 64,
-      "atlas": "game"
-    },
-    {
-      "pack": "sci-fi-rts",
-      "file": "PNG/Default size/Environment/scifiEnvironment_04.png",
-      "frame": "decor_3",
-      "size": 64,
-      "atlas": "game"
-    },
-    {
-      "pack": "sci-fi-rts",
-      "file": "PNG/Default size/Environment/scifiEnvironment_05.png",
-      "frame": "decor_4",
-      "size": 64,
-      "atlas": "game"
-    },
-    {
-      "pack": "sci-fi-rts",
-      "file": "PNG/Default size/Environment/scifiEnvironment_06.png",
-      "frame": "decor_5",
-      "size": 64,
-      "atlas": "game"
-    },
-    {
-      "pack": "sci-fi-rts",
-      "file": "PNG/Default size/Environment/scifiEnvironment_07.png",
-      "frame": "decor_6",
-      "size": 64,
-      "atlas": "game"
-    },
-    {
-      "pack": "sci-fi-rts",
-      "file": "PNG/Default size/Environment/scifiEnvironment_08.png",
-      "frame": "decor_7",
-      "size": 64,
-      "atlas": "game"
-    },
-    {
       "pack": "particle-pack",
       "file": "PNG (Transparent)/spark_04.png",
       "frame": "p_spark",
@@ -470,15 +414,71 @@
       "file": "PNG/Extra/Default/bar_shadow_round_large_r.png",
       "frame": "bar_bg_r",
       "atlas": "ui"
+    },
+    {
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_01.png",
+      "frame": "decor_0",
+      "size": 64,
+      "atlas": "game"
+    },
+    {
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_02.png",
+      "frame": "decor_1",
+      "size": 64,
+      "atlas": "game"
+    },
+    {
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_03.png",
+      "frame": "decor_2",
+      "size": 64,
+      "atlas": "game"
+    },
+    {
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_04.png",
+      "frame": "decor_3",
+      "size": 64,
+      "atlas": "game"
+    },
+    {
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_06.png",
+      "frame": "decor_4",
+      "size": 64,
+      "atlas": "game"
+    },
+    {
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_07.png",
+      "frame": "decor_5",
+      "size": 64,
+      "atlas": "game"
+    },
+    {
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_09.png",
+      "frame": "decor_6",
+      "size": 64,
+      "atlas": "game"
+    },
+    {
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_13.png",
+      "frame": "decor_7",
+      "size": 64,
+      "atlas": "game"
     }
   ],
   "floor": {
-    "pack": "sci-fi-rts",
+    "pack": "top-down-shooter",
     "tiles": [
-      "PNG/Default size/Tile/scifiTile_29.png",
-      "PNG/Default size/Tile/scifiTile_30.png",
-      "PNG/Default size/Tile/scifiTile_31.png",
-      "PNG/Default size/Tile/scifiTile_29.png"
+      "PNG/Tiles/tile_87.png",
+      "PNG/Tiles/tile_94.png",
+      "PNG/Tiles/tile_88.png",
+      "PNG/Tiles/tile_28.png"
     ],
     "tileSize": 64,
     "grid": 4

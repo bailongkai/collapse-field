@@ -5,6 +5,9 @@ import { installHook } from './debug/hook';
 import { BootScene } from './game/scenes/BootScene';
 import { PreloadScene } from './game/scenes/PreloadScene';
 import { MenuScene } from './game/scenes/MenuScene';
+import { GameScene } from './game/scenes/GameScene';
+import { HudScene } from './game/scenes/HudScene';
+import { ResultsScene } from './game/scenes/ResultsScene';
 import { contentSummary } from './data';
 
 initApp();
@@ -19,7 +22,7 @@ const config: Phaser.Types.Core.GameConfig = {
   input: { gamepad: true },
   render: { antialias: true, roundPixels: false },
   fps: { target: 60, forceSetTimeOut: false },
-  scene: [BootScene, PreloadScene, MenuScene],
+  scene: [BootScene, PreloadScene, MenuScene, GameScene, HudScene, ResultsScene],
 };
 
 const game = new Phaser.Game(config);

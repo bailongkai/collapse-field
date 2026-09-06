@@ -1,0 +1,52 @@
+import type { PlayerStats, WeaponBehaviorId } from '../../data/types';
+import type { EffectiveWeapon } from '../stats/weaponParams';
+import type { Enemy } from '../sim/entities/enemy';
+import type { Projectile } from '../sim/entities/projectile';
+import type { Player } from '../sim/entities/player';
+import type { Rng } from '../rng';
+
+export type { EffectiveWeapon };
+
+export interface WeaponInstance {
+  defId: string;
+  slot: number;
+  level: number;
+  /** ms until the next onFire */
+  cooldownLeft: number;
+  /** shots left in the current volley and the ms timer between them */
+  volleyLeft: number;
+  volleyTimer: number;
+  /** projectiles this weapon currently owns (orbit) */
+  activeCount: number;
+  /** tick of the last hit per enemy slot; -1e9 means "never" (reset when a slot is reused) */
+  lastHitTick: Int32Array;
+}
+
+/**
+ * 'cooldown' — the weapon system arms the cooldown once the volley finishes.
+ * 'hold'     — the behavior arms the cooldown itself (orbit waits for its drones to expire).
+ */
+export type FireResult = 'cooldown' | 'hold';
+
+export interface WeaponContext {
+  rng: Rng;
+  tick: number;
+  player: Player;
+  stats: PlayerStats;
+  spawnProjectile(): Projectile | null;
+  nearestEnemy(x: number, y: number, maxDist: number): Enemy | null;
+  queryEnemies(x0: number, y0: number, x1: number, y1: number, out: Int32Array): number;
+  enemyById(id: number): Enemy;
+  hitEnemy(e: Enemy, dmg: number, dirX: number, dirY: number, kb: number, src: WeaponInstance): void;
+}
+
+export interface WeaponBehavior {
+  /** Called when the cooldown elapses. Queues the volley and reports who owns the cooldown. */
+  onFire(ctx: WeaponContext, inst: WeaponInstance, eff: EffectiveWeapon): FireResult;
+  /** Called once per shot of a volley (index 0 is the first shot). */
+  onVolleyShot?(ctx: WeaponContext, inst: WeaponInstance, eff: EffectiveWeapon, index: number): void;
+  /** Called every step for continuous weapons (aura, orbit). */
+  onTick?(ctx: WeaponContext, inst: WeaponInstance, eff: EffectiveWeapon, dt: number): void;
+}
+
+export type BehaviorMap = Record<WeaponBehaviorId, WeaponBehavior>;
