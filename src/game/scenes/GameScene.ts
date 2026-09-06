@@ -9,6 +9,9 @@ import { InputController } from '../input/inputController';
 import { FloorView } from '../view/floorView';
 import { PlayerView } from '../view/playerView';
 import { EnemyView } from '../view/enemyView';
+import { ProjectileView } from '../view/projectileView';
+import { DamageNumbers } from '../view/damageNumbers';
+import { FxView } from '../view/fxView';
 import { Profiler } from '../../debug/profiler';
 import type { FrameStats, HookRunState, RunHandlers } from '../../debug/hook';
 import { rendererString } from '../../debug/hook';
@@ -28,6 +31,9 @@ export class GameScene extends Phaser.Scene {
   private floorView!: FloorView;
   private playerView!: PlayerView;
   private enemyView!: EnemyView;
+  private projectileView!: ProjectileView;
+  private damageNumbers!: DamageNumbers;
+  private fxView!: FxView;
   private profiler = new Profiler();
   private accumulator = 0;
   private timeScale = 1;
@@ -59,6 +65,9 @@ export class GameScene extends Phaser.Scene {
     this.floorView = new FloorView(this, this.sim.stage, this.layers.floor, this.layers.decor);
     this.playerView = new PlayerView(this, this.sim.character, this.layers.player);
     this.enemyView = new EnemyView(this, this.layers.enemies);
+    this.projectileView = new ProjectileView(this, this.layers.projectiles, this.layers.fx);
+    this.damageNumbers = new DamageNumbers(this, this.layers.numbers);
+    this.fxView = new FxView(this, this.layers.fx);
     this.input_ = new InputController(this);
 
     this.cameras.main.startFollow(this.playerView.gameObject, true, 0.12, 0.12);
@@ -90,6 +99,9 @@ export class GameScene extends Phaser.Scene {
     this.floorView.destroy();
     this.playerView.destroy();
     this.enemyView.destroy();
+    this.projectileView.destroy();
+    this.damageNumbers.destroy();
+    this.fxView.destroy();
   }
 
   openPause(): void {
@@ -148,14 +160,63 @@ export class GameScene extends Phaser.Scene {
     this.playerView.update(p, this.sim.run.hp, this.sim.stats.maxHealth, deltaMs);
     this.floorView.update(cam.midPoint.x, cam.midPoint.y, cam.scrollX, cam.scrollY);
     this.enemyView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y);
-    this.drainEvents();
+    this.projectileView.sync(this.sim.world, this.weaponIdBySlot(), cam.midPoint.x, cam.midPoint.y);
+    this.pumpEvents(true);
+    this.damageNumbers.update(deltaMs);
   }
 
-  /** Turns simulation events into presentation: shake, flashes and sounds, then clears the ring. */
-  private drainEvents(): void {
+  private slotCache: string[] = [];
+
+  private weaponIdBySlot(): string[] {
+    const weapons = this.sim.run.weapons;
+    if (this.slotCache.length !== weapons.length) this.slotCache = weapons.map((w) => w.id);
+    else for (let i = 0; i < weapons.length; i++) this.slotCache[i] = weapons[i].id;
+    return this.slotCache;
+  }
+
+  /**
+   * Drains the simulation's event ring. `visual` is false while fast-forwarding, where only the
+   * notable events are worth logging for tests: replaying thousands of ticks of flashes, particles
+   * and sounds would be meaningless and slow.
+   */
+  private pumpEvents(visual: boolean): void {
     const buf = this.sim.world.events;
+    const hook = window.__game;
+    this.damageNumbers.beginStep();
     for (let i = 0; i < buf.length; i++) {
       const e = buf.at(i);
+      switch (e.type) {
+        case 'bossSpawned':
+          hook?.pushEvent(`boss:spawn:${e.id}`);
+          break;
+        case 'bossKilled':
+          hook?.pushEvent(`boss:kill:${e.id}`);
+          break;
+        case 'levelUp':
+          hook?.pushEvent(`levelup:${e.n}`);
+          break;
+        case 'reaper':
+          hook?.pushEvent('reaper');
+          break;
+        case 'rush':
+          hook?.pushEvent('rush');
+          break;
+        case 'chest':
+          hook?.pushEvent('pickup:chest');
+          break;
+        case 'died':
+          hook?.pushEvent('died');
+          break;
+        case 'survived':
+          hook?.pushEvent('survived');
+          break;
+        case 'revive':
+          hook?.pushEvent('revive');
+          break;
+        default:
+          break;
+      }
+      if (!visual) continue;
       switch (e.type) {
         case 'hurt':
           this.playerView.flashHurt();
@@ -163,9 +224,11 @@ export class GameScene extends Phaser.Scene {
           sfx.play('hurt');
           break;
         case 'death':
+          this.fxView.death(e.x, e.y, e.big);
           sfx.play(e.big ? 'explode' : 'death');
           break;
         case 'hit':
+          this.damageNumbers.spawn(e.x, e.y - 12, e.n, e.big);
           if (e.big) this.cameras.main.shake(120, 0.004);
           sfx.play('hit');
           break;
@@ -201,7 +264,13 @@ export class GameScene extends Phaser.Scene {
       kills: run.kills,
       gold: run.gold,
       player: { x: w.player.x, y: w.player.y, facing: w.player.facing },
-      counts: { enemies: w.enemies.count, projectiles: w.projectiles.count, gems: w.gems.count, pickups: w.pickups.count, dmgNumbers: 0 },
+      counts: {
+        enemies: w.enemies.count,
+        projectiles: w.projectiles.count,
+        gems: w.gems.count,
+        pickups: w.pickups.count,
+        dmgNumbers: this.damageNumbers.activeCount,
+      },
       pickups: [],
       enemies: { alive: w.enemies.count, byBehavior },
       weapons: run.weapons.map((x) => ({ ...x })),
@@ -230,8 +299,16 @@ export class GameScene extends Phaser.Scene {
         this.timeScale = Math.max(0, n);
       },
       step: (ticks: number) => {
-        const done = this.sim.stepMany(ticks);
-        this.syncViews(ticks * FIXED_DT_MS);
+        let done = 0;
+        while (done < ticks) {
+          const chunk = Math.min(60, ticks - done);
+          const ran = this.sim.stepMany(chunk);
+          done += ran;
+          if (ran < chunk) break;
+          if (done < ticks) this.pumpEvents(false);
+        }
+        // animate a single frame: the visuals show the final moment, not the whole batch
+        this.syncViews(FIXED_DT_MS);
         return done;
       },
       fastForward: async (sec: number, o = {}) => {
@@ -243,6 +320,7 @@ export class GameScene extends Phaser.Scene {
           const chunk = Math.min(600, total - done);
           const ran = this.sim.stepMany(chunk);
           done += chunk;
+          this.pumpEvents(false);
           if (ran < chunk) break;
           if (performance.now() - started > budgetMs) break;
           await new Promise<void>((r) => setTimeout(r, 0));
@@ -270,8 +348,12 @@ export class GameScene extends Phaser.Scene {
       spawnGems: () => this.notImplemented('spawnGems'),
       spawnPickup: () => this.notImplemented('spawnPickup'),
       collectPickup: () => this.notImplemented('collectPickup'),
-      giveWeapon: () => this.notImplemented('giveWeapon'),
-      givePassive: () => this.notImplemented('givePassive'),
+      giveWeapon: (id: string, level?: number) => {
+        this.sim.giveWeapon(id, level ?? 1);
+      },
+      givePassive: (id: string, level?: number) => {
+        this.sim.givePassive(id, level ?? 1);
+      },
       setLevel: () => this.notImplemented('setLevel'),
       addXp: () => this.notImplemented('addXp'),
       triggerLevelUp: () => this.notImplemented('triggerLevelUp'),

@@ -10,6 +10,10 @@ import { stepSeparation } from './systems/separationSystem';
 import { Spawner, spawnEnemy, spawnRingRadius, type SpawnOptions } from './systems/spawnSystem';
 import { stepContact } from './systems/collisionSystem';
 import { dropForEnemy } from './systems/dropSystem';
+import { stepWeapons } from './systems/weaponSystem';
+import { stepProjectiles } from './systems/projectileSystem';
+import type { WeaponContext, WeaponInstance } from '../weapons/types';
+import { ENEMY_CAP, WEAPON_SLOTS, PASSIVE_SLOTS } from '../../config';
 import type { Enemy } from './entities/enemy';
 import { PLAYER_BASE_SPEED } from '../../config';
 import type { LevelUpChoice, OwnedItem, RunEnd, RunPhase } from './runState';
@@ -56,6 +60,7 @@ export class Simulation {
   private forcedStats: Partial<Record<StatKey, number>> = {};
   private cachedStats: PlayerStats;
   private spawner = new Spawner();
+  private weaponCtx: WeaponContext;
 
   constructor(opts: SimulationOptions) {
     this.world = new World(opts.seed);
@@ -83,6 +88,18 @@ export class Simulation {
     };
     this.cachedStats = this.computeStats();
     this.world.player.hp = this.cachedStats.maxHealth;
+    this.weaponCtx = {
+      rng: this.world.rng,
+      tick: 0,
+      player: this.world.player,
+      stats: this.cachedStats,
+      spawnProjectile: () => this.world.projectiles.spawn(),
+      nearestEnemy: (x, y, maxDist) => this.world.nearestEnemy(x, y, maxDist),
+      queryEnemies: (x0, y0, x1, y1, out) => this.world.grid.queryInto(x0, y0, x1, y1, out),
+      enemyById: (id) => this.world.enemies.items[id],
+      hitEnemy: (e, dmg, dirX, dirY, kb) => this.damageEnemy(e, dmg, dirX, dirY, kb),
+    };
+    this.giveWeapon(ch.startingWeapon, 1);
   }
 
   get stats(): PlayerStats {
@@ -142,6 +159,12 @@ export class Simulation {
     stepEnemies(world, world.player, dt, PLAYER_BASE_SPEED * stats.moveSpeed);
     world.rebuildGrid();
     stepSeparation(world, world.rng, GAME_W, GAME_H);
+
+    this.weaponCtx.tick = run.tick;
+    this.weaponCtx.stats = stats;
+    this.weaponCtx.rng = world.rng;
+    stepWeapons(world.weaponInstances, this.weaponCtx, FIXED_DT_MS);
+    stepProjectiles(world, FIXED_DT_MS, (e, dmg, dx, dy, kb) => this.damageEnemy(e, dmg, dx, dy, kb));
 
     const contact = stepContact(world, stats, run.god, dt);
     if (contact.damage > 0 || contact.fatal) this.onPlayerHurt(contact.fatal);
@@ -206,6 +229,50 @@ export class Simulation {
       killed++;
     });
     return killed;
+  }
+
+  /** Adds a weapon or raises it to `level`, capped at the weapon's maximum and the slot count. */
+  giveWeapon(id: string, level = 1): boolean {
+    const def = this.reg.weapons[id];
+    if (!def) throw new Error(`unknown weapon: ${id}`);
+    const target = Math.min(level, def.maxLevel);
+    const owned = this.run.weapons.find((w) => w.id === id);
+    if (owned) {
+      owned.level = Math.max(owned.level, target);
+    } else {
+      if (this.run.weapons.length >= WEAPON_SLOTS) return false;
+      this.run.weapons.push({ id, level: target });
+      const inst: WeaponInstance = {
+        defId: id,
+        slot: this.run.weapons.length - 1,
+        level: target,
+        cooldownLeft: 0,
+        volleyLeft: 0,
+        volleyTimer: 0,
+        activeCount: 0,
+        lastHitTick: new Int32Array(ENEMY_CAP).fill(-1e9),
+      };
+      this.world.weaponInstances.push(inst);
+    }
+    const inst = this.world.weaponInstances.find((i) => i.defId === id);
+    if (inst) inst.level = Math.max(inst.level, target);
+    this.refreshStats();
+    return true;
+  }
+
+  /** Adds a passive or raises it to `level`, capped at its maximum and the slot count. */
+  givePassive(id: string, level = 1): boolean {
+    const def = this.reg.passives[id];
+    if (!def) throw new Error(`unknown passive: ${id}`);
+    const target = Math.min(level, def.maxLevel);
+    const owned = this.run.passives.find((p) => p.id === id);
+    if (owned) owned.level = Math.max(owned.level, target);
+    else {
+      if (this.run.passives.length >= PASSIVE_SLOTS) return false;
+      this.run.passives.push({ id, level: target });
+    }
+    this.refreshStats();
+    return true;
   }
 
   /** Test/debug helper: place `n` enemies of `defId`, on the off-screen ring by default. */

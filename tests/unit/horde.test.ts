@@ -62,7 +62,8 @@ describe('knockback', () => {
   it('decays and is clamped, and heavy enemies resist it', () => {
     const s = newSim();
     s.setStatOverride('moveSpeed', 0);
-    s.spawn('drone', 1, { x: 100, y: 0 });
+    // out of the starting blade's reach, so nothing re-applies knockback while it decays
+    s.spawn('drone', 1, { x: 400, y: 0 });
     const drone = s.world.enemies.items[s.world.enemies.aliveList()[0]];
     drone.hp = 1e6;
     s.damageEnemy(drone, 1, 1, 0, 10);
@@ -225,13 +226,15 @@ describe('simulation benchmark', () => {
   it('steps 500 enemies well under the frame budget', () => {
     const s = newSim();
     s.run.god = true;
-    s.spawn('drone', 500, { ring: true, radius: 400 });
+    // mechs are the heaviest case: the largest radius, so the most separation pairs, and they
+    // survive the starting weapon so the field stays full for the whole measurement
+    s.spawn('mech', 500, { ring: true, radius: 400 });
     s.stepMany(60); // warm up
     const start = performance.now();
     const steps = 600;
     s.stepMany(steps);
     const msPerStep = (performance.now() - start) / steps;
-    expect(s.world.enemies.count).toBeGreaterThan(400);
+    expect(s.world.enemies.count).toBeGreaterThan(450);
     expect(msPerStep, `${msPerStep.toFixed(3)} ms/step`).toBeLessThan(3);
   });
 });
