@@ -1,5 +1,5 @@
 import type Phaser from 'phaser';
-import { GAME_H, GAME_W, GEM_CAP_POOL } from '../../config';
+import { GEM_CAP_POOL } from '../../config';
 import type { World } from '../../core/sim/world';
 
 const CULL_MARGIN = 64;
@@ -25,11 +25,11 @@ export class GemView {
     }
   }
 
-  sync(world: World, camX: number, camY: number): void {
-    const minX = camX - GAME_W / 2 - CULL_MARGIN;
-    const maxX = camX + GAME_W / 2 + CULL_MARGIN;
-    const minY = camY - GAME_H / 2 - CULL_MARGIN;
-    const maxY = camY + GAME_H / 2 + CULL_MARGIN;
+  sync(world: World, camX: number, camY: number, viewW: number, viewH: number): void {
+    const minX = camX - viewW / 2 - CULL_MARGIN;
+    const maxX = camX + viewW / 2 + CULL_MARGIN;
+    const minY = camY - viewH / 2 - CULL_MARGIN;
+    const maxY = camY + viewH / 2 + CULL_MARGIN;
 
     for (let i = 0; i < GEM_CAP_POOL; i++) {
       if (!world.gems.items[i].active && this.bobs[i].visible) this.bobs[i].visible = false;

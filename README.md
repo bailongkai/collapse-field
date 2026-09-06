@@ -33,6 +33,13 @@ On a phone the game wants landscape; held upright it asks to be rotated. The
 touch controls stay hidden until the screen is actually touched, so a laptop
 with a touchscreen is not cluttered with them. `?touch=1` forces them on.
 
+The view is 720 tall with a width that follows the display's aspect ratio,
+between 1024 and 1760, so a wide phone or monitor fills its screen instead of
+sitting between black bars. A wider view shows more of the map, so the wave
+table is scaled by visible area to keep the crowd per screen the same. Without
+that, a 1760-wide view survives 27% longer than the reference; with it, the
+difference is within measurement noise.
+
 Five weapons (等离子刃, 制导激光, 磁轨炮, 轨道无人机, EMP力场) and five passives,
 each to level 8 and 5 respectively, in six slots each.
 
@@ -70,8 +77,9 @@ button is covered rather than assumed.
 
 Measured on an Apple M4 with 500 enemies, five maxed weapons and 300 gems on the
 field: simulation 0.22 ms, sprite sync 0.14 ms, render 0.55 ms, median frame
-16.7 ms. Headless Chromium draws through SwiftShader, so frame time is only
-asserted in the bench project.
+16.7 ms. A 1720-wide view carrying its larger crowd holds the same median frame.
+Headless Chromium draws through SwiftShader, so frame time is only asserted in
+the bench project.
 
 `tests/unit/balance.test.ts` plays whole runs with a kiting autopilot and checks
 the difficulty curve, so a wave-table change that makes the game trivial or

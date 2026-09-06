@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_H, GAME_W, VERSION } from '../../config';
+import { VERSION } from '../../config';
 import { formatTime, onLocaleChanged, t } from '../../i18n';
 import { textStyle, COLORS } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
@@ -19,9 +19,9 @@ export class MenuScene extends Phaser.Scene {
   }
 
   create(): void {
-    const cx = GAME_W / 2;
+    const cx = this.scale.width / 2;
     this.cameras.main.setBackgroundColor('#05070c');
-    const floor = this.add.tileSprite(cx, GAME_H / 2, GAME_W, GAME_H, 'floor').setTint(0x3a4452).setAlpha(0.6);
+    const floor = this.add.tileSprite(cx, this.scale.height / 2, this.scale.width, this.scale.height, 'floor').setTint(0x3a4452).setAlpha(0.6);
     this.tweens.add({ targets: floor, tilePositionX: 256, tilePositionY: 256, duration: 30000, repeat: -1 });
 
     this.title = this.add.text(cx, 190, '', textStyle(64, { bold: true, color: COLORS.accent, stroke: true })).setOrigin(0.5);
@@ -30,7 +30,7 @@ export class MenuScene extends Phaser.Scene {
     this.settingsBtn = new UiButton(this, cx, 440, { id: 'menu.settings', label: '', width: 220, height: 50, fontSize: 20, onPress: () => this.openSettings() });
     this.hint = this.add.text(cx, 540, '', textStyle(16, { color: COLORS.dim })).setOrigin(0.5);
     this.best = this.add.text(cx, 580, '', textStyle(16, { color: COLORS.gold })).setOrigin(0.5);
-    this.add.text(GAME_W - 12, GAME_H - 10, `v${VERSION} · Phaser ${Phaser.VERSION}`, textStyle(12, { color: COLORS.dim })).setOrigin(1, 1);
+    this.add.text(this.scale.width - 12, this.scale.height - 10, `v${VERSION} · Phaser ${Phaser.VERSION}`, textStyle(12, { color: COLORS.dim })).setOrigin(1, 1);
 
     this.applyStrings();
     this.offLocale = onLocaleChanged(() => this.applyStrings());

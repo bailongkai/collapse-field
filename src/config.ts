@@ -1,6 +1,26 @@
 /** Global, engine-agnostic constants. Keep gameplay numbers in src/data; keep engine limits here. */
-export const GAME_W = 1280;
-export const GAME_H = 720;
+/**
+ * The reference view the content is authored against. Wave counts, the spawn ring and every tuned
+ * number in src/data mean "at this size"; anything wider is compensated for by density rather than
+ * by handing the player a bigger field for free.
+ */
+export const REF_W = 1280;
+export const REF_H = 720;
+export const REF_AREA = REF_W * REF_H;
+
+/** The logical height never changes; only the width follows the display's aspect ratio. */
+export const GAME_H = REF_H;
+/** Kept for layouts that want the reference width; live layout should read the scale manager. */
+export const GAME_W = REF_W;
+/** Bounds on the logical width, so an ultrawide monitor cannot reveal half the map. */
+export const MIN_VIEW_W = 1024;
+export const MAX_VIEW_W = 1760;
+
+/** Logical width for a display of the given aspect ratio, clamped to the playable range. */
+export function logicalWidthFor(aspect: number): number {
+  const raw = Math.round(GAME_H * aspect);
+  return Math.max(MIN_VIEW_W, Math.min(MAX_VIEW_W, raw));
+}
 export const FIXED_DT_MS = 1000 / 60;
 export const FIXED_DT = 1 / 60;
 export const MAX_STEPS_PER_FRAME = 5;

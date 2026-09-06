@@ -1,6 +1,6 @@
-import { GAME_H, GAME_W } from '../../../config';
+
 import type { StageDef, WaveEvent } from '../../../data/types';
-import { spawnEnemy, spawnRing, spawnRingRadius } from './spawnSystem';
+import { densityScale, spawnEnemy, spawnRing, spawnRingRadius } from './spawnSystem';
 import type { World } from '../world';
 
 /**
@@ -26,12 +26,12 @@ export class EventScheduler {
   }
 
   /** Returns true when a reaper event fired this step. */
-  step(world: World, stage: StageDef, timeMs: number): boolean {
+  step(world: World, stage: StageDef, timeMs: number, viewW: number, viewH: number): boolean {
     const sec = timeMs / 1000;
     let reaper = false;
     while (this.next < stage.events.length && stage.events[this.next].at <= sec) {
       const event = stage.events[this.next];
-      this.fire(world, stage, event);
+      this.fire(world, stage, event, viewW, viewH);
       if (event.kind === 'reaper') reaper = true;
       this.next++;
     }
@@ -39,21 +39,21 @@ export class EventScheduler {
   }
 
   /** Fires one event by index regardless of the clock; used by the debug hook. */
-  fireIndex(world: World, stage: StageDef, index: number): boolean {
+  fireIndex(world: World, stage: StageDef, index: number, viewW: number, viewH: number): boolean {
     const event = stage.events[index];
     if (!event) return false;
-    this.fire(world, stage, event);
+    this.fire(world, stage, event, viewW, viewH);
     return true;
   }
 
-  private fire(world: World, stage: StageDef, event: WaveEvent): void {
-    const ring = spawnRingRadius(stage);
+  private fire(world: World, stage: StageDef, event: WaveEvent, viewW: number, viewH: number): void {
+    const ring = spawnRingRadius(stage, viewW, viewH);
     switch (event.kind) {
       case 'swarm':
-        this.swarm(world, event, ring);
+        this.swarm(world, event, ring, viewW, viewH);
         break;
       case 'ring':
-        spawnRing(world, event.enemy, event.count, event.radius, { isEvent: true });
+        spawnRing(world, event.enemy, Math.round(event.count * densityScale(viewW, viewH)), event.radius, { isEvent: true });
         break;
       case 'boss': {
         const boss = spawnEnemy(world, event.enemy, {
@@ -81,9 +81,11 @@ export class EventScheduler {
    * A line of fast enemies that crosses the screen. They travel at constant velocity, ignore the
    * player and are exempt from the spawner's relocation, so the wave really does sweep past.
    */
-  private swarm(world: World, event: Extract<WaveEvent, { kind: 'swarm' }>, ring: number): void {
+  private swarm(world: World, event: Extract<WaveEvent, { kind: 'swarm' }>, ring: number, viewW: number, viewH: number): void {
     const p = world.player;
     const speedMult = event.speedMult ?? 1;
+    // a wider screen needs a longer line, or the rush no longer spans it
+    const count = Math.max(1, Math.round(event.count * densityScale(viewW, viewH)));
     let dirX = 0;
     let dirY = 0;
     let startX: number;
@@ -95,14 +97,14 @@ export class EventScheduler {
     if (event.pattern === 'hLine') {
       const fromLeft = world.rng.next() < 0.5;
       dirX = fromLeft ? 1 : -1;
-      startX = p.x + (fromLeft ? -1 : 1) * (GAME_W / 2 + 80);
-      startY = p.y - ((event.count - 1) * spacing) / 2;
+      startX = p.x + (fromLeft ? -1 : 1) * (viewW / 2 + 80);
+      startY = p.y - ((count - 1) * spacing) / 2;
       stepY = spacing;
     } else if (event.pattern === 'vLine') {
       const fromTop = world.rng.next() < 0.5;
       dirY = fromTop ? 1 : -1;
-      startY = p.y + (fromTop ? -1 : 1) * (GAME_H / 2 + 80);
-      startX = p.x - ((event.count - 1) * spacing) / 2;
+      startY = p.y + (fromTop ? -1 : 1) * (viewH / 2 + 80);
+      startX = p.x - ((count - 1) * spacing) / 2;
       stepX = spacing;
     } else {
       dirX = world.rng.next() < 0.5 ? 1 : -1;
@@ -111,13 +113,13 @@ export class EventScheduler {
       dirX /= len;
       dirY /= len;
       startX = p.x - dirX * ring;
-      startY = p.y - dirY * ring - ((event.count - 1) * spacing) / 2;
+      startY = p.y - dirY * ring - ((count - 1) * spacing) / 2;
       stepX = spacing * 0.7;
       stepY = spacing * 0.7;
     }
 
     let spawned = 0;
-    for (let i = 0; i < event.count; i++) {
+    for (let i = 0; i < count; i++) {
       const e = spawnEnemy(world, event.enemy, {
         x: startX + stepX * i,
         y: startY + stepY * i,

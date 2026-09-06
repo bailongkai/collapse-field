@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { ENEMY_CAP, GAME_H, GAME_W } from '../../config';
+import { ENEMY_CAP } from '../../config';
 import type { World } from '../../core/sim/world';
 
 const CULL_MARGIN = 96;
@@ -22,11 +22,11 @@ export class EnemyView {
     }
   }
 
-  sync(world: World, camX: number, camY: number): void {
-    const minX = camX - GAME_W / 2 - CULL_MARGIN;
-    const maxX = camX + GAME_W / 2 + CULL_MARGIN;
-    const minY = camY - GAME_H / 2 - CULL_MARGIN;
-    const maxY = camY + GAME_H / 2 + CULL_MARGIN;
+  sync(world: World, camX: number, camY: number, viewW: number, viewH: number): void {
+    const minX = camX - viewW / 2 - CULL_MARGIN;
+    const maxX = camX + viewW / 2 + CULL_MARGIN;
+    const minY = camY - viewH / 2 - CULL_MARGIN;
+    const maxY = camY + viewH / 2 + CULL_MARGIN;
 
     // hide slots that are no longer alive
     for (let i = 0; i < this.images.length; i++) {

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { GAME_H, GAME_W } from './config';
+import { GAME_H } from './config';
+import { logicalSizeForWindow } from './game/layout';
 import { initApp } from './game/app';
 import { installHook } from './debug/hook';
 import { BootScene } from './game/scenes/BootScene';
@@ -17,13 +18,17 @@ import { installOrientationGate } from './game/orientation';
 initApp();
 installOrientationGate();
 
+const initial = logicalSizeForWindow(window.innerWidth, window.innerHeight);
+
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.WEBGL,
   parent: 'app',
-  width: GAME_W,
-  height: GAME_H,
+  width: initial.width,
+  height: initial.height,
   backgroundColor: '#05070c',
-  scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH, parent: 'app', width: GAME_W, height: GAME_H },
+  // FIT with a width that already matches the display's aspect: the canvas fills the screen and
+  // only the clamped extremes leave a small border.
+  scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH, parent: 'app', width: initial.width, height: initial.height },
   // three simultaneous pointers: a thumb on the virtual stick, a second finger for a button, spare
   // three simultaneous pointers: a thumb on the virtual stick, a second finger for a button, spare
   input: { gamepad: true, activePointers: 3 },
@@ -34,3 +39,14 @@ const config: Phaser.Types.Core.GameConfig = {
 
 const game = new Phaser.Game(config);
 installHook(game, contentSummary);
+
+/** Keeps the logical width in step with the window, so rotating a phone re-lays out the game. */
+function applyWindowSize(): void {
+  const size = logicalSizeForWindow(window.innerWidth, window.innerHeight);
+  if (Math.abs(size.width - game.scale.width) < 1 && Math.abs(size.height - game.scale.height) < 1) return;
+  game.scale.setGameSize(size.width, size.height);
+}
+
+window.addEventListener('resize', applyWindowSize);
+window.addEventListener('orientationchange', applyWindowSize);
+void GAME_H;

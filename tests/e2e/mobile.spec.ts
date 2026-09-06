@@ -128,3 +128,29 @@ test('mobile: holding the phone upright asks the player to rotate', async ({ pag
   await page.setViewportSize({ width: 863, height: 360 });
   await expect(gate).toBeHidden();
 });
+
+test('mobile: the canvas fills the phone width instead of sitting between bars', async ({ page }) => {
+  const errors = await openGame(page, '?test=1&touch=1&seed=47');
+  const viewport = page.viewportSize()!;
+
+  const canvas = await page.evaluate(() => {
+    const el = document.querySelector('canvas')!;
+    const rect = el.getBoundingClientRect();
+    return { width: rect.width, height: rect.height, logicalW: window.__game.phaser.scale.width, logicalH: window.__game.phaser.scale.height };
+  });
+
+  // the logical view is 720 tall with a width that follows the display's aspect
+  expect(canvas.logicalH).toBe(720);
+  expect(canvas.logicalW).toBeGreaterThan(1280);
+  // and the drawn canvas covers essentially the whole viewport width
+  expect(canvas.width / viewport.width).toBeGreaterThan(0.97);
+
+  await page.evaluate(() => window.__game.startRun({ seed: 47 }));
+  await waitScene(page, 'game');
+  // the simulation is told about the wider view, so the crowd scales with it
+  const size = await page.evaluate(() => window.__game.getViewSize());
+  expect(size.width).toBe(canvas.logicalW);
+  await snap(page, 'mobile-wide');
+
+  expect(errors, errors.join('\n')).toEqual([]);
+});

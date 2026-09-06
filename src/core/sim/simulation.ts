@@ -1,4 +1,4 @@
-import { FIXED_DT, FIXED_DT_MS, GAME_H, GAME_W, RUN_SECONDS } from '../../config';
+import { FIXED_DT, FIXED_DT_MS, REF_H, REF_W, RUN_SECONDS } from '../../config';
 import type { PlayerStats, StatKey } from '../../data/types';
 import { CONTENT, characterDef, stageDef, type ContentRegistry } from '../content/registry';
 import { composeStats } from '../stats/composeStats';
@@ -30,6 +30,13 @@ export interface SimulationOptions {
   seed: number;
   characterId: string;
   stageId: string;
+  /**
+   * The world area the player can see, in world pixels. Wave density, the spawn ring and how far a
+   * gem may drift all derive from it, so a wider display gets a proportionally bigger crowd rather
+   * than an easier run. Defaults to the reference view the content is authored against.
+   */
+  viewW?: number;
+  viewH?: number;
 }
 
 export interface RunState {
@@ -70,10 +77,14 @@ export class Simulation {
   private spawner = new Spawner();
   private events = new EventScheduler();
   private autopilot = false;
+  private viewW: number;
+  private viewH: number;
   private collected: PickupCollected[] = [];
   private weaponCtx: WeaponContext;
 
   constructor(opts: SimulationOptions) {
+    this.viewW = opts.viewW ?? REF_W;
+    this.viewH = opts.viewH ?? REF_H;
     this.world = new World(opts.seed);
     const ch = characterDef(opts.characterId);
     this.run = {
@@ -167,6 +178,16 @@ export class Simulation {
    * orbit blended in so the run does not degenerate into a straight line off the map. This is what
    * makes an unattended balance run mean something — a motionless player dies to any wave table.
    */
+  /** The visible world area. Changing it re-scales wave density from the next tick onwards. */
+  setViewSize(width: number, height: number): void {
+    this.viewW = Math.max(320, width);
+    this.viewH = Math.max(240, height);
+  }
+
+  getViewSize(): { width: number; height: number } {
+    return { width: this.viewW, height: this.viewH };
+  }
+
   setAutopilot(on: boolean): void {
     this.autopilot = on;
   }
@@ -248,11 +269,11 @@ export class Simulation {
 
     if (this.autopilot) this.driveAutopilot();
     stepPlayer(world.player, stats, dt);
-    this.spawner.step(world, stage, run.timeMs, stats.curse, dt);
-    if (this.events.step(world, stage, run.timeMs)) run.reaperSpawned = true;
+    this.spawner.step(world, stage, run.timeMs, stats.curse, dt, this.viewW, this.viewH);
+    if (this.events.step(world, stage, run.timeMs, this.viewW, this.viewH)) run.reaperSpawned = true;
     stepEnemies(world, world.player, dt, PLAYER_BASE_SPEED * stats.moveSpeed);
     world.rebuildGrid();
-    stepSeparation(world, world.rng, GAME_W, GAME_H);
+    stepSeparation(world, world.rng, this.viewW, this.viewH);
 
     this.weaponCtx.tick = run.tick;
     this.weaponCtx.stats = stats;
@@ -264,7 +285,7 @@ export class Simulation {
     if (contact.damage > 0 || contact.fatal) this.onPlayerHurt(contact.fatal);
 
     if (run.phase === 'running') {
-      const harvest = stepGems(world, stats, dt, spawnRingRadius(stage) * stage.despawnFactor);
+      const harvest = stepGems(world, stats, dt, spawnRingRadius(stage, this.viewW, this.viewH) * stage.despawnFactor);
       if (harvest.xp > 0) this.addXp(harvest.xp * stats.growth);
 
       stepPickups(world, stats, dt, this.collected);
@@ -392,18 +413,18 @@ export class Simulation {
 
   /** Fires a stage event immediately, by index. */
   triggerEvent(index: number): boolean {
-    return this.events.fireIndex(this.world, this.stage, index);
+    return this.events.fireIndex(this.world, this.stage, index, this.viewW, this.viewH);
   }
 
   spawnBoss(): void {
     const index = this.stage.events.findIndex((e) => e.kind === 'boss');
-    if (index >= 0) this.events.fireIndex(this.world, this.stage, index);
+    if (index >= 0) this.events.fireIndex(this.world, this.stage, index, this.viewW, this.viewH);
   }
 
   spawnReaper(): void {
     const index = this.stage.events.findIndex((e) => e.kind === 'reaper');
     if (index >= 0) {
-      this.events.fireIndex(this.world, this.stage, index);
+      this.events.fireIndex(this.world, this.stage, index, this.viewW, this.viewH);
       this.run.reaperSpawned = true;
     }
   }
@@ -572,7 +593,7 @@ export class Simulation {
   /** Test/debug helper: place `n` enemies of `defId`, on the off-screen ring by default. */
   spawn(defId: string, n: number, o: { ring?: boolean; radius?: number | 'offscreen'; x?: number; y?: number } = {}): number {
     const stage = this.stage;
-    const ringR = spawnRingRadius(stage);
+    const ringR = spawnRingRadius(stage, this.viewW, this.viewH);
     let spawned = 0;
     for (let i = 0; i < n; i++) {
       let opts: SpawnOptions;

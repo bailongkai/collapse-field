@@ -64,6 +64,8 @@ export interface RunHandlers {
   setInput(dx: number, dy: number): void;
   /** Hands the player to the built-in kiting policy, used by the balance harness. */
   setAutopilot(on: boolean): void;
+  /** The world area the run is being played on, which wave density is derived from. */
+  getViewSize(): { width: number; height: number };
   setPlayerPos(x: number, y: number): void;
   spawn(enemyId: string, n: number, o?: { ring?: boolean; radius?: number | 'offscreen'; x?: number; y?: number }): number;
   spawnBoss(): void;
@@ -225,6 +227,7 @@ export function installHook(game: Phaser.Game, contentProvider: () => GameDebugA
     setTime: (sec) => requireRun().setTime(sec),
     setInput: (dx, dy) => requireRun().setInput(dx, dy),
     setAutopilot: (on) => requireRun().setAutopilot(on),
+    getViewSize: () => requireRun().getViewSize(),
     setPlayerPos: (x, y) => requireRun().setPlayerPos(x, y),
     spawn: (id, n, o) => requireRun().spawn(id, n, o),
     spawnBoss: () => requireRun().spawnBoss(),

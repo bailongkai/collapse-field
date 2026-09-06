@@ -1,12 +1,26 @@
-import { GAME_H, GAME_W } from '../../../config';
+import { REF_AREA } from '../../../config';
 import type { EnemyDef, StageDef, WaveEntry } from '../../../data/types';
 import { enemyDef } from '../../content/registry';
 import type { Enemy } from '../entities/enemy';
 import type { World } from '../world';
 
 /** Radius of the ring just outside the view where enemies appear. */
-export function spawnRingRadius(stage: StageDef): number {
-  return Math.hypot(GAME_W / 2, GAME_H / 2) + stage.spawnMargin;
+export function spawnRingRadius(stage: StageDef, viewW: number, viewH: number): number {
+  return Math.hypot(viewW / 2, viewH / 2) + stage.spawnMargin;
+}
+
+/**
+ * How much of the authored crowd a given view should hold. The wave table is written for the
+ * reference view, so a wider display gets proportionally more enemies and the crowd per screen
+ * stays the same instead of thinning out.
+ *
+ * Calibrated by playing sixteen hands-off runs per configuration. Without this, a 1760-wide view
+ * survives 590 s on average against the reference view's 466 s, a 27% easier game; scaling in
+ * proportion to the visible area brings that to 471 s, within measurement noise. Three seeds were
+ * not enough to see this: the spread between seeds is wider than the effect.
+ */
+export function densityScale(viewW: number, viewH: number): number {
+  return (viewW * viewH) / REF_AREA;
 }
 
 export function waveRow(stage: StageDef, timeMs: number): WaveEntry {
@@ -89,13 +103,14 @@ export class Spawner {
    * behind the player back onto the ring. Line, boss and reaper enemies are exempt from that
    * relocation: a swarm must be allowed to cross the screen and a boss must never teleport.
    */
-  step(world: World, stage: StageDef, timeMs: number, curse: number, dt: number): void {
+  step(world: World, stage: StageDef, timeMs: number, curse: number, dt: number, viewW: number, viewH: number): void {
     const row = waveRow(stage, timeMs);
-    const ring = spawnRingRadius(stage);
+    const ring = spawnRingRadius(stage, viewW, viewH);
+    const density = densityScale(viewW, viewH);
     const running = timeMs < stage.durationSec * 1000;
 
     if (running) {
-      const minCount = Math.round(row.minCount * (1 + curse));
+      const minCount = Math.round(row.minCount * density * (1 + curse));
       const interval = row.interval / (1 + curse);
       this.timerMs += dt * 1000;
       let normalAlive = 0;
@@ -110,7 +125,8 @@ export class Spawner {
           const w = this.weights.subarray(0, row.mix.length);
           for (let i = 0; i < row.mix.length; i++) w[i] = row.mix[i].weight;
           const hpMult = row.hpMult * (1 + curse);
-          for (let i = 0; i < row.batch; i++) {
+          const batch = Math.max(1, Math.round(row.batch * density));
+          for (let i = 0; i < batch; i++) {
             const idx = world.rng.weightedIndex(w);
             if (idx < 0) break;
             if (!spawnOnRing(world, row.mix[idx].enemy, ring, { hpMult, dmgMult: row.dmgMult })) break;

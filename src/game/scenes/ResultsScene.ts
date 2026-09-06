@@ -1,5 +1,4 @@
 import Phaser from 'phaser';
-import { GAME_H, GAME_W } from '../../config';
 import { formatTime, t } from '../../i18n';
 import { textStyle, COLORS } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
@@ -26,7 +25,7 @@ export class ResultsScene extends Phaser.Scene {
   }
 
   create(data: ResultsData): void {
-    const cx = GAME_W / 2;
+    const cx = this.scale.width / 2;
     const survived = data.ended === 'survived';
     const ctx = app();
 
@@ -36,8 +35,8 @@ export class ResultsScene extends Phaser.Scene {
       gold: data.gold ?? 0,
     });
 
-    this.add.rectangle(cx, GAME_H / 2, GAME_W, GAME_H, 0x05070c, 0.93);
-    this.add.nineslice(cx, GAME_H / 2, 'ui', 'panel_glass', 720, 520, 24, 24, 24, 24).setAlpha(0.97).setTint(0x16243a);
+    this.add.rectangle(cx, this.scale.height / 2, this.scale.width, this.scale.height, 0x05070c, 0.93);
+    this.add.nineslice(cx, this.scale.height / 2, 'ui', 'panel_glass', 720, 520, 24, 24, 24, 24).setAlpha(0.97).setTint(0x16243a);
     this.add
       .text(cx, 168, survived ? t('results.survived') : t('results.died'), textStyle(44, { bold: true, color: survived ? COLORS.good : COLORS.warn }))
       .setOrigin(0.5);

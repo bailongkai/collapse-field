@@ -65,6 +65,8 @@ export class GameScene extends Phaser.Scene {
       seed,
       characterId: data.characterId ?? DEFAULT_CHARACTER_ID,
       stageId: data.stageId ?? DEFAULT_STAGE_ID,
+      viewW: this.scale.width,
+      viewH: this.scale.height,
     });
 
     this.cameras.main.setBackgroundColor('#05070c');
@@ -101,12 +103,18 @@ export class GameScene extends Phaser.Scene {
     this.profiler.attach(this.game);
     this.bindHook();
 
+    this.scale.on(Phaser.Scale.Events.RESIZE, this.onResize, this);
     this.input.keyboard?.on('keydown-ESC', () => this.openPause());
     this.input.keyboard?.on('keydown-P', () => this.openPause());
     this.game.events.on(Phaser.Core.Events.HIDDEN, this.onHidden);
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.teardown());
   }
+
+  /** A wider window shows more of the map, so the wave density follows it to keep the pressure. */
+  private onResize = (): void => {
+    this.sim.setViewSize(this.scale.width, this.scale.height);
+  };
 
   private onHidden = (): void => {
     if (this.scene.isActive() && this.sim.run.phase === 'running') this.openPause();
@@ -115,6 +123,7 @@ export class GameScene extends Phaser.Scene {
   /** Single teardown path: stops child scenes, detaches the profiler and unbinds the debug hook. */
   private teardown(): void {
     this.game.events.off(Phaser.Core.Events.HIDDEN, this.onHidden);
+    this.scale.off(Phaser.Scale.Events.RESIZE, this.onResize, this);
     this.scene.stop('Hud');
     this.scene.stop('LevelUp');
     this.scene.stop('Pause');
@@ -233,12 +242,14 @@ export class GameScene extends Phaser.Scene {
     if (!this.scene.isActive() || !this.cameras?.main) return;
     const cam = this.cameras.main;
     const p = this.sim.world.player;
+    const viewW = this.scale.width;
+    const viewH = this.scale.height;
     this.playerView.update(p, this.sim.run.hp, this.sim.stats.maxHealth, deltaMs);
-    this.floorView.update(cam.midPoint.x, cam.midPoint.y, cam.scrollX, cam.scrollY);
-    this.enemyView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y);
-    this.gemView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y);
+    this.floorView.update(cam.midPoint.x, cam.midPoint.y, cam.scrollX, cam.scrollY, viewW, viewH);
+    this.enemyView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH);
+    this.gemView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH);
     this.pickupView.sync(this.sim.world, this.sim.run.timeMs);
-    this.projectileView.sync(this.sim.world, this.weaponIdBySlot(), cam.midPoint.x, cam.midPoint.y);
+    this.projectileView.sync(this.sim.world, this.weaponIdBySlot(), cam.midPoint.x, cam.midPoint.y, viewW, viewH);
     this.fxView.updateAura(p.x, p.y, this.sim.auraRadius(), deltaMs);
     this.pumpEvents(true);
     this.damageNumbers.update(deltaMs);
@@ -466,6 +477,7 @@ export class GameScene extends Phaser.Scene {
         this.sim.setInput(dx, dy);
       },
       setAutopilot: (on: boolean) => this.sim.setAutopilot(on),
+      getViewSize: () => this.sim.getViewSize(),
       setPlayerPos: (x: number, y: number) => {
         this.sim.world.player.x = x;
         this.sim.world.player.y = y;

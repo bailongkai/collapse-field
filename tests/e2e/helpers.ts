@@ -140,13 +140,17 @@ export class TouchSession {
   }
 }
 
-/** Converts a position in the 1280x720 game space into viewport pixels on the scaled canvas. */
+/**
+ * Converts a position in game space into viewport pixels on the scaled canvas. The logical width
+ * follows the display's aspect ratio, so the scale factor is read from the running game rather
+ * than assumed.
+ */
 export function toScreen(page: Page, gameX: number, gameY: number): Promise<{ x: number; y: number }> {
   return page.evaluate(
     ({ x, y }) => {
       const canvas = document.querySelector('canvas')!;
       const rect = canvas.getBoundingClientRect();
-      const scale = rect.width / 1280;
+      const scale = rect.width / window.__game.phaser.scale.width;
       return { x: rect.left + x * scale, y: rect.top + y * scale };
     },
     { x: gameX, y: gameY },

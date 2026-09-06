@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_H, GAME_W, RUN_SECONDS } from '../../config';
+import { RUN_SECONDS } from '../../config';
 import { formatTime, onLocaleChanged, t } from '../../i18n';
 import { textStyle, COLORS } from '../ui/textStyles';
 import { DIGIT_FONT_KEY } from '../fonts/retroDigits';
@@ -35,19 +35,19 @@ export class HudScene extends Phaser.Scene {
     // reset per-run caches: the scene instance is reused between runs
     this.last = { time: -1, level: -1, kills: -1, xp: -1, build: '' };
 
-    this.xpBarBg = this.add.rectangle(GAME_W / 2, 10, GAME_W, 20, 0x0d1420).setOrigin(0.5);
+    this.xpBarBg = this.add.rectangle(this.scale.width / 2, 10, this.scale.width, 20, 0x0d1420).setOrigin(0.5);
     this.xpBarFill = this.add.rectangle(0, 10, 0, 20, 0x4fe0ff).setOrigin(0, 0.5);
-    this.levelText = this.add.text(GAME_W - 12, 10, '', textStyle(14, { bold: true })).setOrigin(1, 0.5);
-    this.timer = this.add.bitmapText(GAME_W / 2, 30, DIGIT_FONT_KEY, '00:00', 32).setOrigin(0.5, 0);
-    this.killsText = this.add.text(GAME_W - 12, 76, '', textStyle(16, { color: COLORS.dim, align: 'right' })).setOrigin(1, 0);
-    this.bossBarBg = this.add.rectangle(GAME_W / 2, GAME_H - 40, 400, 12, 0x2a0f14).setOrigin(0.5).setVisible(false);
-    this.bossBarFill = this.add.rectangle(GAME_W / 2 - 200, GAME_H - 40, 400, 12, 0xff5555).setOrigin(0, 0.5).setVisible(false);
-    this.bossName = this.add.text(GAME_W / 2, GAME_H - 58, '', textStyle(16, { bold: true, color: COLORS.warn })).setOrigin(0.5).setVisible(false);
-    this.toast = this.add.text(GAME_W / 2, 120, '', textStyle(22, { bold: true, color: COLORS.gold, stroke: true })).setOrigin(0.5).setVisible(false);
+    this.levelText = this.add.text(this.scale.width - 12, 10, '', textStyle(14, { bold: true })).setOrigin(1, 0.5);
+    this.timer = this.add.bitmapText(this.scale.width / 2, 30, DIGIT_FONT_KEY, '00:00', 32).setOrigin(0.5, 0);
+    this.killsText = this.add.text(this.scale.width - 12, 76, '', textStyle(16, { color: COLORS.dim, align: 'right' })).setOrigin(1, 0);
+    this.bossBarBg = this.add.rectangle(this.scale.width / 2, this.scale.height - 40, 400, 12, 0x2a0f14).setOrigin(0.5).setVisible(false);
+    this.bossBarFill = this.add.rectangle(this.scale.width / 2 - 200, this.scale.height - 40, 400, 12, 0xff5555).setOrigin(0, 0.5).setVisible(false);
+    this.bossName = this.add.text(this.scale.width / 2, this.scale.height - 58, '', textStyle(16, { bold: true, color: COLORS.warn })).setOrigin(0.5).setVisible(false);
+    this.toast = this.add.text(this.scale.width / 2, 120, '', textStyle(22, { bold: true, color: COLORS.gold, stroke: true })).setOrigin(0.5).setVisible(false);
 
     // touch players have no Escape key, so they get a button once touch is detected
     const touch = app().touch;
-    this.pauseButton = new UiButton(this, GAME_W - 60, 130, {
+    this.pauseButton = new UiButton(this, this.scale.width - 60, 130, {
       id: 'hud.pause',
       label: '❚❚',
       width: 72,
@@ -61,17 +61,25 @@ export class HudScene extends Phaser.Scene {
     this.weaponRow = new IconRow(this, 34, 52, 6, 32);
     this.passiveRow = new IconRow(this, 34, 92, 6, 32);
 
+    this.scale.on(Phaser.Scale.Events.RESIZE, this.onResize, this);
+
     this.offLocale = onLocaleChanged(() => {
       this.last.level = -1;
       this.last.kills = -1;
     });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.scale.off(Phaser.Scale.Events.RESIZE, this.onResize, this);
       this.offLocale?.();
       this.offLocale = null;
       this.offTouch?.();
       this.offTouch = null;
       this.pauseButton = null;
     });
+  }
+
+  /** The logical width changes with the display's aspect, so the HUD is rebuilt rather than stretched. */
+  private onResize(): void {
+    this.scene.restart();
   }
 
   /** Shows a short message; the game scene calls this from simulation events. */
@@ -128,7 +136,7 @@ export class HudScene extends Phaser.Scene {
     const ratio = run.xpNext > 0 ? Math.min(1, run.xp / run.xpNext) : 0;
     if (ratio !== this.last.xp) {
       this.last.xp = ratio;
-      this.xpBarFill.setSize(GAME_W * ratio, 20);
+      this.xpBarFill.setSize(this.scale.width * ratio, 20);
     }
   }
 }

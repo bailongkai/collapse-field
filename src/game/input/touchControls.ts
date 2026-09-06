@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_H, GAME_W } from '../../config';
+
 
 const BASE_RADIUS = 68;
 const KNOB_RADIUS = 30;
@@ -70,8 +70,8 @@ export class VirtualJoystick {
     if (!this.enabled || this.pointerId !== -1) return;
     if (pointer.y < START_ZONE_TOP) return; // leave the HUD strip free for the pause button
     this.pointerId = pointer.id;
-    this.originX = Phaser.Math.Clamp(pointer.x, BASE_RADIUS, GAME_W - BASE_RADIUS);
-    this.originY = Phaser.Math.Clamp(pointer.y, BASE_RADIUS, GAME_H - BASE_RADIUS);
+    this.originX = Phaser.Math.Clamp(pointer.x, BASE_RADIUS, this.scene.scale.width - BASE_RADIUS);
+    this.originY = Phaser.Math.Clamp(pointer.y, BASE_RADIUS, this.scene.scale.height - BASE_RADIUS);
     this.base.setPosition(this.originX, this.originY).setVisible(true);
     this.knob.setPosition(this.originX, this.originY).setVisible(true);
     this.update(pointer.x, pointer.y);

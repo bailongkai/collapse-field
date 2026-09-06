@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_H, GAME_W, PROJECTILE_CAP } from '../../config';
+import { PROJECTILE_CAP } from '../../config';
 import { weaponDef } from '../../core/content/registry';
 import type { World } from '../../core/sim/world';
 
@@ -25,11 +25,11 @@ export class ProjectileView {
     }
   }
 
-  sync(world: World, weaponIdBySlot: string[], camX: number, camY: number): void {
-    const minX = camX - GAME_W / 2 - CULL_MARGIN;
-    const maxX = camX + GAME_W / 2 + CULL_MARGIN;
-    const minY = camY - GAME_H / 2 - CULL_MARGIN;
-    const maxY = camY + GAME_H / 2 + CULL_MARGIN;
+  sync(world: World, weaponIdBySlot: string[], camX: number, camY: number, viewW: number, viewH: number): void {
+    const minX = camX - viewW / 2 - CULL_MARGIN;
+    const maxX = camX + viewW / 2 + CULL_MARGIN;
+    const minY = camY - viewH / 2 - CULL_MARGIN;
+    const maxY = camY + viewH / 2 + CULL_MARGIN;
 
     for (let i = 0; i < PROJECTILE_CAP; i++) {
       if (world.projectiles.items[i].active) continue;

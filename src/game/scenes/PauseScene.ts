@@ -1,5 +1,4 @@
 import Phaser from 'phaser';
-import { GAME_H, GAME_W } from '../../config';
 import { t } from '../../i18n';
 import { COLORS, textStyle } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
@@ -24,12 +23,12 @@ export class PauseScene extends Phaser.Scene {
     const game = this.scene.get('Game') as GameScene;
     const run = game.sim.run;
     const stats = game.sim.stats;
-    const cx = GAME_W / 2;
-    const cy = GAME_H / 2;
+    const cx = this.scale.width / 2;
+    const cy = this.scale.height / 2;
     const left = cx - PANEL_W / 2 + 48;
     const right = cx + 60;
 
-    this.add.rectangle(cx, cy, GAME_W, GAME_H, 0x05070c, 0.65);
+    this.add.rectangle(cx, cy, this.scale.width, this.scale.height, 0x05070c, 0.65);
     this.add.nineslice(cx, cy, 'ui', 'panel_glass', PANEL_W, PANEL_H, 24, 24, 24, 24).setAlpha(0.97).setTint(0x16243a);
     this.add.text(cx, cy - PANEL_H / 2 + 44, t('pause.title'), textStyle(34, { bold: true, color: COLORS.accent })).setOrigin(0.5);
 

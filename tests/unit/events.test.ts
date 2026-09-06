@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { Simulation } from '../../src/core/sim/simulation';
 import { stageDef } from '../../src/core/content/registry';
 import { spawnRingRadius } from '../../src/core/sim/systems/spawnSystem';
+import { REF_H, REF_W } from '../../src/config';
 import type { Enemy } from '../../src/core/sim/entities/enemy';
 
 const stage = stageDef('station');
@@ -73,9 +74,9 @@ describe('boss', () => {
     expect(boss.maxHp).toBe(1500);
 
     // even far away it keeps chasing rather than being teleported to the ring
-    boss.x = s.world.player.x + spawnRingRadius(stage) * 5;
+    boss.x = s.world.player.x + spawnRingRadius(stage, REF_W, REF_H) * 5;
     s.stepMany(2);
-    expect(Math.hypot(boss.x - s.world.player.x, boss.y - s.world.player.y)).toBeGreaterThan(spawnRingRadius(stage) * 2);
+    expect(Math.hypot(boss.x - s.world.player.x, boss.y - s.world.player.y)).toBeGreaterThan(spawnRingRadius(stage, REF_W, REF_H) * 2);
 
     s.damageEnemy(boss, 1e6, 1, 0, 0);
     expect(boss.active).toBe(false);

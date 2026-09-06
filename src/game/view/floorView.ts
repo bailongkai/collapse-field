@@ -1,5 +1,5 @@
 import type Phaser from 'phaser';
-import { GAME_H, GAME_W } from '../../config';
+
 import type { StageDef } from '../../data/types';
 import { reroll, wrapDecor, type DecorSlot } from '../../core/decor';
 import { hash2 } from '../../core/rng';
@@ -18,8 +18,9 @@ export class FloorView {
 
   constructor(scene: Phaser.Scene, stage: StageDef, floorLayer: Phaser.GameObjects.Layer, decorLayer: Phaser.GameObjects.Layer) {
     this.frames = stage.decorFrames;
+    const view = scene.scale;
     this.tile = scene.add
-      .tileSprite(GAME_W / 2, GAME_H / 2, GAME_W, GAME_H, stage.floorTexture)
+      .tileSprite(view.width / 2, view.height / 2, view.width, view.height, stage.floorTexture)
       .setScrollFactor(0)
       .setTint(stage.floorTint);
     floorLayer.add(this.tile);
@@ -41,12 +42,16 @@ export class FloorView {
     }
   }
 
-  update(camX: number, camY: number, scrollX: number, scrollY: number): void {
+  update(camX: number, camY: number, scrollX: number, scrollY: number, viewW: number, viewH: number): void {
+    if (this.tile.width !== viewW || this.tile.height !== viewH) {
+      this.tile.setSize(viewW, viewH);
+      this.tile.setPosition(viewW / 2, viewH / 2);
+    }
     this.tile.tilePositionX = scrollX;
     this.tile.tilePositionY = scrollY;
     for (let i = 0; i < this.slots.length; i++) {
       const slot = this.slots[i];
-      if (wrapDecor(slot, camX, camY, GAME_W, GAME_H, this.frames.length)) {
+      if (wrapDecor(slot, camX, camY, viewW, viewH, this.frames.length)) {
         this.decor[i].setFrame(this.frames[slot.frame]);
       }
       const img = this.decor[i];

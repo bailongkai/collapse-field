@@ -54,6 +54,42 @@ test('perf: 500 enemies with a full kit stay inside the frame budget', async ({ 
   expect(errors, errors.join('\n')).toEqual([]);
 });
 
+test('perf: a wide view carries its larger crowd', async ({ page }) => {
+  // an ultrawide window shows more of the map and therefore holds proportionally more enemies
+  await page.setViewportSize({ width: 1720, height: 720 });
+  const errors = await openGame(page, '?test=1&seed=97');
+  await page.evaluate(() => window.__game.startRun({ seed: 97 }));
+  await waitScene(page, 'game');
+
+  const view = await page.evaluate(() => window.__game.getViewSize());
+  expect(view.width).toBeGreaterThan(1280);
+
+  await page.evaluate(() => {
+    window.__game.godMode(true);
+    window.__game.setStat('growth', 0);
+    window.__game.giveWeapon('railgun', 8);
+    window.__game.giveWeapon('orbitalDrones', 8);
+    window.__game.giveWeapon('empField', 8);
+    window.__game.setTime(14 * 60);
+  });
+  await page.evaluate(() => window.__game.fastForward(45, { levelUpPolicy: 'first' }));
+
+  const busy = await state(page);
+  console.log(`wide view ${view.width}x${view.height}: ${busy.counts.enemies} enemies`);
+  expect(busy.counts.enemies).toBeGreaterThan(250);
+
+  await page.evaluate(() => window.__game.profile.start());
+  await realWait(6000);
+  const perf = await page.evaluate(() => window.__game.profile.stop());
+  console.log(`wide renderer=${perf.renderer} sim=${perf.simMs.toFixed(2)} sync=${perf.syncMs.toFixed(2)} p50=${perf.p50.toFixed(2)} p95=${perf.p95.toFixed(2)}`);
+  expect(perf.simMs + perf.syncMs).toBeLessThan(8);
+  if (!/swiftshader|llvmpipe|software/i.test(perf.renderer)) {
+    expect(perf.p50).toBeLessThan(17.5);
+  }
+  await snap(page, 'perf-wide');
+  expect(errors, errors.join('\n')).toEqual([]);
+});
+
 test('perf: a long run does not leak memory or entities', async ({ page }) => {
   const errors = await openGame(page, '?test=1&seed=55');
   await startRun(page, 55);

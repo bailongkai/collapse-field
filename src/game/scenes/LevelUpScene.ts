@@ -1,5 +1,4 @@
 import Phaser from 'phaser';
-import { GAME_H, GAME_W } from '../../config';
 import { t, tDynamic } from '../../i18n';
 import { COLORS, textStyle } from '../ui/textStyles';
 import { registerButton } from '../ui/buttonRegistry';
@@ -39,12 +38,12 @@ export class LevelUpScene extends Phaser.Scene {
     const game = this.scene.get('Game') as GameScene;
     const choices = game.sim.run.choices ?? [];
 
-    this.add.rectangle(GAME_W / 2, GAME_H / 2, GAME_W, GAME_H, 0x05070c, 0.6);
+    this.add.rectangle(this.scale.width / 2, this.scale.height / 2, this.scale.width, this.scale.height, 0x05070c, 0.6);
     const panelH = 140 + choices.length * (CARD_H + CARD_GAP);
-    this.add.nineslice(GAME_W / 2, GAME_H / 2, 'ui', 'panel_glass', 560, panelH, 24, 24, 24, 24).setAlpha(0.96).setTint(PANEL_TINT);
-    this.add.text(GAME_W / 2, GAME_H / 2 - panelH / 2 + 42, t('levelup.title'), textStyle(32, { bold: true, color: COLORS.accent })).setOrigin(0.5);
+    this.add.nineslice(this.scale.width / 2, this.scale.height / 2, 'ui', 'panel_glass', 560, panelH, 24, 24, 24, 24).setAlpha(0.96).setTint(PANEL_TINT);
+    this.add.text(this.scale.width / 2, this.scale.height / 2 - panelH / 2 + 42, t('levelup.title'), textStyle(32, { bold: true, color: COLORS.accent })).setOrigin(0.5);
 
-    const top = GAME_H / 2 - panelH / 2 + 96;
+    const top = this.scale.height / 2 - panelH / 2 + 96;
     choices.forEach((choice, i) => {
       const y = top + i * (CARD_H + CARD_GAP) + CARD_H / 2;
       this.cards.push(this.buildCard(choice, i, y));
@@ -105,7 +104,7 @@ export class LevelUpScene extends Phaser.Scene {
 
   private buildCard(choice: LevelUpChoice, index: number, y: number): Phaser.GameObjects.Container {
     const info = this.describe(choice);
-    const container = this.add.container(GAME_W / 2, y);
+    const container = this.add.container(this.scale.width / 2, y);
     const bg = this.add.nineslice(0, 0, 'ui', 'panel_rect', CARD_W, CARD_H, 16, 16, 16, 16).setTint(CARD_TINT);
     const icon = this.add.image(-CARD_W / 2 + 44, 0, 'game', info.icon).setDisplaySize(44, 44);
     const title = this.add.text(-CARD_W / 2 + 84, -24, info.title, textStyle(22, { bold: true })).setOrigin(0, 0.5);

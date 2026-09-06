@@ -57,6 +57,16 @@ The starting weapon fires from the first tick, so a test that measures a crowd
 has to account for it. `tests/unit/horde.test.ts` strips the weapons for exactly
 this reason.
 
+The logical view is 720 tall with a variable width, so scene layout must read
+`this.scale.width` rather than a constant, and anything gameplay-facing takes
+the view size as an explicit input. `Simulation` receives it in its options and
+defaults to the reference 1280x720, which is why unit tests still see exactly
+the authored balance.
+
+Calibrating balance needs more seeds than feels necessary. Three seeds gave a
+confident but wrong answer about how view width affects difficulty; the spread
+between seeds was larger than the effect. Sixteen seeds settled it.
+
 Touch input needs `input.activePointers` above the default of one, or a second
 finger never reaches a button while the virtual stick is held. `tests/e2e/
 mobile.spec.ts` covers that with real multi-finger events; it fails if the

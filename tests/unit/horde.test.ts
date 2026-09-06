@@ -3,6 +3,7 @@ import { Simulation } from '../../src/core/sim/simulation';
 import type { Enemy } from '../../src/core/sim/entities/enemy';
 import { SEPARATION_MAX_PUSH } from '../../src/config';
 import { spawnRingRadius, waveRow } from '../../src/core/sim/systems/spawnSystem';
+import { REF_H, REF_W } from '../../src/config';
 import { stageDef } from '../../src/core/content/registry';
 
 const newSim = (seed = 3) => new Simulation({ seed, characterId: 'survivor', stageId: 'station' });
@@ -113,7 +114,7 @@ describe('wave table and spawner', () => {
     const s = newSim();
     s.run.god = true;
     s.stepMany(120);
-    const ring = spawnRingRadius(stage);
+    const ring = spawnRingRadius(stage, REF_W, REF_H);
     const alive = s.world.enemies.aliveList();
     expect(s.world.enemies.count).toBeGreaterThan(0);
     for (let i = 0; i < s.world.enemies.count; i++) {
@@ -132,7 +133,7 @@ describe('wave table and spawner', () => {
     s.stepMany(1);
     expect(e.active).toBe(true);
     expect(e.hp).toBe(7);
-    expect(Math.hypot(e.x - s.world.player.x, e.y - s.world.player.y)).toBeLessThan(spawnRingRadius(stage) * 1.2);
+    expect(Math.hypot(e.x - s.world.player.x, e.y - s.world.player.y)).toBeLessThan(spawnRingRadius(stage, REF_W, REF_H) * 1.2);
   });
 
   it('never overflows the enemy pool', () => {

@@ -1,5 +1,4 @@
 import Phaser from 'phaser';
-import { GAME_H, GAME_W } from '../../config';
 import { getLocale, setLocale, t } from '../../i18n';
 import { COLORS, textStyle } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
@@ -18,9 +17,9 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   create(): void {
-    const cx = GAME_W / 2;
-    const cy = GAME_H / 2;
-    this.add.rectangle(cx, cy, GAME_W, GAME_H, 0x05070c, 0.7);
+    const cx = this.scale.width / 2;
+    const cy = this.scale.height / 2;
+    this.add.rectangle(cx, cy, this.scale.width, this.scale.height, 0x05070c, 0.7);
     this.add.nineslice(cx, cy, 'ui', 'panel_glass', 560, 380, 24, 24, 24, 24).setAlpha(0.97).setTint(0x16243a);
     this.add.text(cx, cy - 140, t('settings.title'), textStyle(30, { bold: true, color: COLORS.accent })).setOrigin(0.5);
 
