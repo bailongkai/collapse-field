@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openGame, snap, startRun, state, step, sceneName, realWait, waitScene } from './helpers';
+import { openGame, snap, startRun, state, step, sceneName, realWait, waitScene, expectScenes } from './helpers';
 
 test('M2: fixed-step movement, camera follow and pause semantics', async ({ page }) => {
   const errors = await openGame(page, '?test=1&seed=42');
@@ -32,7 +32,7 @@ test('M2: fixed-step movement, camera follow and pause semantics', async ({ page
   expect((await state(page)).time).toBeGreaterThan(paused.time);
 
   // the HUD runs in parallel with the game scene and nothing else is left over
-  expect(await page.evaluate(() => window.__game.activeScenes())).toEqual(['Game', 'Hud']);
+  await expectScenes(page, ['Game', 'Hud']);
   expect(await sceneName(page)).toBe('game');
 
   await page.evaluate(() => window.__game.setInput(0, 0));

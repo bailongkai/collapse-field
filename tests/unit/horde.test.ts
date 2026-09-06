@@ -6,11 +6,22 @@ import { spawnRingRadius, waveRow } from '../../src/core/sim/systems/spawnSystem
 import { stageDef } from '../../src/core/content/registry';
 
 const newSim = (seed = 3) => new Simulation({ seed, characterId: 'survivor', stageId: 'station' });
+
+/**
+ * Strips the starting weapon. Crowd and contact behaviour has to be observed on its own: the plasma
+ * blade would clear a tightly packed test crowd on the first tick and there would be nothing left
+ * to measure.
+ */
+const unarmed = (s: Simulation): Simulation => {
+  s.run.weapons.length = 0;
+  s.world.weaponInstances.length = 0;
+  return s;
+};
 const stage = stageDef('station');
 
 describe('separation', () => {
   it('spreads a jammed crowd out instead of leaving it stacked on one point', () => {
-    const s = newSim();
+    const s = unarmed(newSim());
     s.run.god = true;
     // 500 enemies stacked inside a 20 px box around the player
     for (let i = 0; i < 500; i++) s.spawn('drone', 1, { x: (i % 20) - 10, y: Math.floor(i / 20) - 10 });
@@ -43,7 +54,7 @@ describe('separation', () => {
   });
 
   it('never moves an enemy more than the per-step clamp from separation alone', () => {
-    const s = newSim();
+    const s = unarmed(newSim());
     s.setStatOverride('moveSpeed', 0);
     for (let i = 0; i < 40; i++) s.spawn('drone', 1, { x: 0, y: 0 });
     const before = s.world.enemies.items.map((e) => ({ x: e.x, y: e.y, active: e.active }));
@@ -135,7 +146,7 @@ describe('wave table and spawner', () => {
 
 describe('contact damage', () => {
   it('damages the player once per i-frame window and respects armor', () => {
-    const s = newSim();
+    const s = unarmed(newSim());
     s.setStatOverride('moveSpeed', 0);
     s.spawn('drone', 10, { x: 0, y: 0 });
     const hp0 = s.world.player.hp;
@@ -148,7 +159,7 @@ describe('contact damage', () => {
   });
 
   it('armor reduces damage but never below 1', () => {
-    const s = newSim();
+    const s = unarmed(newSim());
     s.setStatOverride('moveSpeed', 0);
     s.setStatOverride('armor', 100);
     s.spawn('drone', 4, { x: 0, y: 0 });
@@ -158,7 +169,7 @@ describe('contact damage', () => {
   });
 
   it('god mode blocks contact damage but the run can still be ended', () => {
-    const s = newSim();
+    const s = unarmed(newSim());
     s.setStatOverride('moveSpeed', 0);
     s.run.god = true;
     s.spawn('mech', 6, { x: 0, y: 0 });
@@ -225,6 +236,7 @@ describe('kills and drops', () => {
 describe('simulation benchmark', () => {
   it('steps 500 enemies well under the frame budget', () => {
     const s = newSim();
+    s.setStatOverride('growth', 0); // level-ups would stop the batch part-way through
     s.run.god = true;
     // mechs are the heaviest case: the largest radius, so the most separation pairs, and they
     // survive the starting weapon so the field stays full for the whole measurement

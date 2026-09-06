@@ -70,6 +70,18 @@ export async function waitScene(page: Page, name: string, timeout = 10_000): Pro
   await page.waitForFunction((n) => window.__game.scene() === n, name, { timeout });
 }
 
+/**
+ * Waits until exactly these scenes are active. Phaser defers stopping a scene to the next frame,
+ * so an immediate check can still see an overlay that is on its way out.
+ */
+export async function expectScenes(page: Page, expected: string[], timeout = 5000): Promise<void> {
+  await page.waitForFunction(
+    (want) => JSON.stringify(window.__game.activeScenes()) === JSON.stringify(want),
+    expected,
+    { timeout },
+  );
+}
+
 export function realWait(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }

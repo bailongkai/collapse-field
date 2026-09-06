@@ -15,6 +15,7 @@ export interface ContentRegistry {
   stages: Readonly<Record<string, StageDef>>;
   weaponList: readonly WeaponDef[];
   passiveList: readonly PassiveDef[];
+  pickupList: readonly PickupDef[];
 }
 
 export const CONTENT: ContentRegistry = {
@@ -26,6 +27,7 @@ export const CONTENT: ContentRegistry = {
   stages: STAGES,
   weaponList: Object.values(WEAPONS),
   passiveList: Object.values(PASSIVES),
+  pickupList: Object.values(PICKUPS),
 };
 
 export function weaponDef(id: string): WeaponDef {

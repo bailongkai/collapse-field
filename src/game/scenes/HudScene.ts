@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_W, RUN_SECONDS } from '../../config';
+import { GAME_H, GAME_W, RUN_SECONDS } from '../../config';
 import { formatTime, onLocaleChanged, t } from '../../i18n';
 import { textStyle, COLORS } from '../ui/textStyles';
 import { DIGIT_FONT_KEY } from '../fonts/retroDigits';
@@ -13,6 +13,11 @@ export class HudScene extends Phaser.Scene {
   private killsText!: Phaser.GameObjects.Text;
   private xpBarBg!: Phaser.GameObjects.Rectangle;
   private xpBarFill!: Phaser.GameObjects.Rectangle;
+  private bossBarBg!: Phaser.GameObjects.Rectangle;
+  private bossBarFill!: Phaser.GameObjects.Rectangle;
+  private bossName!: Phaser.GameObjects.Text;
+  private toast!: Phaser.GameObjects.Text;
+  private toastMs = 0;
   private weaponRow!: IconRow;
   private passiveRow!: IconRow;
   private last = { time: -1, level: -1, kills: -1, xp: -1, build: '' };
@@ -31,6 +36,11 @@ export class HudScene extends Phaser.Scene {
     this.levelText = this.add.text(GAME_W - 12, 10, '', textStyle(14, { bold: true })).setOrigin(1, 0.5);
     this.timer = this.add.bitmapText(GAME_W / 2, 30, DIGIT_FONT_KEY, '00:00', 32).setOrigin(0.5, 0);
     this.killsText = this.add.text(GAME_W - 12, 76, '', textStyle(16, { color: COLORS.dim, align: 'right' })).setOrigin(1, 0);
+    this.bossBarBg = this.add.rectangle(GAME_W / 2, GAME_H - 40, 400, 12, 0x2a0f14).setOrigin(0.5).setVisible(false);
+    this.bossBarFill = this.add.rectangle(GAME_W / 2 - 200, GAME_H - 40, 400, 12, 0xff5555).setOrigin(0, 0.5).setVisible(false);
+    this.bossName = this.add.text(GAME_W / 2, GAME_H - 58, '', textStyle(16, { bold: true, color: COLORS.warn })).setOrigin(0.5).setVisible(false);
+    this.toast = this.add.text(GAME_W / 2, 120, '', textStyle(22, { bold: true, color: COLORS.gold, stroke: true })).setOrigin(0.5).setVisible(false);
+
     this.weaponRow = new IconRow(this, 34, 52, 6, 32);
     this.passiveRow = new IconRow(this, 34, 92, 6, 32);
 
@@ -44,10 +54,36 @@ export class HudScene extends Phaser.Scene {
     });
   }
 
-  override update(): void {
+  /** Shows a short message; the game scene calls this from simulation events. */
+  showToast(text: string, ms = 2200): void {
+    this.toast.setText(text);
+    this.toast.setVisible(true);
+    this.toast.setAlpha(1);
+    this.toastMs = ms;
+  }
+
+  override update(_time: number, delta: number): void {
     const game = this.scene.get('Game') as GameScene | undefined;
     if (!game?.sim) return;
     const run = game.sim.run;
+
+    if (this.toastMs > 0) {
+      this.toastMs -= delta;
+      if (this.toastMs <= 0) this.toast.setVisible(false);
+      else this.toast.setAlpha(Math.min(1, this.toastMs / 600));
+    }
+
+    const boss = game.sim.bossStatus();
+    if (boss) {
+      this.bossBarBg.setVisible(true);
+      this.bossBarFill.setVisible(true);
+      this.bossName.setVisible(true).setText(t(boss.name as Parameters<typeof t>[0]));
+      this.bossBarFill.setSize(400 * Math.max(0, Math.min(1, boss.hp / boss.maxHp)), 12);
+    } else if (this.bossBarBg.visible) {
+      this.bossBarBg.setVisible(false);
+      this.bossBarFill.setVisible(false);
+      this.bossName.setVisible(false);
+    }
 
     const sec = Math.min(RUN_SECONDS, Math.floor(run.timeMs / 1000));
     if (sec !== this.last.time) {

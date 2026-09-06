@@ -13,6 +13,8 @@ import { dropForEnemy } from './systems/dropSystem';
 import { stepWeapons } from './systems/weaponSystem';
 import { stepProjectiles } from './systems/projectileSystem';
 import { stepGems, vacuumGems } from './systems/gemSystem';
+import { EventScheduler } from './systems/eventSystem';
+import { rollDrops, spawnPickup, stepPickups, type PickupCollected } from './systems/pickupSystem';
 import { rollLevelUp } from '../levelup/roll';
 import { auraRadius } from '../weapons/behaviors/aura';
 import { weaponParams } from '../stats/weaponParams';
@@ -66,6 +68,8 @@ export class Simulation {
   private forcedStats: Partial<Record<StatKey, number>> = {};
   private cachedStats: PlayerStats;
   private spawner = new Spawner();
+  private events = new EventScheduler();
+  private collected: PickupCollected[] = [];
   private weaponCtx: WeaponContext;
 
   constructor(opts: SimulationOptions) {
@@ -170,6 +174,7 @@ export class Simulation {
 
     stepPlayer(world.player, stats, dt);
     this.spawner.step(world, stage, run.timeMs, stats.curse, dt);
+    if (this.events.step(world, stage, run.timeMs)) run.reaperSpawned = true;
     stepEnemies(world, world.player, dt, PLAYER_BASE_SPEED * stats.moveSpeed);
     world.rebuildGrid();
     stepSeparation(world, world.rng, GAME_W, GAME_H);
@@ -186,22 +191,22 @@ export class Simulation {
     if (run.phase === 'running') {
       const harvest = stepGems(world, stats, dt, spawnRingRadius(stage) * stage.despawnFactor);
       if (harvest.xp > 0) this.addXp(harvest.xp * stats.growth);
+
+      stepPickups(world, stats, dt, this.collected);
+      for (const c of this.collected) this.applyPickup(c);
     }
 
     // the level-up overlay opens only once the tick is otherwise finished, and never over a corpse
     if (run.phase === 'running' && run.pendingLevelUps > 0) this.openLevelUp();
 
-    if (run.phase === 'running' && run.timeMs >= RUN_SECONDS * 1000) {
-      run.phase = 'ended';
-      run.ended = 'survived';
-      world.events.push('survived', world.player.x, world.player.y, run.timeMs / 1000);
-    }
-
     run.hp = world.player.hp;
     return true;
   }
 
-  /** Death check, with revival spending a charge and clearing the screen instead of ending the run. */
+  /**
+   * Death check. Reaching the fifteen-minute mark counts as surviving even though the reaper is
+   * what finally kills you, which is how the timer resolves: it never ends the run on its own.
+   */
   private onPlayerHurt(fatal: boolean): void {
     const { run, world } = this;
     if (world.player.hp > 0) return;
@@ -216,8 +221,9 @@ export class Simulation {
     world.player.hp = 0;
     run.hp = 0;
     run.phase = 'ended';
-    run.ended = 'died';
-    world.events.push('died', world.player.x, world.player.y, run.timeMs / 1000);
+    const survived = run.timeMs >= RUN_SECONDS * 1000;
+    run.ended = survived ? 'survived' : 'died';
+    world.events.push(survived ? 'survived' : 'died', world.player.x, world.player.y, run.timeMs / 1000);
   }
 
   /** Damage entry point shared by every weapon; handles knockback, flash, death and drops. */
@@ -238,6 +244,7 @@ export class Simulation {
     this.run.kills++;
     this.world.events.push('death', e.x, e.y, 0, e.defId, e.def.deathFx === 'big');
     dropForEnemy(this.world, e, this.stage.gemCap);
+    rollDrops(this.world, e, this.world.rng, this.cachedStats.luck, this.reg.pickupList);
     if (isBoss) this.world.events.push('bossKilled', e.x, e.y, 0, e.defId, true);
     this.world.enemies.free(e);
   }
@@ -251,6 +258,86 @@ export class Simulation {
       killed++;
     });
     return killed;
+  }
+
+  /** Applies a collected pickup's effect and emits the event the HUD and tests listen for. */
+  private applyPickup(c: PickupCollected): void {
+    const { world, run } = this;
+    const effect = c.def.effect;
+    switch (effect.kind) {
+      case 'heal':
+        world.player.hp = Math.min(this.cachedStats.maxHealth, world.player.hp + effect.amount);
+        run.hp = world.player.hp;
+        world.events.push('heal', c.x, c.y, effect.amount, c.def.id);
+        break;
+      case 'gold':
+        run.gold += Math.round(effect.amount * this.cachedStats.greed);
+        world.events.push('pickup', c.x, c.y, effect.amount, c.def.id);
+        break;
+      case 'vacuum':
+        world.events.push('vacuum', c.x, c.y, vacuumGems(world), c.def.id);
+        break;
+      case 'nuke':
+        world.events.push('nuke', c.x, c.y, this.killAllOnScreen(), c.def.id);
+        break;
+      case 'chest': {
+        const upgraded = this.grantWeaponLevels(effect.weaponLevels);
+        world.events.push('chest', c.x, c.y, upgraded, c.def.id, true);
+        break;
+      }
+    }
+  }
+
+  /** Chest reward: raises random owned weapons that are not yet maxed. */
+  private grantWeaponLevels(count: number): number {
+    let granted = 0;
+    for (let i = 0; i < count; i++) {
+      const upgradable = this.run.weapons.filter((w) => w.level < this.reg.weapons[w.id].maxLevel);
+      if (upgradable.length === 0) break;
+      const pick = upgradable[this.world.rng.int(0, upgradable.length - 1)];
+      this.giveWeapon(pick.id, pick.level + 1);
+      granted++;
+    }
+    return granted;
+  }
+
+  /** Debug hook: place a pickup on the ground. */
+  spawnPickup(defId: string, x?: number, y?: number): boolean {
+    return spawnPickup(this.world, defId, x ?? this.world.player.x + 60, y ?? this.world.player.y);
+  }
+
+  /** Debug hook: collect a specific pickup regardless of distance. */
+  collectPickup(id: number): boolean {
+    const item = this.world.pickups.items[id];
+    if (!item?.active) return false;
+    item.x = this.world.player.x;
+    item.y = this.world.player.y;
+    return true;
+  }
+
+  /** Fires a stage event immediately, by index. */
+  triggerEvent(index: number): boolean {
+    return this.events.fireIndex(this.world, this.stage, index);
+  }
+
+  spawnBoss(): void {
+    const index = this.stage.events.findIndex((e) => e.kind === 'boss');
+    if (index >= 0) this.events.fireIndex(this.world, this.stage, index);
+  }
+
+  spawnReaper(): void {
+    const index = this.stage.events.findIndex((e) => e.kind === 'reaper');
+    if (index >= 0) {
+      this.events.fireIndex(this.world, this.stage, index);
+      this.run.reaperSpawned = true;
+    }
+  }
+
+  despawnReaper(): void {
+    this.world.enemies.forEach((e) => {
+      if (e.behavior === 'reaper') this.world.enemies.free(e);
+    });
+    this.run.reaperSpawned = false;
   }
 
   /** Grants XP, levelling as many times as it covers; each level queues one level-up offer. */
@@ -338,6 +425,16 @@ export class Simulation {
         this.stage.gemCap,
       );
     }
+  }
+
+  /** The boss currently on the field, if any, for the HUD's health bar. */
+  bossStatus(): { name: string; hp: number; maxHp: number } | null {
+    const alive = this.world.enemies.aliveList();
+    for (let i = 0; i < this.world.enemies.count; i++) {
+      const e = this.world.enemies.items[alive[i]];
+      if (e.def?.bossBar) return { name: e.def.nameKey, hp: e.hp, maxHp: e.maxHp };
+    }
+    return null;
   }
 
   /** Radius of the EMP field for the current build, or 0 when the weapon is not owned. */
@@ -429,6 +526,8 @@ export class Simulation {
 
   setTime(sec: number): void {
     this.run.timeMs = Math.max(0, sec * 1000);
+    // events already in the past must not all fire at once on the next tick
+    this.events.skipTo(this.stage, sec);
   }
 
   pause(): void {

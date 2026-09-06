@@ -10,6 +10,7 @@ import { FloorView } from '../view/floorView';
 import { PlayerView } from '../view/playerView';
 import { EnemyView } from '../view/enemyView';
 import { GemView } from '../view/gemView';
+import { PickupView } from '../view/pickupView';
 import { ProjectileView } from '../view/projectileView';
 import { DamageNumbers } from '../view/damageNumbers';
 import { FxView } from '../view/fxView';
@@ -18,6 +19,8 @@ import type { FrameStats, HookRunState, RunHandlers } from '../../debug/hook';
 import { rendererString } from '../../debug/hook';
 import { sfx } from '../audio/sfx';
 import { app } from '../app';
+import { t } from '../../i18n';
+import type { HudScene } from './HudScene';
 
 export interface GameSceneData {
   seed?: number;
@@ -33,6 +36,7 @@ export class GameScene extends Phaser.Scene {
   private playerView!: PlayerView;
   private enemyView!: EnemyView;
   private gemView!: GemView;
+  private pickupView!: PickupView;
   private projectileView!: ProjectileView;
   private damageNumbers!: DamageNumbers;
   private fxView!: FxView;
@@ -75,6 +79,7 @@ export class GameScene extends Phaser.Scene {
     this.playerView = new PlayerView(this, this.sim.character, this.layers.player);
     this.enemyView = new EnemyView(this, this.layers.enemies);
     this.gemView = new GemView(this, this.layers.gems);
+    this.pickupView = new PickupView(this, this.layers.pickups);
     this.projectileView = new ProjectileView(this, this.layers.projectiles, this.layers.fx);
     this.damageNumbers = new DamageNumbers(this, this.layers.numbers);
     this.fxView = new FxView(this, this.layers.fx);
@@ -110,6 +115,7 @@ export class GameScene extends Phaser.Scene {
     this.playerView.destroy();
     this.enemyView.destroy();
     this.gemView.destroy();
+    this.pickupView.destroy();
     this.projectileView.destroy();
     this.damageNumbers.destroy();
     this.fxView.destroy();
@@ -193,8 +199,16 @@ export class GameScene extends Phaser.Scene {
 
   private finishRun(): void {
     const run = this.sim.run;
-    const summary = { timeSec: run.timeMs / 1000, kills: run.kills, level: run.level, gold: run.gold, ended: run.ended ?? 'died' };
-    this.scene.start('Results', summary);
+    this.scene.start('Results', {
+      timeSec: run.timeMs / 1000,
+      kills: run.kills,
+      level: run.level,
+      gold: run.gold,
+      ended: run.ended ?? 'died',
+      weapons: run.weapons.map((w) => ({ ...w })),
+      passives: run.passives.map((p) => ({ ...p })),
+      seed: run.seed,
+    });
   }
 
   private syncViews(deltaMs: number): void {
@@ -204,10 +218,16 @@ export class GameScene extends Phaser.Scene {
     this.floorView.update(cam.midPoint.x, cam.midPoint.y, cam.scrollX, cam.scrollY);
     this.enemyView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y);
     this.gemView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y);
+    this.pickupView.sync(this.sim.world, this.sim.run.timeMs);
     this.projectileView.sync(this.sim.world, this.weaponIdBySlot(), cam.midPoint.x, cam.midPoint.y);
     this.fxView.updateAura(p.x, p.y, this.sim.auraRadius(), deltaMs);
     this.pumpEvents(true);
     this.damageNumbers.update(deltaMs);
+  }
+
+  private toast(text: string): void {
+    const hud = this.scene.get('Hud') as HudScene | undefined;
+    hud?.showToast(text);
   }
 
   private slotCache: string[] = [];
@@ -277,6 +297,31 @@ export class GameScene extends Phaser.Scene {
           if (e.big) this.cameras.main.shake(120, 0.004);
           sfx.play('hit');
           break;
+        case 'bossSpawned':
+          this.toast(t('toast.boss'));
+          this.cameras.main.shake(400, 0.008);
+          sfx.play('boss');
+          break;
+        case 'reaper':
+          this.toast(t('toast.reaper'));
+          this.cameras.main.shake(600, 0.01);
+          sfx.play('boss');
+          break;
+        case 'chest':
+          this.toast(t('toast.chest', { n: e.n }));
+          sfx.play('levelup');
+          break;
+        case 'heal':
+        case 'pickup':
+          sfx.play('pickup');
+          break;
+        case 'nuke':
+          this.cameras.main.flash(260, 120, 200, 255);
+          sfx.play('emp');
+          break;
+        case 'vacuum':
+          sfx.play('pickup');
+          break;
         default:
           break;
       }
@@ -285,6 +330,17 @@ export class GameScene extends Phaser.Scene {
   }
 
   // --- debug hook ------------------------------------------------------------
+  private listPickups(): { id: number; defId: string; x: number; y: number }[] {
+    const pool = this.sim.world.pickups;
+    const alive = pool.aliveList();
+    const out: { id: number; defId: string; x: number; y: number }[] = [];
+    for (let i = 0; i < pool.count; i++) {
+      const p = pool.items[alive[i]];
+      out.push({ id: p.id, defId: p.defId, x: p.x, y: p.y });
+    }
+    return out;
+  }
+
   private emptyBehaviorCounts(): Record<EnemyBehaviorId, number> {
     return { chase: 0, line: 0, boss: 0, reaper: 0 };
   }
@@ -316,7 +372,7 @@ export class GameScene extends Phaser.Scene {
         pickups: w.pickups.count,
         dmgNumbers: this.damageNumbers.activeCount,
       },
-      pickups: [],
+      pickups: this.listPickups(),
       enemies: { alive: w.enemies.count, byBehavior },
       weapons: run.weapons.map((x) => ({ ...x })),
       passives: run.passives.map((x) => ({ ...x })),
@@ -388,17 +444,23 @@ export class GameScene extends Phaser.Scene {
         this.sim.world.player.y = y;
       },
       spawn: (id: string, n: number, o) => this.sim.spawn(id, n, o),
-      spawnBoss: () => this.notImplemented('spawnBoss'),
-      spawnReaper: () => this.notImplemented('spawnReaper'),
-      despawnReaper: () => this.notImplemented('despawnReaper'),
+      spawnBoss: () => this.sim.spawnBoss(),
+      spawnReaper: () => this.sim.spawnReaper(),
+      despawnReaper: () => this.sim.despawnReaper(),
       killAll: () => {
         this.sim.killAllOnScreen();
       },
       clearEnemies: () => this.sim.world.enemies.clear(),
-      triggerEvent: () => this.notImplemented('triggerEvent'),
+      triggerEvent: (i: number) => {
+        this.sim.triggerEvent(i);
+      },
       spawnGems: (n: number, tier, o) => this.sim.spawnGems(n, tier ?? 'blue', o ?? {}),
-      spawnPickup: () => this.notImplemented('spawnPickup'),
-      collectPickup: () => this.notImplemented('collectPickup'),
+      spawnPickup: (id: string, x?: number, y?: number) => {
+        this.sim.spawnPickup(id, x, y);
+      },
+      collectPickup: (id: number) => {
+        this.sim.collectPickup(id);
+      },
       giveWeapon: (id: string, level?: number) => {
         this.sim.giveWeapon(id, level ?? 1);
       },

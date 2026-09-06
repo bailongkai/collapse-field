@@ -81,10 +81,17 @@ describe('Simulation', () => {
     expect(s.world.player.hp).toBe(52);
   });
 
-  it('ends the run as survived when the timer expires', () => {
+  it('does not end the run on the timer alone: the reaper is what closes it', () => {
     const s = newSim();
+    s.setStatOverride('moveSpeed', 0);
     s.setTime(899.9);
     s.stepMany(30);
+    expect(s.run.phase).toBe('running');
+    expect(s.run.reaperSpawned).toBe(true);
+
+    // the reaper kills through everything, and reaching fifteen minutes counts as surviving
+    s.run.god = true;
+    s.stepMany(60 * 20);
     expect(s.run.phase).toBe('ended');
     expect(s.run.ended).toBe('survived');
   });
