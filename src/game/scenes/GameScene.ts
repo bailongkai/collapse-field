@@ -173,8 +173,11 @@ export class GameScene extends Phaser.Scene {
   override update(_time: number, delta: number): void {
     const run = this.sim.run;
     if (run.phase === 'running') {
-      const dir = this.input_.read();
-      this.sim.setInput(dir.x, dir.y);
+      // the autopilot writes the input inside the simulation; real input must not fight it
+      if (!this.sim.isAutopilot()) {
+        const dir = this.input_.read();
+        this.sim.setInput(dir.x, dir.y);
+      }
       this.accumulator += Math.min(delta, MAX_FRAME_DELTA_MS) * this.timeScale;
       let steps = 0;
       const simStart = performance.now();
@@ -212,6 +215,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   private syncViews(deltaMs: number): void {
+    // a run can end mid-batch, which starts the results scene and tears this one down; the
+    // trailing sync of that batch must not touch destroyed cameras or views
+    if (!this.scene.isActive() || !this.cameras?.main) return;
     const cam = this.cameras.main;
     const p = this.sim.world.player;
     this.playerView.update(p, this.sim.run.hp, this.sim.stats.maxHealth, deltaMs);
@@ -439,6 +445,7 @@ export class GameScene extends Phaser.Scene {
         this.input_.setOverride(dx, dy);
         this.sim.setInput(dx, dy);
       },
+      setAutopilot: (on: boolean) => this.sim.setAutopilot(on),
       setPlayerPos: (x: number, y: number) => {
         this.sim.world.player.x = x;
         this.sim.world.player.y = y;

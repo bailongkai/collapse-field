@@ -62,6 +62,8 @@ export interface RunHandlers {
   fastForward(sec: number, o?: { budgetMs?: number; levelUpPolicy?: 'first' | 'random' | 'none' }): Promise<void>;
   setTime(sec: number): void;
   setInput(dx: number, dy: number): void;
+  /** Hands the player to the built-in kiting policy, used by the balance harness. */
+  setAutopilot(on: boolean): void;
   setPlayerPos(x: number, y: number): void;
   spawn(enemyId: string, n: number, o?: { ring?: boolean; radius?: number | 'offscreen'; x?: number; y?: number }): number;
   spawnBoss(): void;
@@ -222,6 +224,7 @@ export function installHook(game: Phaser.Game, contentProvider: () => GameDebugA
     fastForward: (sec, o) => requireRun().fastForward(sec, o),
     setTime: (sec) => requireRun().setTime(sec),
     setInput: (dx, dy) => requireRun().setInput(dx, dy),
+    setAutopilot: (on) => requireRun().setAutopilot(on),
     setPlayerPos: (x, y) => requireRun().setPlayerPos(x, y),
     spawn: (id, n, o) => requireRun().spawn(id, n, o),
     spawnBoss: () => requireRun().spawnBoss(),
