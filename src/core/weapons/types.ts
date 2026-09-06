@@ -37,6 +37,8 @@ export interface WeaponContext {
   nearestEnemy(x: number, y: number, maxDist: number): Enemy | null;
   queryEnemies(x0: number, y0: number, x1: number, y1: number, out: Int32Array): number;
   enemyById(id: number): Enemy;
+  /** Visits the projectiles this weapon slot currently owns (orbiters). */
+  forEachProjectile(slot: number, fn: (p: Projectile) => void): void;
   hitEnemy(e: Enemy, dmg: number, dirX: number, dirY: number, kb: number, src: WeaponInstance): void;
 }
 

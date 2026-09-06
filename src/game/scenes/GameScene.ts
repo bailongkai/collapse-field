@@ -126,6 +126,16 @@ export class GameScene extends Phaser.Scene {
     this.scene.pause();
   }
 
+  /** Closes the pause overlay and hands control back. Shared by the button, Esc and the debug hook. */
+  closePause(): void {
+    if (this.scene.isActive('Pause') || this.scene.isPaused('Pause')) this.scene.stop('Pause');
+    this.scene.resume();
+    this.accumulator = 0;
+    this.input_.reset();
+    this.sim.resume();
+    sfx.resumeAll();
+  }
+
   resumeFromPause(): void {
     this.accumulator = 0;
     this.input_.reset();
@@ -195,6 +205,7 @@ export class GameScene extends Phaser.Scene {
     this.enemyView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y);
     this.gemView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y);
     this.projectileView.sync(this.sim.world, this.weaponIdBySlot(), cam.midPoint.x, cam.midPoint.y);
+    this.fxView.updateAura(p.x, p.y, this.sim.auraRadius(), deltaMs);
     this.pumpEvents(true);
     this.damageNumbers.update(deltaMs);
   }
@@ -323,12 +334,9 @@ export class GameScene extends Phaser.Scene {
 
   private bindHook(): void {
     const handlers: RunHandlers = {
-      pause: () => {
-        this.sim.pause();
-      },
-      resume: () => {
-        this.resumeFromPause();
-      },
+      // the hook takes the same path as pressing Escape, so tests exercise the real pause flow
+      pause: () => this.openPause(),
+      resume: () => this.closePause(),
       setTimeScale: (n: number) => {
         this.timeScale = Math.max(0, n);
       },

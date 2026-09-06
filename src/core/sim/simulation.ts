@@ -14,6 +14,8 @@ import { stepWeapons } from './systems/weaponSystem';
 import { stepProjectiles } from './systems/projectileSystem';
 import { stepGems, vacuumGems } from './systems/gemSystem';
 import { rollLevelUp } from '../levelup/roll';
+import { auraRadius } from '../weapons/behaviors/aura';
+import { weaponParams } from '../stats/weaponParams';
 import { spawnGem } from './systems/dropSystem';
 import type { GemTier } from '../../data/types';
 import type { WeaponContext, WeaponInstance } from '../weapons/types';
@@ -101,6 +103,14 @@ export class Simulation {
       nearestEnemy: (x, y, maxDist) => this.world.nearestEnemy(x, y, maxDist),
       queryEnemies: (x0, y0, x1, y1, out) => this.world.grid.queryInto(x0, y0, x1, y1, out),
       enemyById: (id) => this.world.enemies.items[id],
+      forEachProjectile: (slot, fn) => {
+        const pool = this.world.projectiles;
+        const alive = pool.aliveList();
+        for (let i = 0; i < pool.count; i++) {
+          const p = pool.items[alive[i]];
+          if (p.weaponSlot === slot) fn(p);
+        }
+      },
       hitEnemy: (e, dmg, dirX, dirY, kb) => this.damageEnemy(e, dmg, dirX, dirY, kb),
     };
     this.giveWeapon(ch.startingWeapon, 1);
@@ -328,6 +338,15 @@ export class Simulation {
         this.stage.gemCap,
       );
     }
+  }
+
+  /** Radius of the EMP field for the current build, or 0 when the weapon is not owned. */
+  auraRadius(): number {
+    const owned = this.run.weapons.find((w) => this.reg.weapons[w.id]?.behavior === 'aura');
+    if (!owned) return 0;
+    const def = this.reg.weapons[owned.id];
+    const params = weaponParams(def, owned.level);
+    return auraRadius(params.area * this.cachedStats.area);
   }
 
   vacuum(): number {

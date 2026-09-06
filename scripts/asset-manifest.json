@@ -245,8 +245,8 @@
       "atlas": "game"
     },
     {
-      "pack": "particle-pack",
-      "file": "PNG (Transparent)/circle_05.png",
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Power-ups/powerupBlue_shield.png",
       "frame": "icon_empField",
       "size": 40,
       "atlas": "game"

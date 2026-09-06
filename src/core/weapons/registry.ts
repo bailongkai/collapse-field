@@ -2,26 +2,22 @@ import type { WeaponBehaviorId } from '../../data/types';
 import type { BehaviorMap, WeaponBehavior } from './types';
 import { slash } from './behaviors/slash';
 import { aimed } from './behaviors/aimed';
-
-/** Placeholder used until a behavior lands; keeps content validation honest from day one. */
-const stub: WeaponBehavior = {
-  onFire() {
-    return 'cooldown';
-  },
-};
+import { stream } from './behaviors/stream';
+import { orbit } from './behaviors/orbit';
+import { aura } from './behaviors/aura';
 
 export const BEHAVIORS: BehaviorMap = {
   slash,
   aimed,
-  stream: stub,
-  orbit: stub,
-  aura: stub,
+  stream,
+  orbit,
+  aura,
 };
 
 export function behaviorFor(id: WeaponBehaviorId): WeaponBehavior {
   return BEHAVIORS[id];
 }
 
-export function isStub(id: WeaponBehaviorId): boolean {
-  return BEHAVIORS[id] === stub;
+export function isRegistered(id: WeaponBehaviorId): boolean {
+  return BEHAVIORS[id] !== undefined;
 }
