@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { openGame, snap, startRun, state, stepResolving, realWait, waitScene } from './helpers';
 
-test('M3: 500 enemies stay inside the CPU frame budget', async ({ page }) => {
+test('M3: five hundred enemies spawn, render and are tracked', async ({ page }) => {
   const errors = await openGame(page, '?test=1&seed=99');
   await startRun(page, 99);
   await waitScene(page, 'game');
@@ -10,17 +10,13 @@ test('M3: 500 enemies stay inside the CPU frame budget', async ({ page }) => {
   expect(await page.evaluate(() => window.__game.spawn('drone', 500, { ring: true, radius: 400 }))).toBe(500);
   expect((await state(page)).counts.enemies).toBe(500);
 
+  // the timing gate lives in perf.spec.ts, which runs with a single worker; here we only check
+  // that the horde is really simulated and drawn
   await page.evaluate(() => window.__game.profile.start());
-  await realWait(5000);
+  await realWait(1500);
   const perf = await page.evaluate(() => window.__game.profile.stop());
-
-  expect(perf.frames).toBeGreaterThan(60);
-  // CPU-side work is meaningful in headless; the frame time is not, because WebGL falls back to
-  // SwiftShader there, so only gate it on a real GPU.
-  expect(perf.simMs + perf.syncMs, `sim ${perf.simMs.toFixed(2)} + sync ${perf.syncMs.toFixed(2)} ms`).toBeLessThan(8);
-  if (!/swiftshader|llvmpipe|software/i.test(perf.renderer)) {
-    expect(perf.p95, `p95 ${perf.p95.toFixed(2)} ms on ${perf.renderer}`).toBeLessThan(16.7);
-  }
+  expect(perf.frames).toBeGreaterThan(5);
+  expect((await state(page)).counts.enemies).toBe(500);
 
   await snap(page, 'm3-horde');
   expect(errors, errors.join('\n')).toEqual([]);

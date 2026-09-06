@@ -1,5 +1,9 @@
 import { defineConfig } from '@playwright/test';
 
+/**
+ * Headless Chromium has no real GPU, so WebGL falls back to SwiftShader. These flags make that
+ * fallback available at all (recent Chromium refuses it otherwise) and unlock audio.
+ */
 const HEADLESS_GL_ARGS = [
   '--use-angle=swiftshader',
   '--enable-unsafe-swiftshader',
@@ -7,9 +11,10 @@ const HEADLESS_GL_ARGS = [
   '--autoplay-policy=no-user-gesture-required',
 ];
 
+const PERF_SPECS = ['**/perf.spec.ts', '**/afk.spec.ts'];
+
 export default defineConfig({
   testDir: 'tests/e2e',
-  testIgnore: ['**/perf.spec.ts', '**/afk.spec.ts'],
   timeout: 60_000,
   expect: { timeout: 10_000 },
   fullyParallel: false,
@@ -29,20 +34,17 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   projects: [
-    { name: 'default', workers: 4 },
-    {
-      name: 'perf',
-      testIgnore: [],
-      testMatch: ['**/perf.spec.ts', '**/afk.spec.ts'],
-      timeout: 10 * 60_000,
-      workers: 1,
-    },
+    // functional specs; safe to parallelise
+    { name: 'default', testIgnore: PERF_SPECS, workers: 4 },
+    // timing-sensitive specs: one worker, because measuring CPU time next to three other browsers
+    // measures the machine's load, not the game
+    { name: 'perf', testMatch: PERF_SPECS, workers: 1, timeout: 10 * 60_000 },
+    // the only place a frame-time gate is meaningful: a real GPU through Metal
     {
       name: 'bench',
-      testIgnore: [],
       testMatch: ['**/perf.spec.ts'],
-      timeout: 10 * 60_000,
       workers: 1,
+      timeout: 10 * 60_000,
       use: { headless: false, launchOptions: { args: ['--use-angle=metal', '--autoplay-policy=no-user-gesture-required'] } },
     },
   ],
