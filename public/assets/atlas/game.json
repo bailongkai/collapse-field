@@ -577,7 +577,7 @@
 					}
 				},
 				{
-					"filename": "p_flare",
+					"filename": "icon_pause",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
@@ -619,7 +619,7 @@
 					}
 				},
 				{
-					"filename": "p_smoke",
+					"filename": "p_flare",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
@@ -661,7 +661,7 @@
 					}
 				},
 				{
-					"filename": "p_spark",
+					"filename": "p_smoke",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
@@ -682,6 +682,27 @@
 					}
 				},
 				{
+					"filename": "p_spark",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 32,
+						"h": 32
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 32,
+						"h": 32
+					},
+					"frame": {
+						"x": 623,
+						"y": 123,
+						"w": 32,
+						"h": 32
+					}
+				},
+				{
 					"filename": "gem_big",
 					"rotated": false,
 					"trimmed": false,
@@ -696,8 +717,8 @@
 						"h": 31
 					},
 					"frame": {
-						"x": 623,
-						"y": 123,
+						"x": 499,
+						"y": 113,
 						"w": 32,
 						"h": 31
 					}
@@ -717,10 +738,31 @@
 						"h": 26
 					},
 					"frame": {
-						"x": 499,
+						"x": 535,
 						"y": 113,
 						"w": 32,
 						"h": 26
+					}
+				},
+				{
+					"filename": "icon_railgun",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 10,
+						"h": 40
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 10,
+						"h": 40
+					},
+					"frame": {
+						"x": 571,
+						"y": 113,
+						"w": 10,
+						"h": 40
 					}
 				},
 				{
@@ -739,30 +781,9 @@
 					},
 					"frame": {
 						"x": 535,
-						"y": 113,
+						"y": 143,
 						"w": 28,
 						"h": 28
-					}
-				},
-				{
-					"filename": "icon_railgun",
-					"rotated": false,
-					"trimmed": false,
-					"sourceSize": {
-						"w": 10,
-						"h": 40
-					},
-					"spriteSourceSize": {
-						"x": 0,
-						"y": 0,
-						"w": 10,
-						"h": 40
-					},
-					"frame": {
-						"x": 567,
-						"y": 113,
-						"w": 10,
-						"h": 40
 					}
 				},
 				{
@@ -780,31 +801,31 @@
 						"h": 27
 					},
 					"frame": {
-						"x": 581,
+						"x": 585,
 						"y": 148,
 						"w": 28,
 						"h": 27
 					}
 				},
 				{
-					"filename": "bolt_laser",
+					"filename": "bolt_rail",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
-						"w": 6,
-						"h": 24
+						"w": 7,
+						"h": 28
 					},
 					"spriteSourceSize": {
 						"x": 0,
 						"y": 0,
-						"w": 6,
-						"h": 24
+						"w": 7,
+						"h": 28
 					},
 					"frame": {
-						"x": 613,
-						"y": 148,
-						"w": 6,
-						"h": 24
+						"x": 567,
+						"y": 159,
+						"w": 7,
+						"h": 28
 					}
 				},
 				{
@@ -844,7 +865,7 @@
 					},
 					"frame": {
 						"x": 327,
-						"y": 145,
+						"y": 122,
 						"w": 24,
 						"h": 23
 					}
@@ -864,8 +885,8 @@
 						"h": 19
 					},
 					"frame": {
-						"x": 327,
-						"y": 122,
+						"x": 355,
+						"y": 148,
 						"w": 20,
 						"h": 19
 					}
@@ -885,31 +906,31 @@
 						"h": 19
 					},
 					"frame": {
-						"x": 351,
+						"x": 355,
 						"y": 122,
 						"w": 20,
 						"h": 19
 					}
 				},
 				{
-					"filename": "bolt_rail",
+					"filename": "bolt_laser",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
-						"w": 7,
-						"h": 28
+						"w": 6,
+						"h": 24
 					},
 					"spriteSourceSize": {
 						"x": 0,
 						"y": 0,
-						"w": 7,
-						"h": 28
+						"w": 6,
+						"h": 24
 					},
 					"frame": {
-						"x": 375,
+						"x": 379,
 						"y": 122,
-						"w": 7,
-						"h": 28
+						"w": 6,
+						"h": 24
 					}
 				},
 				{
@@ -927,8 +948,8 @@
 						"h": 19
 					},
 					"frame": {
-						"x": 355,
-						"y": 154,
+						"x": 424,
+						"y": 114,
 						"w": 20,
 						"h": 19
 					}
@@ -948,7 +969,7 @@
 						"h": 28
 					},
 					"frame": {
-						"x": 424,
+						"x": 448,
 						"y": 114,
 						"w": 18,
 						"h": 28
@@ -969,8 +990,8 @@
 						"h": 28
 					},
 					"frame": {
-						"x": 446,
-						"y": 114,
+						"x": 424,
+						"y": 137,
 						"w": 18,
 						"h": 28
 					}

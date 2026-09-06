@@ -38,7 +38,6 @@ export function spawnGem(world: World, x: number, y: number, value: number, tier
   g.tier = tier;
   g.attracted = false;
   g.t = 0;
-  g.bornTick = 0;
   world.events.push('gem', x, y, value, tier);
 }
 

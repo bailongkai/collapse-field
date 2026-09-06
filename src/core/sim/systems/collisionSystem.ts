@@ -20,7 +20,7 @@ const CONTACT_SLACK = 14;
  * Enemy-versus-player contact. One damage instance per step at most: the first overlapping enemy
  * lands the hit and starts the i-frame window. The reaper is exempt from every mitigation.
  */
-export function stepContact(world: World, stats: PlayerStats, god: boolean, dt: number): ContactResult {
+export function stepContact(world: World, stats: PlayerStats, god: boolean): ContactResult {
   const p = world.player;
   const out: ContactResult = { damage: 0, fatal: false };
   const reach = 96;
@@ -61,6 +61,5 @@ export function stepContact(world: World, stats: PlayerStats, god: boolean, dt: 
   p.iframesMs = IFRAME_MS;
   out.damage = dmg;
   world.events.push('hurt', p.x, p.y, dmg, e.defId, dmg >= stats.maxHealth * 0.2);
-  void dt;
   return out;
 }

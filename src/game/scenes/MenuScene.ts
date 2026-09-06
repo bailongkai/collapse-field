@@ -3,6 +3,7 @@ import { VERSION } from '../../config';
 import { formatTime, onLocaleChanged, t } from '../../i18n';
 import { textStyle, COLORS } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
+import { restartOnResize } from '../ui/responsive';
 import { app } from '../app';
 
 export class MenuScene extends Phaser.Scene {
@@ -19,6 +20,7 @@ export class MenuScene extends Phaser.Scene {
   }
 
   create(): void {
+    restartOnResize(this);
     const cx = this.scale.width / 2;
     this.cameras.main.setBackgroundColor('#05070c');
     const floor = this.add.tileSprite(cx, this.scale.height / 2, this.scale.width, this.scale.height, 'floor').setTint(0x3a4452).setAlpha(0.6);

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { formatTime, t } from '../../i18n';
 import { textStyle, COLORS } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
+import { restartOnResize } from '../ui/responsive';
 import { IconRow } from '../ui/iconRow';
 import { commitRun } from '../../core/save/saveData';
 import { app } from '../app';
@@ -29,11 +30,15 @@ export class ResultsScene extends Phaser.Scene {
     const survived = data.ended === 'survived';
     const ctx = app();
 
-    ctx.save = commitRun(ctx.storage, ctx.save, {
-      timeSec: data.timeSec ?? 0,
-      kills: data.kills ?? 0,
-      gold: data.gold ?? 0,
-    });
+    // a resize rebuilds the screen with the same summary; the run is only committed once
+    restartOnResize(this, { ...data, committed: true });
+    if (!(data as ResultsData & { committed?: boolean }).committed) {
+      ctx.save = commitRun(ctx.storage, ctx.save, {
+        timeSec: data.timeSec ?? 0,
+        kills: data.kills ?? 0,
+        gold: data.gold ?? 0,
+      });
+    }
 
     this.add.rectangle(cx, this.scale.height / 2, this.scale.width, this.scale.height, 0x05070c, 0.93);
     this.add.nineslice(cx, this.scale.height / 2, 'ui', 'panel_glass', 720, 520, 24, 24, 24, 24).setAlpha(0.97).setTint(0x16243a);

@@ -7,7 +7,6 @@ const PUSH_FACTOR = 0.6;
 const pushX = new Float64Array(ENEMY_CAP);
 const pushY = new Float64Array(ENEMY_CAP);
 const touched = new Int32Array(ENEMY_CAP);
-let touchedCount = 0;
 
 /**
  * Soft crowd separation. Pushes are accumulated per enemy and applied once, clamped per step, so a
@@ -28,8 +27,6 @@ export function stepSeparation(world: World, rng: Rng, viewW: number, viewH: num
   const maxX = player.x + halfW;
   const minY = player.y - halfH;
   const maxY = player.y + halfH;
-
-  touchedCount = 0;
 
   const eligible = (id: number): boolean => {
     const e = enemies.items[id];
@@ -93,5 +90,4 @@ export function stepSeparation(world: World, rng: Rng, viewW: number, viewH: num
     e.x += px;
     e.y += py;
   }
-  void touchedCount;
 }

@@ -82,6 +82,21 @@ function drawIconBlade(size = 40) {
   return img;
 }
 
+function drawPauseIcon(size = 32) {
+  const img = new Jimp({ width: size, height: size, color: 0x00000000 });
+  const barW = Math.round(size * 0.22);
+  const gap = Math.round(size * 0.16);
+  const top = Math.round(size * 0.18);
+  const bottom = size - top;
+  const left = Math.round(size / 2 - gap / 2 - barW);
+  for (let y = top; y < bottom; y++) for (let x = 0; x < size; x++) {
+    const inLeft = x >= left && x < left + barW;
+    const inRight = x >= left + barW + gap && x < left + 2 * barW + gap;
+    if (inLeft || inRight) img.setPixelColor(0x0b1a2aff, x, y);
+  }
+  return img;
+}
+
 function solid(w, h, rgba) {
   return new Jimp({ width: w, height: h, color: rgba >>> 0 });
 }
@@ -104,6 +119,7 @@ async function main() {
     ['bar_bg', solid(40, 5, 0x101418ff)],
     ['bar_fill', solid(40, 5, 0x5ee06aff)],
     ['px', solid(4, 4, 0xffffffff)],
+    ['icon_pause', drawPauseIcon()],
   ];
   for (const [name, img] of procedural) {
     groups.game.push({ path: name + '.png', contents: await img.getBuffer('image/png') });

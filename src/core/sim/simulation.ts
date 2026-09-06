@@ -16,6 +16,7 @@ import { stepGems, vacuumGems } from './systems/gemSystem';
 import { EventScheduler } from './systems/eventSystem';
 import { rollDrops, spawnPickup, stepPickups, type PickupCollected } from './systems/pickupSystem';
 import { rollLevelUp } from '../levelup/roll';
+import { driveAutopilot } from './autopilot';
 import { auraRadius } from '../weapons/behaviors/aura';
 import { weaponParams } from '../stats/weaponParams';
 import { spawnGem } from './systems/dropSystem';
@@ -196,66 +197,6 @@ export class Simulation {
     return this.autopilot;
   }
 
-  private driveAutopilot(): void {
-    const { world } = this;
-    const p = world.player;
-
-    // 1. back off only when something is actually about to touch us. A policy that simply flees
-    //    outruns the whole horde (the player is faster than every chase enemy) and then never
-    //    kills anything, which measures nothing.
-    const danger = 90;
-    const n = world.grid.queryInto(p.x - danger, p.y - danger, p.x + danger, p.y + danger, world.queryBuf);
-    let awayX = 0;
-    let awayY = 0;
-    let threats = 0;
-    for (let i = 0; i < n; i++) {
-      const e = world.enemies.items[world.queryBuf[i]];
-      if (!e.active) continue;
-      const dx = p.x - e.x;
-      const dy = p.y - e.y;
-      const d2 = dx * dx + dy * dy;
-      if (d2 < 1 || d2 > danger * danger) continue;
-      const w = 1 / d2;
-      awayX += dx * w;
-      awayY += dy * w;
-      threats++;
-    }
-
-    if (threats > 0) {
-      const len = Math.hypot(awayX, awayY) || 1;
-      setPlayerInput(p, awayX / len, awayY / len);
-      return;
-    }
-
-    // 2. otherwise go and collect the nearest gem, which is what keeps a real run levelling
-    let bestX = 0;
-    let bestY = 0;
-    let bestD2 = 600 * 600;
-    let found = false;
-    const gems = world.gems.aliveList();
-    for (let i = 0; i < world.gems.count; i++) {
-      const g = world.gems.items[gems[i]];
-      const dx = g.x - p.x;
-      const dy = g.y - p.y;
-      const d2 = dx * dx + dy * dy;
-      if (d2 < bestD2) {
-        bestD2 = d2;
-        bestX = dx;
-        bestY = dy;
-        found = true;
-      }
-    }
-    if (found) {
-      const len = Math.hypot(bestX, bestY) || 1;
-      setPlayerInput(p, bestX / len, bestY / len);
-      return;
-    }
-
-    // 3. nothing to do: drift in a slow circle so fresh enemies keep walking into the weapons
-    const angle = (this.run.tick / 60) * 0.5;
-    setPlayerInput(p, Math.cos(angle), Math.sin(angle));
-  }
-
   /** Advances one fixed tick. Returns false when the run is not running. */
   step(): boolean {
     if (this.run.phase !== 'running') return false;
@@ -267,7 +208,7 @@ export class Simulation {
     run.timeMs += FIXED_DT_MS;
     run.tick++;
 
-    if (this.autopilot) this.driveAutopilot();
+    if (this.autopilot) driveAutopilot(this.world, run.tick);
     stepPlayer(world.player, stats, dt);
     this.spawner.step(world, stage, run.timeMs, stats.curse, dt, this.viewW, this.viewH);
     if (this.events.step(world, stage, run.timeMs, this.viewW, this.viewH)) run.reaperSpawned = true;
@@ -281,7 +222,7 @@ export class Simulation {
     stepWeapons(world.weaponInstances, this.weaponCtx, FIXED_DT_MS);
     stepProjectiles(world, FIXED_DT_MS, (e, dmg, dx, dy, kb) => this.damageEnemy(e, dmg, dx, dy, kb));
 
-    const contact = stepContact(world, stats, run.god, dt);
+    const contact = stepContact(world, stats, run.god);
     if (contact.damage > 0 || contact.fatal) this.onPlayerHurt(contact.fatal);
 
     if (run.phase === 'running') {

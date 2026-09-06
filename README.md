@@ -36,9 +36,10 @@ with a touchscreen is not cluttered with them. `?touch=1` forces them on.
 The view is 720 tall with a width that follows the display's aspect ratio,
 between 1024 and 1760, so a wide phone or monitor fills its screen instead of
 sitting between black bars. A wider view shows more of the map, so the wave
-table is scaled by visible area to keep the crowd per screen the same. Without
-that, a 1760-wide view survives 27% longer than the reference; with it, the
-difference is within measurement noise.
+table is scaled by visible area to keep the crowd per screen the same. Measured
+with a kiting autopilot, an unscaled 1760-wide view survives 27% longer than
+the reference; scaled, the difference is within noise, and a close-range
+autopilot sees no difference either way.
 
 Five weapons (等离子刃, 制导激光, 磁轨炮, 轨道无人机, EMP力场) and five passives,
 each to level 8 and 5 respectively, in six slots each.

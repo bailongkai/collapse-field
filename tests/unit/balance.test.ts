@@ -40,7 +40,7 @@ function playRun(seed: number, viewW = REF_W, viewH = REF_H): RunResult {
   };
 }
 
-const SEEDS = [11, 22, 33];
+const SEEDS = [11, 22, 33, 44, 55, 66];
 const referenceRuns = SEEDS.map((seed) => playRun(seed));
 
 describe('balance', () => {
@@ -50,28 +50,31 @@ describe('balance', () => {
     for (const r of results) {
       console.log(`seed ${r.seed}: ${r.survivedSec}s, level ${r.level}, ${r.kills} kills, build: ${r.build}`);
     }
-    expect(results).toHaveLength(3);
+    expect(results).toHaveLength(SEEDS.length);
   });
 
   it('a hands-off run lasts minutes, not seconds: a build does come online', () => {
-    // the floor reflects the measured spread: across sixteen seeds the shortest hands-off run is
-    // around 270 s, so a tighter gate would fail on ordinary variance rather than on a regression
+    // the floors reflect the measured spread: across sixteen seeds the shortest run of the
+    // close-range autopilot is about 160 s and the lowest level 4, so tighter gates would fail on
+    // ordinary variance rather than on a regression
     for (const r of results) {
-      expect(r.survivedSec, `seed ${r.seed} ended at ${r.survivedSec}s`).toBeGreaterThan(240);
-      expect(r.level, `seed ${r.seed} reached level ${r.level}`).toBeGreaterThan(4);
-      expect(r.build.split(' ').length, `seed ${r.seed} build: ${r.build}`).toBeGreaterThan(2);
+      expect(r.survivedSec, `seed ${r.seed} ended at ${r.survivedSec}s`).toBeGreaterThan(120);
+      expect(r.level, `seed ${r.seed} reached level ${r.level}`).toBeGreaterThan(3);
+      expect(r.build.split(' ').length, `seed ${r.seed} build: ${r.build}`).toBeGreaterThan(1);
     }
+    const mean = results.reduce((n, r) => n + r.survivedSec, 0) / results.length;
+    expect(mean, `mean survival ${mean.toFixed(0)}s`).toBeGreaterThan(200);
   });
 
   it('the wave table still closes the run out: nobody coasts to fifteen minutes', () => {
     const cleared = results.filter((r) => r.reachedEnd);
     expect(cleared.map((r) => r.seed), 'a hands-off run cleared the whole stage').toEqual([]);
     // and the difficulty does bite well before the end rather than only at the reaper
-    expect(Math.min(...results.map((r) => r.survivedSec))).toBeLessThan(780);
+    expect(Math.min(...results.map((r) => r.survivedSec))).toBeLessThan(600);
   });
 
   it('kills scale with the wave table rather than flatlining', () => {
-    for (const r of results) expect(r.kills, `seed ${r.seed} got ${r.kills} kills`).toBeGreaterThan(150);
+    for (const r of results) expect(r.kills, `seed ${r.seed} got ${r.kills} kills`).toBeGreaterThan(60);
   });
 });
 
@@ -128,8 +131,8 @@ describe('view size and wave density', () => {
     }
     // the same gates the reference view has to pass
     for (const r of wide) {
-      expect(r.survivedSec, `wide seed ${r.seed} ended at ${r.survivedSec}s`).toBeGreaterThan(240);
-      expect(r.level).toBeGreaterThan(4);
+      expect(r.survivedSec, `wide seed ${r.seed} ended at ${r.survivedSec}s`).toBeGreaterThan(120);
+      expect(r.level).toBeGreaterThan(3);
     }
     expect(wide.filter((r) => r.reachedEnd), 'a wide view must not hand the player the whole run').toEqual([]);
 

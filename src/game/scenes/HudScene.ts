@@ -49,7 +49,8 @@ export class HudScene extends Phaser.Scene {
     const touch = app().touch;
     this.pauseButton = new UiButton(this, this.scale.width - 60, 130, {
       id: 'hud.pause',
-      label: '❚❚',
+      label: '',
+      icon: 'icon_pause',
       width: 72,
       height: 56,
       fontSize: 22,

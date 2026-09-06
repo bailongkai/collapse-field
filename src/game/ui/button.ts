@@ -12,6 +12,8 @@ export interface ButtonOpts {
   onPress: () => void;
   /** ui-atlas frame; defaults to button_rect */
   frame?: string;
+  /** game-atlas frame drawn instead of a text label, for buttons that must not depend on a font */
+  icon?: string;
 }
 
 /** Nine-sliced button with a Text label. Registers itself for the debug hook; deregisters on destroy. */
@@ -28,8 +30,9 @@ export class UiButton extends Phaser.GameObjects.Container {
     const h = opts.height ?? 56;
     this.onPress = opts.onPress;
     this.bg = scene.add.nineslice(0, 0, 'ui', opts.frame ?? 'button_rect', w, h, 12, 12, 12, 12);
-    this.label = scene.add.text(0, 0, opts.label, textStyle(opts.fontSize ?? 22, { bold: true, color: '#0b1a2a' })).setOrigin(0.5);
+    this.label = scene.add.text(0, 0, opts.icon ? '' : opts.label, textStyle(opts.fontSize ?? 22, { bold: true, color: '#0b1a2a' })).setOrigin(0.5);
     this.add([this.bg, this.label]);
+    if (opts.icon) this.add(scene.add.image(0, 0, 'game', opts.icon).setDisplaySize(Math.round(h * 0.55), Math.round(h * 0.55)));
     this.setSize(w, h);
     this.setInteractive(new Phaser.Geom.Rectangle(-w / 2, -h / 2, w, h), Phaser.Geom.Rectangle.Contains);
     this.on('pointerover', () => this.setHighlight(true));

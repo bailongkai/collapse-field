@@ -14,10 +14,14 @@ export function spawnRingRadius(stage: StageDef, viewW: number, viewH: number): 
  * reference view, so a wider display gets proportionally more enemies and the crowd per screen
  * stays the same instead of thinning out.
  *
- * Calibrated by playing sixteen hands-off runs per configuration. Without this, a 1760-wide view
- * survives 590 s on average against the reference view's 466 s, a 27% easier game; scaling in
- * proportion to the visible area brings that to 471 s, within measurement noise. Three seeds were
- * not enough to see this: the spread between seeds is wider than the effect.
+ * Calibrated by playing sixteen hands-off runs per configuration, with two autopilot styles:
+ *
+ * - kiting at range: reference 466 s; a 1760-wide view unscaled 590 s (27% easier), scaled 471 s.
+ * - fighting in contact: reference 272 s; 1760-wide unscaled 277 s, scaled 283 s.
+ *
+ * A wider view mostly rewards the player who uses the extra warning space, and area scaling
+ * removes that advantage while leaving the close-range player untouched. Three seeds were not
+ * enough to see any of this: the spread between seeds is wider than the effect.
  */
 export function densityScale(viewW: number, viewH: number): number {
   return (viewW * viewH) / REF_AREA;
@@ -62,7 +66,9 @@ export function spawnEnemy(world: World, defId: string, o: SpawnOptions = {}): E
   e.dirX = o.dirX ?? 0;
   e.dirY = o.dirY ?? 0;
   e.lineSpeed = def.speed * (o.speedMult ?? 1);
-  e.lifeMs = 12000;
+  // line enemies are removed by position once they have crossed the view; this is only a safety
+  // net for one that somehow never does, so it is far longer than any crossing
+  e.lifeMs = 40000;
   e.facing = 0;
   world.onEnemySpawn(e.id);
   world.events.push('spawn', e.x, e.y, 0, defId);
@@ -139,7 +145,11 @@ export class Spawner {
     const far2 = far * far;
     world.enemies.forEach((e) => {
       if (e.behavior === 'line') {
-        if (e.lifeMs <= 0) world.enemies.free(e);
+        // a rush is done once it has crossed the far edge of the view plus a margin, measured along
+        // its own direction so it works for every pattern and every view width
+        const along = (e.x - world.player.x) * e.dirX + (e.y - world.player.y) * e.dirY;
+        const halfSpan = (Math.abs(e.dirX) * viewW) / 2 + (Math.abs(e.dirY) * viewH) / 2;
+        if (along > halfSpan + 200 || e.lifeMs <= 0) world.enemies.free(e);
         return;
       }
       if (e.behavior === 'boss' || e.behavior === 'reaper') return;

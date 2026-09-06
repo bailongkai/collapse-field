@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { getLocale, setLocale, t } from '../../i18n';
 import { COLORS, textStyle } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
+import { restartOnResize } from '../ui/responsive';
 import { sfx } from '../audio/sfx';
 import { writeSave } from '../../core/save/saveData';
 import { app } from '../app';
@@ -17,6 +18,7 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   create(): void {
+    restartOnResize(this);
     const cx = this.scale.width / 2;
     const cy = this.scale.height / 2;
     this.add.rectangle(cx, cy, this.scale.width, this.scale.height, 0x05070c, 0.7);

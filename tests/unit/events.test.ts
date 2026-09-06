@@ -55,12 +55,38 @@ describe('wave events', () => {
     for (const e of byBehavior(s, 'line')) expect(Math.abs(e.dirX) + Math.abs(e.dirY)).toBeGreaterThan(0);
   });
 
+  it('a swarm is removed only after it has crossed the view, at every view width', () => {
+    for (const viewW of [REF_W, 1760]) {
+      const s = new Simulation({ seed: 6, characterId: 'survivor', stageId: 'station', viewW, viewH: REF_H });
+      s.run.god = true;
+      s.setStatOverride('growth', 0);
+      s.setStatOverride('moveSpeed', 0);
+      s.setTime(89);
+      s.stepMany(70);
+      expect(byBehavior(s, 'line').length).toBeGreaterThan(20);
+      let vanishedWhileVisible = 0;
+      let last = byBehavior(s, 'line').length;
+      for (let t = 0; t < 60 * 20; t++) {
+        const before = byBehavior(s, 'line').map((e) => ({ x: e.x - s.world.player.x, y: e.y - s.world.player.y }));
+        s.stepMany(1);
+        const after = byBehavior(s, 'line').length;
+        if (after < last) {
+          const inside = before.filter((p) => Math.abs(p.x) < viewW / 2 && Math.abs(p.y) < REF_H / 2).length;
+          vanishedWhileVisible += Math.max(0, inside - after);
+        }
+        last = after;
+      }
+      expect(vanishedWhileVisible, `view ${viewW}`).toBe(0);
+      expect(byBehavior(s, 'line'), `view ${viewW}: the rush must have finished`).toHaveLength(0);
+    }
+  });
+
   it('a swarm despawns once its lifetime runs out', () => {
     const s = newSim();
     s.setTime(89);
     s.stepMany(120);
     expect(byBehavior(s, 'line').length).toBeGreaterThan(0);
-    s.stepMany(60 * 13); // the 12 s safety lifetime
+    s.stepMany(60 * 20); // long past any crossing
     expect(byBehavior(s, 'line')).toHaveLength(0);
   });
 });

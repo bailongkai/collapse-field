@@ -1,4 +1,3 @@
-import { FIXED_DT_MS } from '../../../config';
 import { weaponDef } from '../../content/registry';
 import { effectiveWeapon, weaponParams } from '../../stats/weaponParams';
 import { behaviorFor } from '../../weapons/registry';
@@ -44,9 +43,4 @@ export function stepWeapons(instances: WeaponInstance[], ctx: WeaponContext, dtM
       }
     }
   }
-}
-
-/** Converts a per-enemy hit interval in ms into whole simulation ticks. */
-export function hitCooldownTicks(hitCooldownMs: number): number {
-  return Math.max(1, Math.round(hitCooldownMs / FIXED_DT_MS));
 }

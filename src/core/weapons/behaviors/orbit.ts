@@ -1,5 +1,5 @@
 import { ENEMY_CAP } from '../../../config';
-import { hitCooldownTicks } from '../../sim/systems/weaponSystem';
+import { hitCooldownTicks } from '../ticks';
 import type { WeaponBehavior } from '../types';
 
 const ORBIT_RADIUS = 90;

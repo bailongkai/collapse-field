@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { restartOnResize } from '../ui/responsive';
 import { t, tDynamic } from '../../i18n';
 import { COLORS, textStyle } from '../ui/textStyles';
 import { registerButton } from '../ui/buttonRegistry';
@@ -29,6 +30,7 @@ export class LevelUpScene extends Phaser.Scene {
   }
 
   create(): void {
+    restartOnResize(this);
     // Phaser reuses the scene instance across launches, so per-launch state must be reset here or
     // the second level-up would still point at the first one's destroyed cards.
     this.cards = [];

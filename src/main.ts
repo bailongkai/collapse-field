@@ -1,5 +1,4 @@
 import Phaser from 'phaser';
-import { GAME_H } from './config';
 import { logicalSizeForWindow } from './game/layout';
 import { initApp } from './game/app';
 import { installHook } from './debug/hook';
@@ -49,4 +48,3 @@ function applyWindowSize(): void {
 
 window.addEventListener('resize', applyWindowSize);
 window.addEventListener('orientationchange', applyWindowSize);
-void GAME_H;

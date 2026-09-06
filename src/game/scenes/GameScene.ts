@@ -414,10 +414,6 @@ export class GameScene extends Phaser.Scene {
     };
   }
 
-  private notImplemented(name: string): never {
-    throw new Error(`__game.${name}() is not implemented yet at this milestone`);
-  }
-
   private bindHook(): void {
     const handlers: RunHandlers = {
       // the hook takes the same path as pressing Escape, so tests exercise the real pause flow

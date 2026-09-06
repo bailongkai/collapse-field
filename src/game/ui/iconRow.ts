@@ -10,15 +10,9 @@ const GAP = 6;
 export class IconRow {
   private icons: Phaser.GameObjects.Image[] = [];
   private levels: Phaser.GameObjects.Text[] = [];
-  private scene: Phaser.Scene;
-  private x: number;
-  private y: number;
   private size: number;
 
   constructor(scene: Phaser.Scene, x: number, y: number, slots: number, size = SLOT) {
-    this.scene = scene;
-    this.x = x;
-    this.y = y;
     this.size = size;
     for (let i = 0; i < slots; i++) {
       const cx = x + i * (size + GAP);
@@ -62,8 +56,5 @@ export class IconRow {
     for (const o of this.objects) o.destroy();
     this.icons.length = 0;
     this.levels.length = 0;
-    void this.scene;
-    void this.x;
-    void this.y;
   }
 }

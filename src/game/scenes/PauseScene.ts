@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { t } from '../../i18n';
 import { COLORS, textStyle } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
+import { restartOnResize } from '../ui/responsive';
 import { IconRow } from '../ui/iconRow';
 import { CONTENT } from '../../core/content/registry';
 import type { StatKey } from '../../data/types';
@@ -20,6 +21,7 @@ export class PauseScene extends Phaser.Scene {
   }
 
   create(): void {
+    restartOnResize(this);
     const game = this.scene.get('Game') as GameScene;
     const run = game.sim.run;
     const stats = game.sim.stats;
