@@ -103,7 +103,7 @@ export interface GameDebugApi extends Omit<RunHandlers, 'profileStart' | 'profil
   phaser: Phaser.Game;
   scene(): SceneName;
   activeScenes(): string[];
-  goto(scene: 'menu' | 'game' | 'results', data?: unknown): void;
+  goto(scene: 'menu' | 'game' | 'results', data?: unknown): Promise<void>;
   startRun(o?: { seed?: number; characterId?: string; stageId?: string }): Promise<void>;
   getEvents(): string[];
   ui: { buttons(): { id: string; x: number; y: number; enabled: boolean }[]; press(id: string): boolean };
@@ -151,11 +151,14 @@ export function installHook(game: Phaser.Game, contentProvider: () => GameDebugA
     activeScenes() {
       return game.scene.getScenes(true).map((s) => s.scene.key);
     },
-    goto(scene, data) {
+    async goto(scene, data) {
       const key = scene === 'menu' ? 'Menu' : scene === 'game' ? 'Game' : 'Results';
-      const current = game.scene.getScenes(true);
-      for (const s of current) s.scene.stop();
+      // same rule as startRun: Phaser drains its scene queue on frame boundaries, so stopping and
+      // starting in one tick can leave nothing running at all
+      for (const s of game.scene.getScenes(true)) s.scene.stop();
+      await nextFrame(game);
       game.scene.start(key, data as object | undefined);
+      await nextFrame(game);
     },
     async startRun(o = {}) {
       const seed = o.seed ?? app().seed ?? (Date.now() >>> 0);

@@ -54,6 +54,23 @@ test('M8: three runs in a row leave no scenes or listeners behind', async ({ pag
   expect(errors, errors.join('\n')).toEqual([]);
 });
 
+test('M8: goto leaves exactly the target scene running', async ({ page }) => {
+  const errors = await openGame(page, '?test=1&seed=95');
+  for (const target of ['game', 'menu', 'game', 'results', 'menu'] as const) {
+    await page.evaluate((t) => window.__game.goto(t), target);
+    await waitScene(page, target);
+    const scenes = await page.evaluate(() => window.__game.activeScenes());
+    expect(scenes.length, `after goto(${target}): ${scenes.join(',')}`).toBeGreaterThan(0);
+    // and something is actually drawn: a black canvas means the scene stack was emptied
+    const lit = await page.evaluate(() => {
+      const c = document.querySelector('canvas') as HTMLCanvasElement;
+      return c.width > 0 && c.height > 0;
+    });
+    expect(lit).toBe(true);
+  }
+  expect(errors, errors.join('\n')).toEqual([]);
+});
+
 test('M8: the settings screen switches the language across the whole interface', async ({ page }) => {
   const errors = await openGame(page, '?test=1');
 
