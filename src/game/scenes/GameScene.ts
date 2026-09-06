@@ -9,6 +9,7 @@ import { InputController } from '../input/inputController';
 import { FloorView } from '../view/floorView';
 import { PlayerView } from '../view/playerView';
 import { EnemyView } from '../view/enemyView';
+import { GemView } from '../view/gemView';
 import { ProjectileView } from '../view/projectileView';
 import { DamageNumbers } from '../view/damageNumbers';
 import { FxView } from '../view/fxView';
@@ -31,11 +32,13 @@ export class GameScene extends Phaser.Scene {
   private floorView!: FloorView;
   private playerView!: PlayerView;
   private enemyView!: EnemyView;
+  private gemView!: GemView;
   private projectileView!: ProjectileView;
   private damageNumbers!: DamageNumbers;
   private fxView!: FxView;
   private profiler = new Profiler();
   private accumulator = 0;
+  private levelUpPending = false;
   private timeScale = 1;
   private layers!: Record<'floor' | 'decor' | 'gems' | 'pickups' | 'enemies' | 'player' | 'projectiles' | 'fx' | 'numbers', Phaser.GameObjects.Layer>;
 
@@ -44,6 +47,12 @@ export class GameScene extends Phaser.Scene {
   }
 
   create(data: GameSceneData): void {
+    // the scene instance is reused between runs, so every per-run field is reset here
+    this.accumulator = 0;
+    this.timeScale = 1;
+    this.levelUpPending = false;
+    this.slotCache = [];
+
     const seed = data.seed ?? app().seed ?? (Date.now() >>> 0);
     this.sim = new Simulation({
       seed,
@@ -65,6 +74,7 @@ export class GameScene extends Phaser.Scene {
     this.floorView = new FloorView(this, this.sim.stage, this.layers.floor, this.layers.decor);
     this.playerView = new PlayerView(this, this.sim.character, this.layers.player);
     this.enemyView = new EnemyView(this, this.layers.enemies);
+    this.gemView = new GemView(this, this.layers.gems);
     this.projectileView = new ProjectileView(this, this.layers.projectiles, this.layers.fx);
     this.damageNumbers = new DamageNumbers(this, this.layers.numbers);
     this.fxView = new FxView(this, this.layers.fx);
@@ -99,6 +109,7 @@ export class GameScene extends Phaser.Scene {
     this.floorView.destroy();
     this.playerView.destroy();
     this.enemyView.destroy();
+    this.gemView.destroy();
     this.projectileView.destroy();
     this.damageNumbers.destroy();
     this.fxView.destroy();
@@ -120,6 +131,27 @@ export class GameScene extends Phaser.Scene {
     this.input_.reset();
     this.sim.resume();
     sfx.resumeAll();
+  }
+
+  /** Opens the level-up overlay a beat after the flash, so the player sees why time stopped. */
+  private openLevelUpOverlay(): void {
+    if (this.levelUpPending || this.scene.isActive('LevelUp')) return;
+    this.levelUpPending = true;
+    this.cameras.main.flash(200, 90, 200, 255);
+    sfx.play('levelup');
+    this.time.delayedCall(250, () => {
+      this.levelUpPending = false;
+      if (this.sim.run.phase !== 'levelup') return;
+      this.scene.launch('LevelUp');
+      this.scene.bringToTop('LevelUp');
+    });
+  }
+
+  /** Called by the overlay; applies the pick and closes or re-rolls in place. */
+  applyLevelUpChoice(index: number): void {
+    if (!this.sim.applyChoice(index)) return;
+    this.scene.stop('LevelUp');
+    if (this.sim.run.phase === 'levelup') this.openLevelUpOverlay();
   }
 
   override update(_time: number, delta: number): void {
@@ -145,6 +177,7 @@ export class GameScene extends Phaser.Scene {
     this.profiler.markSync(performance.now() - syncStart);
     this.profiler.endFrame();
 
+    if (run.phase === 'levelup') this.openLevelUpOverlay();
     if (run.phase === 'ended') this.finishRun();
   }
 
@@ -160,6 +193,7 @@ export class GameScene extends Phaser.Scene {
     this.playerView.update(p, this.sim.run.hp, this.sim.stats.maxHealth, deltaMs);
     this.floorView.update(cam.midPoint.x, cam.midPoint.y, cam.scrollX, cam.scrollY);
     this.enemyView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y);
+    this.gemView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y);
     this.projectileView.sync(this.sim.world, this.weaponIdBySlot(), cam.midPoint.x, cam.midPoint.y);
     this.pumpEvents(true);
     this.damageNumbers.update(deltaMs);
@@ -313,15 +347,24 @@ export class GameScene extends Phaser.Scene {
       },
       fastForward: async (sec: number, o = {}) => {
         const budgetMs = o.budgetMs ?? 240_000;
+        const policy = o.levelUpPolicy ?? 'first';
         const total = Math.round(sec * 60);
         const started = performance.now();
         let done = 0;
         while (done < total) {
+          // resolve any pending offer first, otherwise the run would sit frozen for the whole span
+          if (this.sim.run.phase === 'levelup') {
+            if (policy === 'none') break;
+            const choices = this.sim.run.choices ?? [];
+            const index = policy === 'random' ? Math.floor(Math.random() * choices.length) : 0;
+            this.applyLevelUpChoice(index);
+            if (this.sim.run.phase === 'levelup') break; // policy could not resolve it
+          }
+          if (this.sim.run.phase !== 'running') break;
           const chunk = Math.min(600, total - done);
           const ran = this.sim.stepMany(chunk);
-          done += chunk;
+          done += ran;
           this.pumpEvents(false);
-          if (ran < chunk) break;
           if (performance.now() - started > budgetMs) break;
           await new Promise<void>((r) => setTimeout(r, 0));
         }
@@ -345,7 +388,7 @@ export class GameScene extends Phaser.Scene {
       },
       clearEnemies: () => this.sim.world.enemies.clear(),
       triggerEvent: () => this.notImplemented('triggerEvent'),
-      spawnGems: () => this.notImplemented('spawnGems'),
+      spawnGems: (n: number, tier, o) => this.sim.spawnGems(n, tier ?? 'blue', o ?? {}),
       spawnPickup: () => this.notImplemented('spawnPickup'),
       collectPickup: () => this.notImplemented('collectPickup'),
       giveWeapon: (id: string, level?: number) => {
@@ -354,11 +397,14 @@ export class GameScene extends Phaser.Scene {
       givePassive: (id: string, level?: number) => {
         this.sim.givePassive(id, level ?? 1);
       },
-      setLevel: () => this.notImplemented('setLevel'),
-      addXp: () => this.notImplemented('addXp'),
-      triggerLevelUp: () => this.notImplemented('triggerLevelUp'),
+      setLevel: (n: number) => this.sim.setLevel(n),
+      addXp: (n: number) => this.sim.addXp(n),
+      triggerLevelUp: () => {
+        this.sim.run.pendingLevelUps++;
+        this.sim.openLevelUp();
+      },
       getChoices: () => this.sim.run.choices,
-      pickChoice: () => this.notImplemented('pickChoice'),
+      pickChoice: (i: number) => this.applyLevelUpChoice(i),
       godMode: (on: boolean) => {
         this.sim.run.god = on;
       },

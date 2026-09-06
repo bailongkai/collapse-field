@@ -12,6 +12,10 @@ import { stepContact } from './systems/collisionSystem';
 import { dropForEnemy } from './systems/dropSystem';
 import { stepWeapons } from './systems/weaponSystem';
 import { stepProjectiles } from './systems/projectileSystem';
+import { stepGems, vacuumGems } from './systems/gemSystem';
+import { rollLevelUp } from '../levelup/roll';
+import { spawnGem } from './systems/dropSystem';
+import type { GemTier } from '../../data/types';
 import type { WeaponContext, WeaponInstance } from '../weapons/types';
 import { ENEMY_CAP, WEAPON_SLOTS, PASSIVE_SLOTS } from '../../config';
 import type { Enemy } from './entities/enemy';
@@ -169,6 +173,14 @@ export class Simulation {
     const contact = stepContact(world, stats, run.god, dt);
     if (contact.damage > 0 || contact.fatal) this.onPlayerHurt(contact.fatal);
 
+    if (run.phase === 'running') {
+      const harvest = stepGems(world, stats, dt, spawnRingRadius(stage) * stage.despawnFactor);
+      if (harvest.xp > 0) this.addXp(harvest.xp * stats.growth);
+    }
+
+    // the level-up overlay opens only once the tick is otherwise finished, and never over a corpse
+    if (run.phase === 'running' && run.pendingLevelUps > 0) this.openLevelUp();
+
     if (run.phase === 'running' && run.timeMs >= RUN_SECONDS * 1000) {
       run.phase = 'ended';
       run.ended = 'survived';
@@ -229,6 +241,97 @@ export class Simulation {
       killed++;
     });
     return killed;
+  }
+
+  /** Grants XP, levelling as many times as it covers; each level queues one level-up offer. */
+  addXp(amount: number): void {
+    const run = this.run;
+    if (amount <= 0 || run.phase === 'ended') return;
+    run.xp += amount;
+    while (run.xp >= run.xpNext) {
+      run.xp -= run.xpNext;
+      run.level++;
+      run.xpNext = xpToReach(run.level + 1);
+      run.pendingLevelUps++;
+      this.world.events.push('levelUp', this.world.player.x, this.world.player.y, run.level);
+    }
+    this.refreshStats();
+  }
+
+  /** Rolls the offer and freezes the simulation until a choice is applied. */
+  openLevelUp(): void {
+    const run = this.run;
+    if (run.pendingLevelUps <= 0) return;
+    run.choices = rollLevelUp({
+      weapons: run.weapons,
+      passives: run.passives,
+      luck: this.cachedStats.luck,
+      rng: this.world.rng,
+      reg: this.reg,
+    });
+    run.phase = 'levelup';
+    this.world.events.push('levelUpOpen', this.world.player.x, this.world.player.y, run.level);
+  }
+
+  /**
+   * Applies one offered choice. If more level-ups are queued the offer is re-rolled in place,
+   * otherwise the run resumes.
+   */
+  applyChoice(index: number): boolean {
+    const run = this.run;
+    const choices = run.choices;
+    if (!choices || index < 0 || index >= choices.length) return false;
+    const choice = choices[index];
+    switch (choice.kind) {
+      case 'weapon':
+        this.giveWeapon(choice.id, choice.toLevel);
+        break;
+      case 'passive':
+        this.givePassive(choice.id, choice.toLevel);
+        break;
+      case 'gold':
+        run.gold += choice.amount;
+        break;
+      case 'heal':
+        this.world.player.hp = Math.min(this.cachedStats.maxHealth, this.world.player.hp + choice.amount);
+        run.hp = this.world.player.hp;
+        break;
+    }
+    run.pendingLevelUps = Math.max(0, run.pendingLevelUps - 1);
+    run.choices = null;
+    if (run.pendingLevelUps > 0) this.openLevelUp();
+    else if (run.phase === 'levelup') run.phase = 'running';
+    return true;
+  }
+
+  /** Sets the run level directly (debug hook); does not queue offers. */
+  setLevel(level: number): void {
+    const run = this.run;
+    run.level = Math.max(1, Math.floor(level));
+    run.xp = 0;
+    run.xpNext = xpToReach(run.level + 1);
+    this.refreshStats();
+  }
+
+  /** Debug hook: drop `n` gems of a tier near the player. */
+  spawnGems(n: number, tier: Exclude<GemTier, 'none'> = 'blue', o: { x?: number; y?: number } = {}): void {
+    const value = tier === 'red' ? 5 : tier === 'green' ? 3 : 1;
+    for (let i = 0; i < n; i++) {
+      const a = (i / Math.max(1, n)) * Math.PI * 2;
+      const r = 120 + (i % 7) * 30;
+      spawnGem(
+        this.world,
+        o.x ?? this.world.player.x + Math.cos(a) * r,
+        o.y ?? this.world.player.y + Math.sin(a) * r,
+        value,
+        tier,
+        this.stage.gemCap,
+      );
+    }
+  }
+
+  vacuum(): number {
+    return vacuumGems(this.world);
   }
 
   /** Adds a weapon or raises it to `level`, capped at the weapon's maximum and the slot count. */

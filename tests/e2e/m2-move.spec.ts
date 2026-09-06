@@ -44,12 +44,15 @@ test('M2: real keyboard input moves the player and the run can end into results'
   const errors = await openGame(page, '?test=1&seed=7');
   await page.evaluate(() => window.__game.ui.press('menu.start'));
   await waitScene(page, 'game');
+  // no experience means no level-up overlay can interrupt the movement being measured
+  await page.evaluate(() => window.__game.setStat('growth', 0));
 
   const before = await state(page);
+  // poll rather than time a fixed wall-clock window: headless Chromium throttles rendering when
+  // several workers run at once, so a frame budget would make this flaky without telling us anything
   await page.keyboard.down('KeyD');
-  await realWait(400);
+  await page.waitForFunction((x0) => window.__game.getState().player.x > x0 + 20, before.player.x, { timeout: 15_000 });
   await page.keyboard.up('KeyD');
-  expect((await state(page)).player.x).toBeGreaterThan(before.player.x + 20);
 
   await page.evaluate(() => window.__game.endRun('died'));
   await waitScene(page, 'results');

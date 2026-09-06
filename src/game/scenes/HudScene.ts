@@ -20,6 +20,9 @@ export class HudScene extends Phaser.Scene {
   }
 
   create(): void {
+    // reset per-run caches: the scene instance is reused between runs
+    this.last = { time: -1, level: -1, kills: -1, xp: -1 };
+
     this.xpBarBg = this.add.rectangle(GAME_W / 2, 10, GAME_W, 20, 0x0d1420).setOrigin(0.5);
     this.xpBarFill = this.add.rectangle(0, 10, 0, 20, 0x4fe0ff).setOrigin(0, 0.5);
     this.levelText = this.add.text(GAME_W - 12, 10, '', textStyle(14, { bold: true })).setOrigin(1, 0.5);

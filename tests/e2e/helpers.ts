@@ -46,6 +46,22 @@ export function step(page: Page, ticks: number): Promise<number> {
   return page.evaluate((n) => window.__game.step(n), ticks);
 }
 
+/**
+ * Steps the simulation, resolving any level-up offer that opens on the way. Batched stepping stops
+ * when the run freezes for a level-up, so tests that just want N ticks of gameplay use this.
+ */
+export async function stepResolving(page: Page, ticks: number): Promise<number> {
+  let done = 0;
+  for (let guard = 0; guard < 64 && done < ticks; guard++) {
+    done += await step(page, ticks - done);
+    if (done >= ticks) break;
+    const phase = (await state(page)).phase;
+    if (phase !== 'levelup') break;
+    await page.evaluate(() => window.__game.pickChoice(0));
+  }
+  return done;
+}
+
 export function ff(page: Page, sec: number): Promise<void> {
   return page.evaluate((s) => window.__game.fastForward(s, { levelUpPolicy: 'first' }), sec);
 }

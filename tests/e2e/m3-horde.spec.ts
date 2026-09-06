@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openGame, snap, startRun, state, step, realWait, waitScene } from './helpers';
+import { openGame, snap, startRun, state, stepResolving, realWait, waitScene } from './helpers';
 
 test('M3: 500 enemies stay inside the CPU frame budget', async ({ page }) => {
   const errors = await openGame(page, '?test=1&seed=99');
@@ -35,15 +35,16 @@ test('M3: the horde damages the player, god mode blocks it, and death ends the r
   await page.evaluate(() => window.__game.godMode(true));
   await page.evaluate(() => window.__game.spawn('infected', 30, { radius: 30 }));
   const full = await state(page);
-  expect(await step(page, 300)).toBe(300);
+  // kills drop gems, so level-ups can interrupt a long batch; resolve them and keep going
+  expect(await stepResolving(page, 300)).toBe(300);
   expect((await state(page)).hp).toBe(full.hp);
 
   await page.evaluate(() => window.__game.godMode(false));
-  await step(page, 60);
+  await stepResolving(page, 60);
   const hurt = await state(page);
   expect(hurt.hp).toBeLessThan(full.hp);
 
-  await step(page, 3600);
+  await stepResolving(page, 3600);
   const dead = await state(page);
   expect(dead.phase).toBe('ended');
   expect(dead.ended).toBe('died');
@@ -58,7 +59,7 @@ test('M3: waves fill the field on their own and enemies arrive from off screen',
   await page.evaluate(() => window.__game.setTimeScale(0));
   await page.evaluate(() => window.__game.godMode(true));
 
-  await step(page, 60 * 30);
+  await stepResolving(page, 60 * 30);
   const s = await state(page);
   expect(s.counts.enemies).toBeGreaterThan(8);
   expect(s.enemies.byBehavior.chase).toBe(s.counts.enemies);
