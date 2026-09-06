@@ -13,6 +13,7 @@
     "assets:floor": "node scripts/build-floor.mjs",
     "assets:atlas": "node scripts/build-atlas.mjs",
     "assets:audio": "node scripts/copy-audio.mjs",
+    "assets:icons": "node scripts/build-icons.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test:unit": "vitest run",

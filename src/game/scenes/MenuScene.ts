@@ -5,6 +5,8 @@ import { textStyle, COLORS } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
 import { restartOnResize } from '../ui/responsive';
 import { app } from '../app';
+import { music } from '../audio/music';
+import { audioContextOf } from '../audio/context';
 
 export class MenuScene extends Phaser.Scene {
   private title!: Phaser.GameObjects.Text;
@@ -68,6 +70,9 @@ export class MenuScene extends Phaser.Scene {
       console.warn('Game scene not registered yet');
       return;
     }
+    // this press is the user gesture browsers require before audio may start
+    music.start(() => audioContextOf(this.sound));
+    music.setIntensity(0.15);
     const seed = app().seed ?? (Date.now() >>> 0);
     this.scene.start('Game', { seed });
   }

@@ -48,9 +48,10 @@ export class GemView {
         this.frames[g.id] = frame;
         bob.setFrame(frame);
       }
-      // Bobs draw from their top-left corner
-      bob.x = g.x - 10;
-      bob.y = g.y - 10;
+      // Bobs draw from their top-left corner; the merged gem is the only larger frame
+      const half = g.tier === 'merged' ? 14 : g.tier === 'red' ? 9 : 8;
+      bob.x = g.x - half;
+      bob.y = g.y - half;
       bob.visible = true;
     }
   }

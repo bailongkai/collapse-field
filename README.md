@@ -42,7 +42,14 @@ the reference; scaled, the difference is within noise, and a close-range
 autopilot sees no difference either way.
 
 Five weapons (等离子刃, 制导激光, 磁轨炮, 轨道无人机, EMP力场) and five passives,
-each to level 8 and 5 respectively, in six slots each.
+each to level 8 and 5 respectively, in six slots each. Max a weapon, own its
+paired passive, and the next supply chest evolves it into something else
+entirely. Gold banked from finished runs buys permanent upgrades from the
+shop on the main menu.
+
+Enemies are not all the same problem: most walk straight at you, 酸液喷吐者
+keeps its distance and spits, 突袭者 freezes and then lunges, and the mothership
+telegraphs a charge and drops reinforcements.
 
 ## How it is built
 
@@ -86,6 +93,16 @@ the bench project.
 the difficulty curve, so a wave-table change that makes the game trivial or
 unwinnable fails a test rather than waiting to be noticed.
 
+## Publishing
+
+`.github/workflows/ci.yml` runs the whole verification pipeline on every push
+and, on `main`, deploys the built game to GitHub Pages. Enable Pages with
+"GitHub Actions" as the source; the build uses relative asset paths, so it works
+from a repository subpath without configuration.
+
 ## Credits
 
-All art and audio by [Kenney](https://kenney.nl), CC0. See `CREDITS.md`.
+All art and sound effects by [Kenney](https://kenney.nl), CC0. See `CREDITS.md`.
+The score is synthesised at runtime in `src/game/audio/music.ts` rather than
+shipped as a file: the Kenney packs have no music, and generating it keeps the
+project free of any third-party licence to track.

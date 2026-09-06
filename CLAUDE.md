@@ -28,6 +28,21 @@ never from `Date.now` or a Phaser timer.
   never write it.
 - `src/debug/hook.ts` — `window.__game`, the only way the tests drive the game.
 
+## The shape of a run
+
+Weapons evolve rather than only levelling: a maxed weapon plus its paired
+passive turns the next supply chest into an evolution. Evolutions live in the
+same weapon table with `evolvedOnly`, are never offered on level-up, and replace
+their base in place. Enemy behaviour is a per-instance state machine on
+`aiState` / `aiTimer` / `aiTimer2`, which is how the ranged, dashing and boss
+enemies telegraph before they act.
+
+Presentation that is not simulation belongs on the view side: the score in
+`src/game/audio/music.ts` is synthesised from the Web Audio clock, and the
+ground shadows in `src/game/view/shadowView.ts` are a single Blitter. Shadows do
+more work than they look like: they are what makes sprites drawn from three
+different art packs read as standing on the same floor.
+
 ## Adding content
 
 A weapon of an existing archetype is a data change in `src/data/weapons.ts` plus

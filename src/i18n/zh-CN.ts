@@ -34,6 +34,7 @@ export const zhCN = {
   'settings.title': '设置',
   'settings.language': '语言',
   'settings.volume': '音效音量',
+  'settings.music': '音乐音量',
   'settings.lang.zh': '中文',
   'settings.lang.en': 'English',
   'settings.volume.value': '{n}%',

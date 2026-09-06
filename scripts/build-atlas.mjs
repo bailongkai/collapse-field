@@ -97,6 +97,65 @@ function drawPauseIcon(size = 32) {
   return img;
 }
 
+/**
+ * A soft ground shadow. Every character sits on one, which is what pulls sprites drawn from
+ * slightly different angles (top-down soldiers, hovering saucers, a vertical-shmup hull) onto the
+ * same floor and makes the mix read as one scene.
+ */
+function drawShadow(w) {
+  const h = Math.round(w * 0.42);
+  const img = new Jimp({ width: w, height: h, color: 0x00000000 });
+  const rx = w / 2;
+  const ry = h / 2;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const nx = (x + 0.5 - rx) / rx;
+    const ny = (y + 0.5 - ry) / ry;
+    const d = Math.hypot(nx, ny);
+    if (d >= 1) continue;
+    // dense in the middle, feathered at the rim
+    const a = Math.round(205 * Math.pow(1 - d, 0.5));
+    if (a <= 0) continue;
+    img.setPixelColor(((0x00 << 24) | (0x02 << 16) | (0x06 << 8) | a) >>> 0, x, y);
+  }
+  return img;
+}
+
+/**
+ * An experience crystal: a faceted diamond with a bright core, a darker lower half and a rim.
+ * The Kenney power-up sprites are rounded squares, which read as debris rather than as the thing
+ * the whole run is spent collecting.
+ */
+function drawGem(size, rgb) {
+  const img = new Jimp({ width: size, height: size, color: 0x00000000 });
+  const c = (size - 1) / 2;
+  const [r, g, b] = rgb;
+  const mixTo = (v, t, target) => Math.round(v + (target - v) * t);
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const nx = (x - c) / c;
+    const ny = (y - c) / c;
+    const d = Math.abs(nx) + Math.abs(ny); // diamond
+    if (d > 1) continue;
+    const rim = d > 0.78;
+    // the upper-left facet catches the light, the lower half falls into shade
+    const lightT = Math.max(0, Math.min(1, 0.55 - (nx + ny) * 0.5));
+    let cr = mixTo(r, lightT * 0.75, 255);
+    let cg = mixTo(g, lightT * 0.75, 255);
+    let cb = mixTo(b, lightT * 0.75, 255);
+    if (ny > 0.15) {
+      cr = Math.round(cr * 0.62);
+      cg = Math.round(cg * 0.62);
+      cb = Math.round(cb * 0.62);
+    }
+    if (rim) {
+      cr = Math.round(cr * 0.45);
+      cg = Math.round(cg * 0.45);
+      cb = Math.round(cb * 0.45);
+    }
+    img.setPixelColor(((cr << 24) | (cg << 16) | (cb << 8) | 0xff) >>> 0, x, y);
+  }
+  return img;
+}
+
 function solid(w, h, rgba) {
   return new Jimp({ width: w, height: h, color: rgba >>> 0 });
 }
@@ -120,6 +179,14 @@ async function main() {
     ['bar_fill', solid(40, 5, 0x5ee06aff)],
     ['px', solid(4, 4, 0xffffffff)],
     ['icon_pause', drawPauseIcon()],
+    ['gem_blue', drawGem(16, [0x3f, 0x9c, 0xff])],
+    ['gem_green', drawGem(16, [0x4f, 0xd6, 0x6a])],
+    ['gem_red', drawGem(18, [0xff, 0x5f, 0x6b])],
+    ['gem_big', drawGem(28, [0xff, 0xd1, 0x66])],
+    ['shadow_s', drawShadow(28)],
+    ['shadow_m', drawShadow(44)],
+    ['shadow_l', drawShadow(68)],
+    ['shadow_xl', drawShadow(140)],
   ];
   for (const [name, img] of procedural) {
     groups.game.push({ path: name + '.png', contents: await img.getBuffer('image/png') });

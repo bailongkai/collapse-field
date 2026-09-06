@@ -17,6 +17,7 @@ export const en: Partial<Record<I18nKey, string>> = {
   'settings.title': 'Settings',
   'settings.language': 'Language',
   'settings.volume': 'SFX volume',
+  'settings.music': 'Music volume',
   'settings.lang.zh': '中文',
   'settings.lang.en': 'English',
   'common.back': 'Back',

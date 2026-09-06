@@ -162,34 +162,6 @@
     },
     {
       "pack": "space-shooter-remastered",
-      "file": "PNG/Power-ups/powerupBlue.png",
-      "frame": "gem_blue",
-      "size": 20,
-      "atlas": "game"
-    },
-    {
-      "pack": "space-shooter-remastered",
-      "file": "PNG/Power-ups/powerupGreen.png",
-      "frame": "gem_green",
-      "size": 20,
-      "atlas": "game"
-    },
-    {
-      "pack": "space-shooter-remastered",
-      "file": "PNG/Power-ups/powerupRed.png",
-      "frame": "gem_red",
-      "size": 20,
-      "atlas": "game"
-    },
-    {
-      "pack": "space-shooter-remastered",
-      "file": "PNG/Power-ups/powerupYellow.png",
-      "frame": "gem_big",
-      "size": 32,
-      "atlas": "game"
-    },
-    {
-      "pack": "space-shooter-remastered",
       "file": "PNG/Power-ups/pill_red.png",
       "frame": "pk_heal",
       "size": 28,

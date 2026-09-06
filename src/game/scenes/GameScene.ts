@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { FIXED_DT_MS, GAME_H, GAME_W, MAX_FRAME_DELTA_MS, MAX_STEPS_PER_FRAME } from '../../config';
+import { FIXED_DT_MS, GAME_H, GAME_W, MAX_FRAME_DELTA_MS, MAX_STEPS_PER_FRAME, RUN_SECONDS } from '../../config';
 import { Simulation } from '../../core/sim/simulation';
 import { DEFAULT_CHARACTER_ID } from '../../data/characters';
 import { DEFAULT_STAGE_ID } from '../../data/stages';
@@ -10,6 +10,7 @@ import { VirtualJoystick } from '../input/touchControls';
 import { FloorView } from '../view/floorView';
 import { PlayerView } from '../view/playerView';
 import { EnemyView } from '../view/enemyView';
+import { ShadowView } from '../view/shadowView';
 import { GemView } from '../view/gemView';
 import { PickupView } from '../view/pickupView';
 import { ProjectileView } from '../view/projectileView';
@@ -19,6 +20,7 @@ import { Profiler } from '../../debug/profiler';
 import type { FrameStats, HookRunState, RunHandlers } from '../../debug/hook';
 import { rendererString } from '../../debug/hook';
 import { sfx } from '../audio/sfx';
+import { music } from '../audio/music';
 import { app } from '../app';
 import { metaBonuses } from '../../core/save/upgrades';
 import { t } from '../../i18n';
@@ -39,6 +41,7 @@ export class GameScene extends Phaser.Scene {
   private floorView!: FloorView;
   private playerView!: PlayerView;
   private enemyView!: EnemyView;
+  private shadowView!: ShadowView;
   private gemView!: GemView;
   private pickupView!: PickupView;
   private projectileView!: ProjectileView;
@@ -48,7 +51,10 @@ export class GameScene extends Phaser.Scene {
   private accumulator = 0;
   private levelUpPending = false;
   private timeScale = 1;
-  private layers!: Record<'floor' | 'decor' | 'gems' | 'pickups' | 'enemies' | 'player' | 'projectiles' | 'fx' | 'numbers', Phaser.GameObjects.Layer>;
+  private layers!: Record<
+    'floor' | 'decor' | 'shadows' | 'gems' | 'pickups' | 'enemies' | 'player' | 'projectiles' | 'fx' | 'numbers',
+    Phaser.GameObjects.Layer
+  >;
 
   constructor() {
     super('Game');
@@ -73,17 +79,18 @@ export class GameScene extends Phaser.Scene {
 
     this.cameras.main.setBackgroundColor('#05070c');
     this.layers = {
-      floor: this.add.layer(), decor: this.add.layer(), gems: this.add.layer(), pickups: this.add.layer(),
-      enemies: this.add.layer(), player: this.add.layer(), projectiles: this.add.layer(), fx: this.add.layer(),
-      numbers: this.add.layer(),
+      floor: this.add.layer(), decor: this.add.layer(), shadows: this.add.layer(), gems: this.add.layer(),
+      pickups: this.add.layer(), enemies: this.add.layer(), player: this.add.layer(),
+      projectiles: this.add.layer(), fx: this.add.layer(), numbers: this.add.layer(),
     };
     let depth = 0;
-    for (const key of ['floor', 'decor', 'gems', 'pickups', 'enemies', 'player', 'projectiles', 'fx', 'numbers'] as const) {
+    for (const key of ['floor', 'decor', 'shadows', 'gems', 'pickups', 'enemies', 'player', 'projectiles', 'fx', 'numbers'] as const) {
       this.layers[key].setDepth(depth++);
     }
 
     this.floorView = new FloorView(this, this.sim.stage, this.layers.floor, this.layers.decor);
     this.playerView = new PlayerView(this, this.sim.character, this.layers.player);
+    this.shadowView = new ShadowView(this, this.layers.shadows);
     this.enemyView = new EnemyView(this, this.layers.enemies);
     this.gemView = new GemView(this, this.layers.gems);
     this.pickupView = new PickupView(this, this.layers.pickups);
@@ -137,6 +144,7 @@ export class GameScene extends Phaser.Scene {
     this.floorView.destroy();
     this.playerView.destroy();
     this.enemyView.destroy();
+    this.shadowView.destroy();
     this.gemView.destroy();
     this.pickupView.destroy();
     this.projectileView.destroy();
@@ -177,6 +185,7 @@ export class GameScene extends Phaser.Scene {
     if (this.levelUpPending || this.scene.isActive('LevelUp')) return;
     this.levelUpPending = true;
     this.cameras.main.flash(200, 90, 200, 255);
+    this.playerView.pop();
     sfx.play('levelup');
     this.time.delayedCall(250, () => {
       this.levelUpPending = false;
@@ -216,6 +225,9 @@ export class GameScene extends Phaser.Scene {
       this.profiler.markSim(0);
     }
 
+    // the score thickens with the run: quiet at the start, busy by the reaper
+    music.setIntensity(Math.min(1, run.timeMs / (RUN_SECONDS * 1000)) * 0.85 + (run.phase === 'running' ? 0.1 : 0));
+
     const syncStart = performance.now();
     this.syncViews(delta);
     this.profiler.markSync(performance.now() - syncStart);
@@ -249,6 +261,7 @@ export class GameScene extends Phaser.Scene {
     const viewH = this.scale.height;
     this.playerView.update(p, this.sim.run.hp, this.sim.stats.maxHealth, deltaMs);
     this.floorView.update(cam.midPoint.x, cam.midPoint.y, cam.scrollX, cam.scrollY, viewW, viewH);
+    this.shadowView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH);
     this.enemyView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH);
     this.gemView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH);
     this.pickupView.sync(this.sim.world, this.sim.run.timeMs);
@@ -566,6 +579,7 @@ export class GameScene extends Phaser.Scene {
       profileStart: () => this.profiler.start(),
       profileStop: (): FrameStats => this.profiler.stop(),
       getPerf: () => ({
+        musicPlaying: music.isPlaying(),
         fps: this.game.loop.actualFps,
         stepMs: this.profiler.lastSimMs,
         syncMs: this.profiler.lastSyncMs,

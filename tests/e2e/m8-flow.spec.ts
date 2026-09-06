@@ -76,10 +76,12 @@ test('M8: the settings screen switches the language across the whole interface',
   expect(errors, errors.join('\n')).toEqual([]);
 });
 
-test('M8: audio stays inside its caps during real play', async ({ page }) => {
+test('M8: audio stays inside its caps during real play, and the score starts with the run', async ({ page }) => {
   const errors = await openGame(page, '?debug=1&seed=91');
-  await page.evaluate(() => window.__game.startRun({ seed: 91 }));
+  // the real Start button is the gesture that lets the browser begin audio
+  expect(await page.evaluate(() => window.__game.ui.press('menu.start'))).toBe(true);
   await waitScene(page, 'game');
+  await page.waitForFunction(() => window.__game.getPerf().musicPlaying === true, undefined, { timeout: 5000 });
   await page.evaluate(() => {
     window.__game.godMode(true);
     window.__game.giveWeapon('railgun', 6);
@@ -88,5 +90,6 @@ test('M8: audio stays inside its caps during real play', async ({ page }) => {
   await page.waitForTimeout(2500);
   const perf = await page.evaluate(() => window.__game.getPerf());
   expect(perf.activeSounds).toBeLessThanOrEqual(16);
+  expect(perf.musicPlaying).toBe(true);
   expect(errors, errors.join('\n')).toEqual([]);
 });

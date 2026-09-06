@@ -4,7 +4,7 @@ export interface SaveData {
   runsPlayed: number;
   bestTimeSec: number;
   bestKills: number;
-  settings: { locale: 'zh-CN' | 'en'; sfxVolume: number };
+  settings: { locale: 'zh-CN' | 'en'; sfxVolume: number; musicVolume: number };
   /** permanent upgrade levels by id */
   upgrades: Record<string, number>;
 }
@@ -15,7 +15,7 @@ export const DEFAULT_SAVE: SaveData = {
   runsPlayed: 0,
   bestTimeSec: 0,
   bestKills: 0,
-  settings: { locale: 'zh-CN', sfxVolume: 0.8 },
+  settings: { locale: 'zh-CN', sfxVolume: 0.8, musicVolume: 0.5 },
   upgrades: {},
 };
 
@@ -49,6 +49,7 @@ export function loadSave(st: SaveStorage): SaveData {
     if (parsed.settings && typeof parsed.settings === 'object') {
       if (parsed.settings.locale === 'en' || parsed.settings.locale === 'zh-CN') d.settings.locale = parsed.settings.locale;
       if (typeof parsed.settings.sfxVolume === 'number') d.settings.sfxVolume = Math.min(1, Math.max(0, parsed.settings.sfxVolume));
+      if (typeof parsed.settings.musicVolume === 'number') d.settings.musicVolume = Math.min(1, Math.max(0, parsed.settings.musicVolume));
     }
     return d;
   } catch {

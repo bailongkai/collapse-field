@@ -15,6 +15,7 @@ export class PlayerView {
   private barBg: Phaser.GameObjects.Image;
   private barFill: Phaser.GameObjects.Image;
   private hurtFlashMs = 0;
+  private popMs = 0;
 
   constructor(scene: Phaser.Scene, ch: CharacterDef, layer: Phaser.GameObjects.Layer) {
     this.sprite = scene.add.image(0, 0, 'game', ch.frame);
@@ -31,9 +32,22 @@ export class PlayerView {
     this.hurtFlashMs = 120;
   }
 
+  /** A quick scale bounce on level-up; animated by hand in update, no tween. */
+  pop(): void {
+    this.popMs = 320;
+  }
+
   update(player: Player, hp: number, maxHp: number, deltaMs: number): void {
     this.sprite.setPosition(player.x, player.y);
     if (player.inputX !== 0) this.sprite.setFlipX(player.inputX < 0);
+
+    if (this.popMs > 0) {
+      this.popMs = Math.max(0, this.popMs - deltaMs);
+      const t = this.popMs / 320; // 1 -> 0
+      this.sprite.setScale(1 + Math.sin(t * Math.PI) * 0.45);
+    } else if (this.sprite.scaleX !== 1) {
+      this.sprite.setScale(1);
+    }
 
     if (this.hurtFlashMs > 0) {
       this.hurtFlashMs -= deltaMs;

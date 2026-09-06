@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { t } from '../../i18n';
 import { textStyle } from '../ui/textStyles';
 import { SFX_KEYS, sfx } from '../audio/sfx';
+import { music } from '../audio/music';
 import { app } from '../app';
 
 export class PreloadScene extends Phaser.Scene {
@@ -32,6 +33,8 @@ export class PreloadScene extends Phaser.Scene {
   create(): void {
     const ctx = app();
     sfx.init(this.sound, { muted: ctx.testMode, volume: ctx.save.settings.sfxVolume });
+    music.setVolume(ctx.save.settings.musicVolume);
+    music.setEnabled(!ctx.testMode && ctx.save.settings.musicVolume > 0);
     this.scene.start('Menu');
   }
 }
