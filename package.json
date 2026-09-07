@@ -20,9 +20,10 @@
     "test:unit": "vitest run",
     "test:e2e": "playwright test --project=default",
     "test:mobile": "playwright test --project=mobile",
+    "test:iphone": "playwright test --project=iphone",
     "test:perf": "playwright test --project=perf",
     "bench": "playwright test --project=bench",
-    "verify": "npm run typecheck && npm run lint && npm run test:unit && npm run test:e2e && npm run test:mobile && npm run test:perf"
+    "verify": "npm run typecheck && npm run lint && npm run test:unit && npm run test:e2e && npm run test:mobile && npm run test:iphone && npm run test:perf"
   },
   "dependencies": {
     "phaser": "4.2.1"

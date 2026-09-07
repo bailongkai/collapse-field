@@ -106,7 +106,7 @@ export interface GameDebugApi extends Omit<RunHandlers, 'profileStart' | 'profil
   goto(scene: 'menu' | 'game' | 'results', data?: unknown): Promise<void>;
   startRun(o?: { seed?: number; characterId?: string; stageId?: string }): Promise<void>;
   getEvents(): string[];
-  ui: { buttons(): { id: string; x: number; y: number; enabled: boolean }[]; press(id: string): boolean };
+  ui: { buttons(): { id: string; x: number; y: number; hitW: number; hitH: number; enabled: boolean }[]; press(id: string): boolean };
   profile: { start(): void; stop(): FrameStats };
   screenshot(): Promise<string>;
   content(): { weapons: string[]; passives: string[]; enemies: string[]; pickups: string[] };

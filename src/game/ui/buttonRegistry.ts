@@ -2,6 +2,8 @@
 export interface RegisteredButton {
   id: string;
   getPos(): { x: number; y: number };
+  /** the interactive area in logical units, which may be larger than the drawn button */
+  getHitSize(): { w: number; h: number };
   isEnabled(): boolean;
   press(): void;
 }
@@ -15,8 +17,11 @@ export function registerButton(b: RegisteredButton): () => void {
   };
 }
 
-export function listButtons(): { id: string; x: number; y: number; enabled: boolean }[] {
-  return [...buttons.values()].map((b) => ({ id: b.id, ...b.getPos(), enabled: b.isEnabled() }));
+export function listButtons(): { id: string; x: number; y: number; hitW: number; hitH: number; enabled: boolean }[] {
+  return [...buttons.values()].map((b) => {
+    const size = b.getHitSize();
+    return { id: b.id, ...b.getPos(), hitW: size.w, hitH: size.h, enabled: b.isEnabled() };
+  });
 }
 
 export function pressButton(id: string): boolean {

@@ -139,11 +139,13 @@ test('mobile: the canvas fills the phone width instead of sitting between bars',
     return { width: rect.width, height: rect.height, logicalW: window.__game.phaser.scale.width, logicalH: window.__game.phaser.scale.height };
   });
 
-  // the logical view is 720 tall with a width that follows the display's aspect
-  expect(canvas.logicalH).toBe(720);
-  expect(canvas.logicalW).toBeGreaterThan(1280);
-  // and the drawn canvas covers essentially the whole viewport width
-  expect(canvas.width / viewport.width).toBeGreaterThan(0.97);
+  // the view follows the display: wide enough to fill the screen, and small enough that one
+  // logical unit covers enough CSS pixels for sprites to read and buttons to be hit
+  expect(canvas.width / viewport.width, 'the canvas does not fill the width').toBeGreaterThan(0.97);
+  const cssPerUnit = canvas.width / canvas.logicalW;
+  expect(cssPerUnit, `one logical unit is only ${cssPerUnit.toFixed(2)} CSS px`).toBeGreaterThanOrEqual(0.7);
+  expect(canvas.logicalH).toBeLessThanOrEqual(720);
+  expect(canvas.logicalW / canvas.logicalH).toBeCloseTo(viewport.width / viewport.height, 1);
 
   await page.evaluate(() => window.__game.startRun({ seed: 47 }));
   await waitScene(page, 'game');

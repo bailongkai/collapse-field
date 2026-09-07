@@ -40,6 +40,9 @@ test('M3: the horde damages the player, god mode blocks it, and death ends the r
   const hurt = await state(page);
   expect(hurt.hp).toBeLessThan(full.hp);
 
+  // a fragile player, so this measures the contact-damage and death path rather than how quickly
+  // the starting weapon can clear the crowd around them
+  await page.evaluate(() => window.__game.setStat('maxHealth', 12));
   await stepResolving(page, 3600);
   const dead = await state(page);
   expect(dead.phase).toBe('ended');

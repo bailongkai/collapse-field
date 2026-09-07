@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { restartOnResize } from '../ui/responsive';
+import { minTouchUnits } from '../layout';
 import { t, tDynamic } from '../../i18n';
 import { COLORS, textStyle } from '../ui/textStyles';
 import { registerButton } from '../ui/buttonRegistry';
@@ -26,6 +27,9 @@ export class LevelUpScene extends Phaser.Scene {
   private cleanups: (() => void)[] = [];
   /** id of the pointer that pressed a card, or -1 */
   private armed = -1;
+  private scaleUi = 1;
+  private cardW = CARD_W;
+  private cardH = CARD_H;
 
   constructor() {
     super('LevelUp');
@@ -44,14 +48,22 @@ export class LevelUpScene extends Phaser.Scene {
     const game = this.scene.get('Game') as GameScene;
     const choices = game.sim.run.choices ?? [];
 
-    this.add.rectangle(this.scale.width / 2, this.scale.height / 2, this.scale.width, this.scale.height, 0x05070c, 0.6);
-    const panelH = 140 + choices.length * (CARD_H + CARD_GAP);
-    this.add.nineslice(this.scale.width / 2, this.scale.height / 2, 'ui', 'panel_glass', 560, panelH, 24, 24, 24, 24).setAlpha(0.96).setTint(PANEL_TINT);
-    this.add.text(this.scale.width / 2, this.scale.height / 2 - panelH / 2 + 42, t('levelup.title'), textStyle(32, { bold: true, color: COLORS.accent })).setOrigin(0.5);
+    this.scaleUi = 1;
+    this.cardW = Math.round(CARD_W * this.scaleUi);
+    this.cardH = Math.round(CARD_H * this.scaleUi);
+    const gap = Math.round(CARD_GAP * this.scaleUi);
 
-    const top = this.scale.height / 2 - panelH / 2 + 96;
+    this.add.rectangle(this.scale.width / 2, this.scale.height / 2, this.scale.width, this.scale.height, 0x05070c, 0.6);
+    const panelH = Math.round(140 * this.scaleUi) + choices.length * (this.cardH + gap);
+    const panelW = Math.round(560 * this.scaleUi);
+    this.add.nineslice(this.scale.width / 2, this.scale.height / 2, 'ui', 'panel_glass', panelW, panelH, 24, 24, 24, 24).setAlpha(0.96).setTint(PANEL_TINT);
+    this.add
+      .text(this.scale.width / 2, this.scale.height / 2 - panelH / 2 + Math.round(42 * this.scaleUi), t('levelup.title'), textStyle(Math.round(32 * this.scaleUi), { bold: true, color: COLORS.accent }))
+      .setOrigin(0.5);
+
+    const top = this.scale.height / 2 - panelH / 2 + Math.round(96 * this.scaleUi);
     choices.forEach((choice, i) => {
-      const y = top + i * (CARD_H + CARD_GAP) + CARD_H / 2;
+      const y = top + i * (this.cardH + gap) + this.cardH / 2;
       this.cards.push(this.buildCard(choice, i, y));
     });
 
@@ -117,18 +129,28 @@ export class LevelUpScene extends Phaser.Scene {
 
   private buildCard(choice: LevelUpChoice, index: number, y: number): Phaser.GameObjects.Container {
     const info = this.describe(choice);
+    const u = this.scaleUi;
+    const w = this.cardW;
+    const h = this.cardH;
     const container = this.add.container(this.scale.width / 2, y);
-    const bg = this.add.nineslice(0, 0, 'ui', 'panel_rect', CARD_W, CARD_H, 16, 16, 16, 16).setTint(CARD_TINT);
-    const icon = this.add.image(-CARD_W / 2 + 44, 0, 'game', info.icon).setDisplaySize(44, 44);
+    const bg = this.add.nineslice(0, 0, 'ui', 'panel_rect', w, h, 16, 16, 16, 16).setTint(CARD_TINT);
+    const iconSize = Math.round(44 * u);
+    const icon = this.add.image(-w / 2 + Math.round(44 * u), 0, 'game', info.icon).setDisplaySize(iconSize, iconSize);
     if (info.iconTint !== undefined) icon.setTint(info.iconTint);
-    const title = this.add.text(-CARD_W / 2 + 84, -24, info.title, textStyle(22, { bold: true })).setOrigin(0, 0.5);
-    const tag = this.add.text(CARD_W / 2 - 16, -24, info.tag, textStyle(16, { color: COLORS.accent })).setOrigin(1, 0.5);
-    const body = this.add.text(-CARD_W / 2 + 84, 12, info.body, textStyle(15, { color: COLORS.dim, wrapWidth: CARD_W - 110 })).setOrigin(0, 0.5);
+    const title = this.add.text(-w / 2 + Math.round(84 * u), -Math.round(24 * u), info.title, textStyle(Math.round(22 * u), { bold: true })).setOrigin(0, 0.5);
+    const tag = this.add.text(w / 2 - Math.round(16 * u), -Math.round(24 * u), info.tag, textStyle(Math.round(16 * u), { color: COLORS.accent })).setOrigin(1, 0.5);
+    const body = this.add
+      .text(-w / 2 + Math.round(84 * u), Math.round(12 * u), info.body, textStyle(Math.round(15 * u), { color: COLORS.dim, wrapWidth: w - Math.round(110 * u) }))
+      .setOrigin(0, 0.5);
     container.add([bg, icon, title, tag, body]);
     container.setData('bg', bg);
 
-    const hit = new Phaser.Geom.Rectangle(-CARD_W / 2, -CARD_H / 2, CARD_W, CARD_H);
-    container.setInteractive(hit, Phaser.Geom.Rectangle.Contains);
+    const minUnits = minTouchUnits(this);
+    const hitW = Math.max(w, minUnits);
+    const hitH = Math.max(h, minUnits);
+    // no setSize on this container, so its displayOrigin is zero and the rectangle really is
+    // centred on the card. See UiButton for why that distinction matters.
+    container.setInteractive(new Phaser.Geom.Rectangle(-hitW / 2, -hitH / 2, hitW, hitH), Phaser.Geom.Rectangle.Contains);
     container.on('pointerover', () => this.setSelected(index));
     container.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       this.armed = pointer.id;
@@ -146,6 +168,7 @@ export class LevelUpScene extends Phaser.Scene {
       registerButton({
         id: `levelup.card${index}`,
         getPos: () => ({ x: container.x, y: container.y }),
+        getHitSize: () => ({ w: hitW, h: hitH }),
         isEnabled: () => container.active,
         press: () => this.choose(index),
       }),

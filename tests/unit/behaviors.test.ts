@@ -177,3 +177,51 @@ describe('the whole kit together', () => {
     }
   });
 });
+
+describe('directional weapons can hit while retreating', () => {
+  it('the blade swings at the crowd even when the player runs the other way', () => {
+    const s = newSim();
+    // the enemy is behind the player, who is running away from it
+    const e = tank(s, 'mech', -120);
+    e.hp = 1e6;
+    e.maxHp = 1e6;
+    s.setInput(1, 0); // facing right, away from the enemy
+    s.stepMany(1);
+    expect(1e6 - e.hp, 'the starting weapon cannot hit anything while backing off').toBeGreaterThan(0);
+  });
+
+  it('the railgun fires at the nearest enemy rather than the way the player is moving', () => {
+    const s = newSim();
+    s.run.weapons.length = 0;
+    s.world.weaponInstances.length = 0;
+    s.giveWeapon('railgun', 1);
+    s.spawn('mech', 1, { x: 0, y: -300 }); // above the player
+    s.setInput(1, 0); // moving right
+    s.stepMany(2);
+    const shots = bolts(s);
+    expect(shots.length).toBeGreaterThan(0);
+    for (const b of shots) expect(b.vy, 'the shot did not go towards the enemy').toBeLessThan(0);
+  });
+
+  it('with nothing in range they still fire along the facing direction', () => {
+    const s = newSim();
+    s.run.weapons.length = 0;
+    s.world.weaponInstances.length = 0;
+    s.giveWeapon('railgun', 1);
+    s.setInput(0, 1); // facing down, no enemies anywhere
+    s.stepMany(2);
+    const shots = bolts(s);
+    expect(shots.length).toBeGreaterThan(0);
+    for (const b of shots) expect(b.vy).toBeGreaterThan(0);
+  });
+
+  it('a fleeing player still kills things', () => {
+    const s = newSim();
+    s.setStatOverride('growth', 0);
+    s.spawn('drone', 60, { radius: 200 });
+    // run away in a straight line for ten seconds
+    s.setInput(1, 0);
+    s.stepMany(60 * 10);
+    expect(s.run.kills, 'a retreating player killed nothing').toBeGreaterThan(5);
+  });
+});

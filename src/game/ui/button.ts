@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { registerButton } from './buttonRegistry';
+import { minTouchUnits } from '../layout';
 import { textStyle, COLORS } from './textStyles';
 import { sfx } from '../audio/sfx';
 
@@ -23,6 +24,8 @@ export class UiButton extends Phaser.GameObjects.Container {
   private enabled = true;
   /** id of the pointer that pressed this button, or -1 */
   private armedPointer = -1;
+  private hitW = 0;
+  private hitH = 0;
   private unregister: () => void;
   private onPress: () => void;
 
@@ -32,11 +35,22 @@ export class UiButton extends Phaser.GameObjects.Container {
     const h = opts.height ?? 56;
     this.onPress = opts.onPress;
     this.bg = scene.add.nineslice(0, 0, 'ui', opts.frame ?? 'button_rect', w, h, 12, 12, 12, 12);
-    this.label = scene.add.text(0, 0, opts.icon ? '' : opts.label, textStyle(opts.fontSize ?? 22, { bold: true, color: '#0b1a2a' })).setOrigin(0.5);
+    this.label = scene.add
+      .text(0, 0, opts.icon ? '' : opts.label, textStyle(opts.fontSize ?? 22, { bold: true, color: '#0b1a2a' }))
+      .setOrigin(0.5);
     this.add([this.bg, this.label]);
     if (opts.icon) this.add(scene.add.image(0, 0, 'game', opts.icon).setDisplaySize(Math.round(h * 0.55), Math.round(h * 0.55)));
-    this.setSize(w, h);
-    this.setInteractive(new Phaser.Geom.Rectangle(-w / 2, -h / 2, w, h), Phaser.Geom.Rectangle.Contains);
+    // The hit area is grown past the drawing so an off-centre thumb still lands: on a phone the
+    // difference between "tapped it" and "nothing happened" is a few millimetres.
+    const minUnits = minTouchUnits(scene);
+    this.hitW = Math.max(w, minUnits);
+    this.hitH = Math.max(h, minUnits);
+    // Phaser normalises the hit test by displayOrigin, which setSize puts at the container's
+    // centre, so the rectangle is authored from the top-left. A centred rectangle would sit half a
+    // button up and to the left of where it is drawn — which is exactly what made taps on the lower
+    // half of a button do nothing.
+    this.setSize(this.hitW, this.hitH);
+    this.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.hitW, this.hitH), Phaser.Geom.Rectangle.Contains);
     this.on('pointerover', () => this.setHighlight(true));
     this.on('pointerout', () => {
       this.setHighlight(false);
@@ -57,6 +71,7 @@ export class UiButton extends Phaser.GameObjects.Container {
     this.unregister = registerButton({
       id: opts.id,
       getPos: () => ({ x: this.x, y: this.y }),
+      getHitSize: () => ({ w: this.hitW, h: this.hitH }),
       isEnabled: () => this.enabled && this.active && this.visible,
       press: () => this.press(),
     });

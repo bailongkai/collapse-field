@@ -102,7 +102,8 @@ describe('wave table and spawner', () => {
   });
 
   it('fills the field towards the wave minimum within 30 seconds', () => {
-    const s = newSim();
+    // unarmed: this measures the spawner, not how fast the starting weapon clears what it spawns
+    const s = unarmed(newSim());
     s.run.god = true;
     s.stepMany(30 * 60);
     const row = waveRow(stage, s.run.timeMs);

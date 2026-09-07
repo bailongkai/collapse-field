@@ -74,8 +74,13 @@ export class MenuScene extends Phaser.Scene {
     // would otherwise start a run underneath an open panel
     if (this.scene.isActive('Shop') || this.scene.isActive('Settings')) return;
     // this press is the user gesture browsers require before audio may start
-    music.start(() => audioContextOf(this.sound));
-    music.setIntensity(0.15);
+    // audio must never be able to stop a run from starting
+    try {
+      music.start(() => audioContextOf(this.sound));
+      music.setIntensity(0.15);
+    } catch (error) {
+      console.warn('music failed to start', error);
+    }
     const seed = app().seed ?? (Date.now() >>> 0);
     this.scene.start('Game', { seed });
   }
