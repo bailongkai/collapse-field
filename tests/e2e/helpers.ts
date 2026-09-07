@@ -107,8 +107,17 @@ export class TouchSession {
         if (a === 'end') active.delete(identifier);
         else active.set(identifier, { x: cx, y: cy });
 
-        const make = (i: number, p: { x: number; y: number }): Touch =>
-          new Touch({ identifier: i, target: canvas, clientX: p.x, clientY: p.y, pageX: p.x, pageY: p.y });
+        // WebKit does not allow `new Touch()`, so fall back to its legacy factory
+        const make = (i: number, p: { x: number; y: number }): Touch => {
+          try {
+            return new Touch({ identifier: i, target: canvas, clientX: p.x, clientY: p.y, pageX: p.x, pageY: p.y });
+          } catch {
+            const legacy = document as unknown as {
+              createTouch(view: Window, target: EventTarget, id: number, pageX: number, pageY: number, screenX: number, screenY: number): Touch;
+            };
+            return legacy.createTouch(window, canvas, i, p.x, p.y, p.x, p.y);
+          }
+        };
         const all = [...active.entries()].map(([i, p]) => make(i, p));
         const changed = [make(identifier, { x: cx, y: cy })];
         const type = a === 'start' ? 'touchstart' : a === 'move' ? 'touchmove' : 'touchend';
