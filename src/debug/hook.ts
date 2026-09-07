@@ -93,7 +93,7 @@ export interface RunHandlers {
   getState(): HookRunState;
   profileStart(): void;
   profileStop(): FrameStats;
-  getPerf(): { fps: number; stepMs: number; syncMs: number; renderMs: number; renderer: string; activeSounds: number; musicPlaying?: boolean };
+  getPerf(): { fps: number; stepMs: number; syncMs: number; renderMs: number; renderer: string; activeSounds: number; musicPlaying?: boolean; stickHeld?: boolean };
   toggleOverlay(): void;
 }
 

@@ -29,7 +29,11 @@ export const MAX_FRAME_DELTA_MS = 100;
 export const ENEMY_CAP = 1024;
 export const PROJECTILE_CAP = 512;
 export const GEM_CAP_POOL = 400;
-export const PICKUP_CAP = 32;
+// the consumables' ground limits already sum to 31, so this leaves headroom for boss chests, which
+// are deliberately uncapped and never recycled
+export const PICKUP_CAP = 40;
+/** gold a supply chest awards when the build has nothing left to upgrade */
+export const CHEST_CONSOLATION_GOLD = 120;
 export const DMG_NUMBER_POOL = 48;
 export const DMG_NUMBERS_PER_STEP = 8;
 
@@ -47,6 +51,12 @@ export const KNOCKBACK_DECAY = 0.85;
 export const SEPARATION_MAX_PUSH = 4;
 export const SEPARATION_MARGIN = 128;
 export const HIT_FLASH_MS = 80;
+/**
+ * Largest enemy collision radius in src/data/enemies.ts. Broadphase queries pad by this, because
+ * the grid stores an enemy's centre: a body whose centre is outside the query box can still
+ * overlap it. A content test keeps this in step with the data.
+ */
+export const MAX_ENEMY_RADIUS = 60;
 
 export const WEAPON_SLOTS = 6;
 export const PASSIVE_SLOTS = 6;

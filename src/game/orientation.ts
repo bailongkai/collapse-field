@@ -8,6 +8,21 @@ import { onLocaleChanged, t } from '../i18n';
  */
 const ID = 'orientation-gate';
 
+export type GateListener = (visible: boolean) => void;
+
+const listeners = new Set<GateListener>();
+let gateVisible = false;
+
+/** Subscribe to the portrait gate opening and closing. Returns an unsubscribe function. */
+export function onOrientationGate(fn: GateListener): () => void {
+  listeners.add(fn);
+  return () => listeners.delete(fn);
+}
+
+export function isOrientationGateVisible(): boolean {
+  return gateVisible;
+}
+
 export function installOrientationGate(): () => void {
   if (typeof document === 'undefined') return () => undefined;
 
@@ -29,7 +44,13 @@ export function installOrientationGate(): () => void {
 
   const update = (): void => {
     const portrait = window.innerHeight > window.innerWidth;
-    gate.classList.toggle('visible', portrait && isCoarsePointer());
+    const visible = portrait && isCoarsePointer();
+    if (visible === gateVisible) return;
+    gateVisible = visible;
+    gate.classList.toggle('visible', visible);
+    // the gate covers the canvas but the run keeps stepping behind it, so the player would be
+    // killed by a horde they cannot see or steer away from
+    for (const l of [...listeners]) l(visible);
   };
 
   applyText();
@@ -44,5 +65,7 @@ export function installOrientationGate(): () => void {
     window.removeEventListener('resize', update);
     window.removeEventListener('orientationchange', update);
     gate.remove();
+    listeners.clear();
+    gateVisible = false;
   };
 }

@@ -13,6 +13,8 @@ export class ProjectileView {
   private bolts: Phaser.GameObjects.Image[] = [];
   private fx: Phaser.GameObjects.Image[] = [];
   private frames: string[] = new Array<string>(PROJECTILE_CAP).fill('');
+  /** tint tracked separately: every evolution reuses its base weapon's atlas frame */
+  private tints = new Int32Array(PROJECTILE_CAP).fill(-1);
 
   constructor(scene: Phaser.Scene, boltLayer: Phaser.GameObjects.Layer, fxLayer: Phaser.GameObjects.Layer) {
     for (let i = 0; i < PROJECTILE_CAP; i++) {
@@ -56,7 +58,11 @@ export class ProjectileView {
       if (this.frames[p.id] !== frame) {
         this.frames[p.id] = frame;
         img.setFrame(frame);
-        img.setTint(p.hostile ? 0x9dff5a : (visual?.tint ?? 0xffffff));
+      }
+      const wantTint = p.hostile ? 0x9dff5a : (visual?.tint ?? 0xffffff);
+      if (this.tints[p.id] !== wantTint) {
+        this.tints[p.id] = wantTint;
+        img.setTint(wantTint);
       }
       img.setVisible(true);
       img.setPosition(p.x, p.y);

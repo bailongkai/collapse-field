@@ -1,3 +1,4 @@
+import { MAX_ENEMY_RADIUS } from '../../../config';
 import { pointInOrientedRect } from '../../math';
 import type { World } from '../world';
 import type { Enemy } from '../entities/enemy';
@@ -48,7 +49,7 @@ function resolveHostile(world: World, p: Projectile, hurtPlayer: HurtPlayerFn): 
 function resolveSlash(world: World, p: Projectile, damage: DamageFn): void {
   // the sweep lands once, on the tick it appears; afterwards it is only a visual
   if (p.hitSerials.length > 0 || p.rectLen <= 0) return;
-  const reach = p.rectLen + p.rectWidth;
+  const reach = p.rectLen + p.rectWidth + MAX_ENEMY_RADIUS;
   const n = world.grid.queryInto(p.x - reach, p.y - reach, p.x + reach, p.y + reach, world.queryBuf);
   const dirX = Math.cos(p.angle);
   const dirY = Math.sin(p.angle);
@@ -56,7 +57,9 @@ function resolveSlash(world: World, p: Projectile, damage: DamageFn): void {
   for (let i = 0; i < n; i++) {
     const e = world.enemies.items[world.queryBuf[i]];
     if (!e.active || !e.def) continue;
-    if (!pointInOrientedRect(e.x, e.y, p.x, p.y, p.angle, p.rectLen, p.rectWidth + e.radius * 2)) continue;
+    // the body's radius extends the sweep in both axes: the width already allowed for it, the
+    // length did not, so a large enemy could straddle the tip of the blade untouched
+    if (!pointInOrientedRect(e.x, e.y, p.x, p.y, p.angle, p.rectLen + e.radius, p.rectWidth + e.radius * 2)) continue;
     p.hitSerials.push(e.serial);
     damage(e, p.damage, dirX, dirY, p.knockback);
     hits++;
@@ -67,7 +70,8 @@ function resolveSlash(world: World, p: Projectile, damage: DamageFn): void {
 
 function resolveBolt(world: World, p: Projectile, damage: DamageFn): void {
   const r = p.radius;
-  const n = world.grid.queryInto(p.x - r - 64, p.y - r - 64, p.x + r + 64, p.y + r + 64, world.queryBuf2);
+  const pad = r + MAX_ENEMY_RADIUS;
+  const n = world.grid.queryInto(p.x - pad, p.y - pad, p.x + pad, p.y + pad, world.queryBuf2);
   for (let i = 0; i < n; i++) {
     const e = world.enemies.items[world.queryBuf2[i]];
     if (!e.active || !e.def) continue;

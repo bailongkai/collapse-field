@@ -23,6 +23,7 @@ import { sfx } from '../audio/sfx';
 import { music } from '../audio/music';
 import { app } from '../app';
 import { metaBonuses } from '../../core/save/upgrades';
+import { onOrientationGate } from '../orientation';
 import { t } from '../../i18n';
 import type { HudScene } from './HudScene';
 
@@ -38,6 +39,7 @@ export class GameScene extends Phaser.Scene {
   private input_!: InputController;
   private joystick!: VirtualJoystick;
   private offTouch: (() => void) | null = null;
+  private offGate: (() => void) | null = null;
   private floorView!: FloorView;
   private playerView!: PlayerView;
   private enemyView!: EnemyView;
@@ -113,6 +115,9 @@ export class GameScene extends Phaser.Scene {
     this.bindHook();
 
     this.scale.on(Phaser.Scale.Events.RESIZE, this.onResize, this);
+    this.offGate = onOrientationGate((visible) => {
+      if (visible) this.openPause();
+    });
     this.input.keyboard?.on('keydown-ESC', () => this.openPause());
     this.input.keyboard?.on('keydown-P', () => this.openPause());
     this.game.events.on(Phaser.Core.Events.HIDDEN, this.onHidden);
@@ -137,8 +142,11 @@ export class GameScene extends Phaser.Scene {
     this.scene.stop('LevelUp');
     this.scene.stop('Pause');
     this.profiler.detach();
+    this.levelUpPending = false;
     this.offTouch?.();
     this.offTouch = null;
+    this.offGate?.();
+    this.offGate = null;
     this.joystick.destroy();
     window.__game?.detach();
     this.floorView.destroy();
@@ -188,10 +196,18 @@ export class GameScene extends Phaser.Scene {
     this.playerView.pop();
     sfx.play('levelup');
     this.time.delayedCall(250, () => {
-      this.levelUpPending = false;
-      if (this.sim.run.phase !== 'levelup') return;
+      if (this.sim.run.phase !== 'levelup') {
+        this.levelUpPending = false;
+        return;
+      }
       this.scene.launch('LevelUp');
       this.scene.bringToTop('LevelUp');
+      // the launch is queued, not immediate: clearing the guard here would let the next frame,
+      // which still sees phase 'levelup' and an inactive LevelUp scene, open the overlay a second
+      // time. Hand the guard over to scene.isActive once the scene really exists.
+      this.scene.get('LevelUp').events.once(Phaser.Scenes.Events.CREATE, () => {
+        this.levelUpPending = false;
+      });
     });
   }
 
@@ -204,6 +220,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   override update(_time: number, delta: number): void {
+    // an overlay above this scene can swallow the release, so check the stick is still really held
+    this.joystick.poll();
     const run = this.sim.run;
     if (run.phase === 'running') {
       // the autopilot writes the input inside the simulation; real input must not fight it
@@ -580,6 +598,7 @@ export class GameScene extends Phaser.Scene {
       profileStop: (): FrameStats => this.profiler.stop(),
       getPerf: () => ({
         musicPlaying: music.isPlaying(),
+        stickHeld: this.joystick.isActive(),
         fps: this.game.loop.actualFps,
         stepMs: this.profiler.lastSimMs,
         syncMs: this.profiler.lastSyncMs,

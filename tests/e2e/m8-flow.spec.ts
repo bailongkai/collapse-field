@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openGame, snap, state, ff, waitScene, expectScenes } from './helpers';
+import { openGame, snap, state, ff, waitScene, expectScenes, sceneName, realWait } from './helpers';
 
 test('M8: menu to game to pause to results to menu, driven the way a player would', async ({ page }) => {
   const errors = await openGame(page, '?test=1&seed=71');
@@ -90,6 +90,25 @@ test('M8: the settings screen switches the language across the whole interface',
   expect((await page.evaluate(() => window.__game.save.get())).settings.locale).toBe('en');
 
   await page.evaluate(() => window.__game.i18n.setLocale('zh-CN'));
+  expect(errors, errors.join('\n')).toEqual([]);
+});
+
+test('M8: Enter on the menu does not start a run under an open panel', async ({ page }) => {
+  const errors = await openGame(page, '?test=1');
+  expect(await page.evaluate(() => window.__game.ui.press('menu.shop'))).toBe(true);
+  await page.waitForFunction(() => window.__game.ui.buttons().some((b) => b.id === 'shop.back'));
+
+  await page.keyboard.press('Enter');
+  await realWait(400);
+  expect(await sceneName(page), 'a run started underneath the shop').toBe('menu');
+  expect(await page.evaluate(() => window.__game.activeScenes())).toContain('Shop');
+
+  // closing the panel restores the shortcut; the menu rebuilds itself, so wait for it to settle
+  await page.evaluate(() => window.__game.ui.press('shop.back'));
+  await expectScenes(page, ['Menu']);
+  await page.waitForFunction(() => window.__game.ui.buttons().some((b) => b.id === 'menu.start'));
+  await page.keyboard.press('Enter');
+  await waitScene(page, 'game');
   expect(errors, errors.join('\n')).toEqual([]);
 });
 

@@ -24,6 +24,8 @@ export class LevelUpScene extends Phaser.Scene {
   private cards: Phaser.GameObjects.Container[] = [];
   private selected = 0;
   private cleanups: (() => void)[] = [];
+  /** id of the pointer that pressed a card, or -1 */
+  private armed = -1;
 
   constructor() {
     super('LevelUp');
@@ -36,6 +38,8 @@ export class LevelUpScene extends Phaser.Scene {
     this.cards = [];
     this.selected = 0;
     this.cleanups = [];
+    this.armed = -1;
+    window.__game?.pushEvent('levelup:open');
 
     const game = this.scene.get('Game') as GameScene;
     const choices = game.sim.run.choices ?? [];
@@ -126,7 +130,17 @@ export class LevelUpScene extends Phaser.Scene {
     const hit = new Phaser.Geom.Rectangle(-CARD_W / 2, -CARD_H / 2, CARD_W, CARD_H);
     container.setInteractive(hit, Phaser.Geom.Rectangle.Contains);
     container.on('pointerover', () => this.setSelected(index));
-    container.on('pointerup', () => this.choose(index));
+    container.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      this.armed = pointer.id;
+      this.setSelected(index);
+    });
+    container.on('pointerup', (pointer: Phaser.Input.Pointer) => {
+      // the overlay appears 250 ms after the flash, often under a finger that is already down:
+      // acting on that release would pick a card the player never got to read
+      if (this.armed !== pointer.id) return;
+      this.armed = -1;
+      this.choose(index);
+    });
 
     this.cleanups.push(
       registerButton({

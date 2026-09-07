@@ -112,10 +112,12 @@ export class EventScheduler {
       const len = Math.hypot(dirX, dirY);
       dirX /= len;
       dirY /= len;
-      startX = p.x - dirX * ring;
-      startY = p.y - dirY * ring - ((count - 1) * spacing) / 2;
-      stepX = spacing * 0.7;
-      stepY = spacing * 0.7;
+      // the line has to lie across the travel direction, not along it, or the rush arrives as a
+      // single-file column the player can simply step around
+      stepX = -dirY * spacing;
+      stepY = dirX * spacing;
+      startX = p.x - dirX * ring - (stepX * (count - 1)) / 2;
+      startY = p.y - dirY * ring - (stepY * (count - 1)) / 2;
     }
 
     let spawned = 0;

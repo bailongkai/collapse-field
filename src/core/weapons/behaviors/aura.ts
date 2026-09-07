@@ -1,4 +1,4 @@
-import { ENEMY_CAP } from '../../../config';
+import { ENEMY_CAP, MAX_ENEMY_RADIUS } from '../../../config';
 import { hitCooldownTicks } from '../ticks';
 import type { WeaponBehavior } from '../types';
 
@@ -18,7 +18,9 @@ export const aura: WeaponBehavior = {
     const cdTicks = hitCooldownTicks(eff.hitCooldownMs);
     const px = ctx.player.x;
     const py = ctx.player.y;
-    const n = ctx.queryEnemies(px - r, py - r, px + r, py + r, scratch);
+    // pad by the largest body: the grid holds centres, so a big enemy can overlap from outside the box
+    const q = r + MAX_ENEMY_RADIUS;
+    const n = ctx.queryEnemies(px - q, py - q, px + q, py + q, scratch);
     for (let i = 0; i < n; i++) {
       const e = ctx.enemyById(scratch[i]);
       if (!e.active || !e.def) continue;

@@ -16,6 +16,7 @@ import { stepGems, vacuumGems } from './systems/gemSystem';
 import { EventScheduler } from './systems/eventSystem';
 import { rollDrops, spawnPickup, stepPickups, type PickupCollected } from './systems/pickupSystem';
 import { rollLevelUp } from '../levelup/roll';
+import { CHEST_CONSOLATION_GOLD } from '../../config';
 import { driveAutopilot } from './autopilot';
 import { auraRadius } from '../weapons/behaviors/aura';
 import { weaponParams } from '../stats/weaponParams';
@@ -240,7 +241,7 @@ export class Simulation {
       const harvest = stepGems(world, stats, dt, spawnRingRadius(stage, this.viewW, this.viewH) * stage.despawnFactor);
       if (harvest.xp > 0) this.addXp(harvest.xp * stats.growth);
 
-      stepPickups(world, stats, dt, this.collected);
+      stepPickups(world, stats, dt, spawnRingRadius(stage, this.viewW, this.viewH) * stage.despawnFactor, this.collected);
       for (const c of this.collected) this.applyPickup(c);
     }
 
@@ -325,9 +326,12 @@ export class Simulation {
       case 'vacuum':
         world.events.push('vacuum', c.x, c.y, vacuumGems(world), c.def.id);
         break;
-      case 'nuke':
-        world.events.push('nuke', c.x, c.y, this.killAllOnScreen(), c.def.id);
+      case 'nuke': {
+        // queue the event first: the kills it triggers each emit their own events
+        world.events.push('nuke', c.x, c.y, 0, c.def.id);
+        this.killAllOnScreen();
         break;
+      }
       case 'chest': {
         // a chest evolves an eligible weapon in preference to handing out levels
         const evolved = this.evolveEligibleWeapon();
@@ -336,6 +340,14 @@ export class Simulation {
           break;
         }
         const upgraded = this.grantWeaponLevels(effect.weaponLevels);
+        if (upgraded === 0) {
+          // a focused build can max and evolve everything it owns; a chest must never be empty
+          const gold = Math.round(CHEST_CONSOLATION_GOLD * this.cachedStats.greed);
+          run.gold += gold;
+          world.events.push('chest', c.x, c.y, 0, c.def.id, true);
+          world.events.push('pickup', c.x, c.y, gold, 'coin');
+          break;
+        }
         world.events.push('chest', c.x, c.y, upgraded, c.def.id, true);
         break;
       }

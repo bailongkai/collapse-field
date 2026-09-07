@@ -45,18 +45,29 @@ export function rollDrops(world: World, e: Enemy, rng: Rng, luck: number, generi
   }
 }
 
-/** Moves magnetic pickups toward the player and reports the ones collected this step. */
-export function stepPickups(world: World, stats: PlayerStats, dt: number, out: PickupCollected[]): void {
+/**
+ * Moves magnetic pickups toward the player and reports the ones collected this step. Consumables
+ * left far behind are recycled: without that they sit on the floor forever, permanently occupying
+ * their type's ground limit, and coins and medkits stop dropping for the rest of the run. A boss
+ * chest is exempt — it is a reward the player is meant to be able to come back for.
+ */
+export function stepPickups(world: World, stats: PlayerStats, dt: number, farRadius: number, out: PickupCollected[]): void {
   out.length = 0;
   const p = world.player;
   const magnet = MAGNET_BASE_RADIUS * stats.magnet * PICKUP_MAGNET_SCALE;
   const magnet2 = magnet * magnet;
+  const far2 = farRadius * farRadius;
 
   world.pickups.forEach((item) => {
     const def = pickupDef(item.defId);
     const dx = p.x - item.x;
     const dy = p.y - item.y;
     const d2 = dx * dx + dy * dy;
+
+    if (d2 > far2 && def.effect.kind !== 'chest') {
+      world.pickups.free(item);
+      return;
+    }
 
     if (def.magnetic) {
       if (!item.attracted && d2 <= magnet2) item.attracted = true;

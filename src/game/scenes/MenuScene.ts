@@ -70,6 +70,9 @@ export class MenuScene extends Phaser.Scene {
       console.warn('Game scene not registered yet');
       return;
     }
+    // the shop and settings are overlays on top of this scene, which still has the keyboard: Enter
+    // would otherwise start a run underneath an open panel
+    if (this.scene.isActive('Shop') || this.scene.isActive('Settings')) return;
     // this press is the user gesture browsers require before audio may start
     music.start(() => audioContextOf(this.sound));
     music.setIntensity(0.15);

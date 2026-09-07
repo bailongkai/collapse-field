@@ -1,4 +1,4 @@
-import { ENEMY_CAP } from '../../../config';
+import { ENEMY_CAP, MAX_ENEMY_RADIUS } from '../../../config';
 import { hitCooldownTicks } from '../ticks';
 import type { WeaponBehavior } from '../types';
 
@@ -55,7 +55,8 @@ export const orbit: WeaponBehavior = {
       p.angle = p.orbitPhase + Math.PI / 2;
 
       const r = p.radius;
-      const n = ctx.queryEnemies(p.x - r, p.y - r, p.x + r, p.y + r, scratch);
+      const q = r + MAX_ENEMY_RADIUS;
+      const n = ctx.queryEnemies(p.x - q, p.y - q, p.x + q, p.y + q, scratch);
       for (let i = 0; i < n; i++) {
         const e = ctx.enemyById(scratch[i]);
         if (!e.active || !e.def) continue;

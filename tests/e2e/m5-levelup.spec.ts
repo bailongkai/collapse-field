@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openGame, snap, startRun, state, step, events, ff, realWait, waitScene } from './helpers';
+import { openGame, snap, startRun, state, step, events, ff, realWait, waitScene, sceneName } from './helpers';
 
 test('M5: gems, the level-up overlay and applying a choice', async ({ page }) => {
   const errors = await openGame(page, '?test=1&seed=64');
@@ -103,5 +103,57 @@ test('M5: killing enemies pulls in their gems and levels the player up', async (
   expect(s.level).toBeGreaterThan(1);
   expect(s.weapons.length + s.passives.length).toBeGreaterThan(1);
   await snap(page, 'm5-gems');
+  expect(errors, errors.join('\n')).toEqual([]);
+});
+
+test('M5: a level-up opens the overlay exactly once', async ({ page }) => {
+  const errors = await openGame(page, '?test=1&seed=91');
+  await startRun(page, 91);
+  await waitScene(page, 'game');
+  await page.evaluate(() => window.__game.godMode(true));
+
+  await page.evaluate(() => window.__game.triggerLevelUp());
+  await waitScene(page, 'levelup');
+  await realWait(900); // well past the 250 ms delay, so a second open would have landed
+  const opens = (await events(page)).filter((e) => e === 'levelup:open');
+  expect(opens, 'the overlay was opened more than once for one level-up').toHaveLength(1);
+
+  await page.evaluate(() => window.__game.pickChoice(0));
+  await waitScene(page, 'game');
+  expect(errors, errors.join('\n')).toEqual([]);
+});
+
+test('M5: a release with no matching press never picks a card', async ({ page }) => {
+  const errors = await openGame(page, '?test=1&seed=92');
+  await startRun(page, 92);
+  await waitScene(page, 'game');
+  await page.evaluate(() => window.__game.godMode(true));
+
+  await page.evaluate(() => window.__game.triggerLevelUp());
+  await waitScene(page, 'levelup');
+  const card = await page.evaluate(() => window.__game.ui.buttons().find((b) => b.id === 'levelup.card0'));
+  const at = await page.evaluate(
+    ({ x, y }) => {
+      const c = document.querySelector('canvas')!;
+      const r = c.getBoundingClientRect();
+      const s = r.width / window.__game.phaser.scale.width;
+      return { x: r.left + x * s, y: r.top + y * s };
+    },
+    { x: card!.x, y: card!.y },
+  );
+
+  // a bare mouse-up over the card, as if the button had appeared under a finger already down
+  await page.mouse.move(at.x, at.y);
+  await page.evaluate((p) => {
+    const c = document.querySelector('canvas')!;
+    c.dispatchEvent(new PointerEvent('pointerup', { clientX: p.x, clientY: p.y, bubbles: true, pointerId: 1, button: 0 }));
+  }, at);
+  await realWait(300);
+  expect(await sceneName(page), 'a bare release chose a card').toBe('levelup');
+
+  // a real press and release does choose
+  await page.mouse.down();
+  await page.mouse.up();
+  await waitScene(page, 'game');
   expect(errors, errors.join('\n')).toEqual([]);
 });

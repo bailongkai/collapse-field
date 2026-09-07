@@ -21,6 +21,8 @@ export class UiButton extends Phaser.GameObjects.Container {
   private bg: Phaser.GameObjects.NineSlice;
   private label: Phaser.GameObjects.Text;
   private enabled = true;
+  /** id of the pointer that pressed this button, or -1 */
+  private armedPointer = -1;
   private unregister: () => void;
   private onPress: () => void;
 
@@ -36,10 +38,20 @@ export class UiButton extends Phaser.GameObjects.Container {
     this.setSize(w, h);
     this.setInteractive(new Phaser.Geom.Rectangle(-w / 2, -h / 2, w, h), Phaser.Geom.Rectangle.Contains);
     this.on('pointerover', () => this.setHighlight(true));
-    this.on('pointerout', () => this.setHighlight(false));
-    this.on('pointerdown', () => this.bg.setTint(0xbfd9ff));
-    this.on('pointerup', () => {
+    this.on('pointerout', () => {
+      this.setHighlight(false);
+      this.armedPointer = -1;
+    });
+    this.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      this.armedPointer = pointer.id;
+      this.bg.setTint(0xbfd9ff);
+    });
+    this.on('pointerup', (pointer: Phaser.Input.Pointer) => {
       this.setHighlight(true);
+      // only the pointer that pressed this button may activate it. Overlays appear under a finger
+      // that is already down, and acting on a bare release would choose for the player.
+      if (this.armedPointer !== pointer.id) return;
+      this.armedPointer = -1;
       this.press();
     });
     this.unregister = registerButton({

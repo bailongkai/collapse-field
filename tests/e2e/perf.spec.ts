@@ -66,6 +66,9 @@ test('perf: a wide view carries its larger crowd', async ({ page }) => {
   const view = await page.evaluate(() => window.__game.getViewSize());
   expect(view.width).toBeGreaterThan(1280);
 
+  // the crowd is placed rather than farmed from the wave table: letting the run generate it makes
+  // the measurement depend on how well the build happens to be clearing, which is not what this
+  // test is about
   await page.evaluate(() => {
     window.__game.godMode(true);
     window.__game.setStat('growth', 0);
@@ -73,8 +76,8 @@ test('perf: a wide view carries its larger crowd', async ({ page }) => {
     window.__game.giveWeapon('orbitalDrones', 8);
     window.__game.giveWeapon('empField', 8);
     window.__game.setTime(14 * 60);
+    window.__game.spawn('mech', 350, { ring: true, radius: 500 });
   });
-  await page.evaluate(() => window.__game.fastForward(45, { levelUpPolicy: 'first' }));
 
   const busy = await state(page);
   console.log(`wide view ${view.width}x${view.height}: ${busy.counts.enemies} enemies`);

@@ -13,6 +13,8 @@ export class EnemyView {
   private images: Phaser.GameObjects.Image[] = [];
   private frames: string[] = new Array<string>(ENEMY_CAP).fill('');
   private flashing = new Uint8Array(ENEMY_CAP);
+  /** the tint currently applied to each slot's Image; -1 means "unknown, set it" */
+  private tints = new Int32Array(ENEMY_CAP).fill(-1);
 
   constructor(scene: Phaser.Scene, layer: Phaser.GameObjects.Layer) {
     for (let i = 0; i < ENEMY_CAP; i++) {
@@ -51,13 +53,18 @@ export class EnemyView {
       if (def.faceTarget) img.setFlipX(Math.cos(e.facing) < 0);
       else img.setRotation(e.facing + Math.PI / 2);
 
+      // The tint is tracked per slot rather than per definition: pool slots are reused immediately,
+      // so an untinted mech taking a dead infected's slot would otherwise inherit its green.
       const wantFlash = e.flashMs > 0 ? 1 : 0;
+      const wantTint = wantFlash ? 0xffffff : (def.tint ?? 0xffffff);
       if (this.flashing[e.id] !== wantFlash) {
         this.flashing[e.id] = wantFlash;
-        if (wantFlash) img.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL);
-        else img.setTint(def.tint ?? 0xffffff).setTintMode(Phaser.TintModes.MULTIPLY);
-      } else if (!wantFlash && def.tint !== undefined) {
-        img.setTint(def.tint);
+        img.setTintMode(wantFlash ? Phaser.TintModes.FILL : Phaser.TintModes.MULTIPLY);
+        img.setTint(wantTint);
+        this.tints[e.id] = wantTint;
+      } else if (this.tints[e.id] !== wantTint) {
+        img.setTint(wantTint);
+        this.tints[e.id] = wantTint;
       }
     }
   }

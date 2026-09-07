@@ -154,3 +154,69 @@ test('mobile: the canvas fills the phone width instead of sitting between bars',
 
   expect(errors, errors.join('\n')).toEqual([]);
 });
+
+test('mobile: the stick lets go when the finger is lifted during a pause', async ({ page }) => {
+  const errors = await openGame(page, '?test=1&touch=1&seed=51');
+  await page.evaluate(() => window.__game.startRun({ seed: 51 }));
+  await waitScene(page, 'game');
+  const size = page.viewportSize()!;
+  const touch = new TouchSession(page);
+
+  // run upward, pause with a second finger, then lift the stick finger while the panel is open
+  const origin = { x: size.width * 0.25, y: size.height * 0.75 };
+  await touch.press(STICK, origin);
+  await touch.dragTo(STICK, { x: origin.x, y: origin.y - 120 });
+  await page.waitForFunction(() => window.__game.getState().player.y < -20, undefined, { timeout: 15_000 });
+
+  const pause = await page.evaluate(() => window.__game.ui.buttons().find((b) => b.id === 'hud.pause'));
+  const pauseAt = await toScreen(page, pause!.x, pause!.y);
+  await touch.press(SECOND_FINGER, pauseAt);
+  await touch.release(SECOND_FINGER, pauseAt);
+  await waitScene(page, 'pause');
+  await touch.release(STICK, { x: origin.x, y: origin.y - 120 });
+
+  await page.evaluate(() => window.__game.ui.press('pause.resume'));
+  await waitScene(page, 'game');
+
+  // with nothing on the screen the player must stand still
+  await realWait(400);
+  const a = await state(page);
+  await realWait(500);
+  const b = await state(page);
+  expect(Math.hypot(b.player.x - a.player.x, b.player.y - a.player.y), 'the player drifts with no finger down').toBeLessThan(5);
+
+  // and a fresh press must grab the stick again
+  const again = { x: size.width * 0.6, y: size.height * 0.7 };
+  await touch.press(STICK, again);
+  await touch.dragTo(STICK, { x: again.x + 120, y: again.y });
+  await page.waitForFunction((x0) => window.__game.getState().player.x > x0 + 25, b.player.x, { timeout: 15_000 });
+  await touch.release(STICK, { x: again.x + 120, y: again.y });
+
+  expect(errors, errors.join('\n')).toEqual([]);
+});
+
+test('mobile: the stick lets go when the finger is lifted over an overlay button', async ({ page }) => {
+  const errors = await openGame(page, '?test=1&touch=1&seed=52');
+  await page.evaluate(() => window.__game.startRun({ seed: 52 }));
+  await waitScene(page, 'game');
+  const size = page.viewportSize()!;
+  const touch = new TouchSession(page);
+
+  // drag the stick onto the pause button and lift there: the HUD scene captures the release
+  const origin = { x: size.width * 0.3, y: size.height * 0.7 };
+  await touch.press(STICK, origin);
+  await touch.dragTo(STICK, { x: origin.x + 100, y: origin.y });
+  await page.waitForFunction(() => window.__game.getState().player.x > 20, undefined, { timeout: 15_000 });
+
+  const pause = await page.evaluate(() => window.__game.ui.buttons().find((b) => b.id === 'hud.pause'));
+  const pauseAt = await toScreen(page, pause!.x, pause!.y);
+  await touch.dragTo(STICK, pauseAt, 3);
+  await touch.release(STICK, pauseAt);
+  await realWait(300);
+
+  // whether or not the button fired, the stick must not still be held
+  const held = await page.evaluate(() => window.__game.getPerf().stickHeld);
+  expect(held, 'the stick is still held after the finger was lifted').toBe(false);
+
+  expect(errors, errors.join('\n')).toEqual([]);
+});

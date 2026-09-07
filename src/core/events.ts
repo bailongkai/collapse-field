@@ -23,14 +23,19 @@ export class EventBuffer {
   private len = 0;
   private readonly cap: number;
 
-  constructor(cap = 512) {
+  constructor(cap = 4096) {
     this.cap = cap;
     this.items = new Array<SimEvent>(cap);
     for (let i = 0; i < cap; i++) this.items[i] = { type: 'hit', x: 0, y: 0, n: 0, id: '', big: false };
   }
 
+  /**
+   * Records an event. The capacity is sized for the worst tick the game can produce — a screen
+   * clear at the late-game enemy count emits two events per kill — because dropping the tail would
+   * silently swallow the very event that caused it, along with its flash and sound.
+   */
   push(type: SimEventType, x = 0, y = 0, n = 0, id = '', big = false): void {
-    if (this.len >= this.cap) return; // drop rather than allocate; drained every frame
+    if (this.len >= this.cap) return; // drop rather than grow; drained every frame
     const e = this.items[this.len++];
     e.type = type;
     e.x = x;
