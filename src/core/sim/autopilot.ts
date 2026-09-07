@@ -4,87 +4,133 @@ import { FIXED_DT_MS } from '../../config';
 import { weaponDef } from '../content/registry';
 
 /**
- * A hands-off player for the balance harness: turn into the swing when a directional weapon is
- * about to fire, otherwise back off from a real crowd, otherwise collect the nearest gem, otherwise
- * drift in a slow circle so fresh enemies keep walking into the weapons.
+ * A hands-off player for the balance harness.
  *
- * The three obvious simpler policies all measure nothing. A motionless player dies in thirty
- * seconds to any wave table; a player who simply flees outruns every chase enemy and ends a
- * ten-minute run at level one with two kills; and a player who only ever backs away from danger
- * spends the whole run with their weapons pointed at the empty side of the screen, which measures
- * the policy rather than the wave table.
+ * It steers by scoring sixteen candidate directions each step rather than by following a ladder of
+ * if-statements, because every simple policy that was tried here measured the policy instead of the
+ * wave table. A motionless player dies in thirty seconds to any wave table. A player who flees
+ * outruns every chase enemy and ends a ten-minute run at level one. A player who walks at the
+ * nearest enemy walks into the middle of a crowd and dies at three minutes, which left minutes five
+ * to fifteen with no instrument pointed at them at all — the late game could not be tuned because
+ * nothing ever survived to see it.
+ *
+ * The score is: avoid walking into bodies, prefer open ground, pick up gems that are on the way,
+ * close the distance when the field has thinned out, and turn into the swing when a directional
+ * weapon is about to come off cooldown. That last term is the whole skill the weapons ask for; a
+ * policy without it spends the run with its weapons pointed at the empty side of the screen.
+ *
+ * It is an instrument, not a model of a person. It kites better than anyone playing with a thumb on
+ * a virtual stick, so its survival times are a ceiling rather than an expectation; what it is good
+ * for is comparing two versions of the content under identical play.
  */
-export function driveAutopilot(world: World, tick: number): void {
-  const p = world.player;
 
-  // 0. aim. Weapons fire to the side the character faces, and facing follows horizontal movement,
-  //    so a directional weapon coming off cooldown is worth a moment of turning towards the crowd.
-  //    This is the whole skill the weapons ask for, and a policy that never does it under-reports
-  //    what the wave table is worth.
-  if (aboutToFire(world)) {
-    const side = crowdSide(world);
-    if (side !== 0) {
-      setPlayerInput(p, side, dodgeY(world));
-      return;
-    }
-  }
-
-  // 1. back off only from a real crowd. Fleeing from every single enemy is self-defeating: it
-  //    turns the weapons away from the horde and outruns enemies that are slower than the player
-  //    anyway, ending a long run with a handful of kills.
-  const danger = 90;
-  const near = world.grid.queryInto(p.x - danger, p.y - danger, p.x + danger, p.y + danger, world.queryBuf);
-  let awayX = 0;
-  let awayY = 0;
-  let threats = 0;
-  for (let i = 0; i < near; i++) {
-    const e = world.enemies.items[world.queryBuf[i]];
-    if (!e.active) continue;
-    const dx = p.x - e.x;
-    const dy = p.y - e.y;
-    const d2 = dx * dx + dy * dy;
-    if (d2 < 1 || d2 > danger * danger) continue;
-    const w = 1 / d2;
-    awayX += dx * w;
-    awayY += dy * w;
-    threats++;
-  }
-  const lowHealth = p.hp < 35;
-  if (threats >= 3 || (threats > 0 && lowHealth)) {
-    const len = Math.hypot(awayX, awayY) || 1;
-    setPlayerInput(p, awayX / len, awayY / len);
-    return;
-  }
-
-  // 2. a gem close by is worth a detour
-  const gem = nearestGem(world, 250);
-  if (gem) {
-    setPlayerInput(p, gem.x, gem.y);
-    return;
-  }
-
-  // 3. otherwise walk at the nearest enemy, which also turns the blade towards it
-  const enemy = world.nearestEnemy(p.x, p.y, 600);
-  if (enemy) {
-    const dx = enemy.x - p.x;
-    const dy = enemy.y - p.y;
-    const len = Math.hypot(dx, dy) || 1;
-    setPlayerInput(p, dx / len, dy / len);
-    return;
-  }
-
-  // 4. nothing near: fetch a farther gem, or drift so fresh enemies keep walking into the weapons
-  const far = nearestGem(world, 900);
-  if (far) {
-    setPlayerInput(p, far.x, far.y);
-    return;
-  }
-  const angle = (tick / 60) * 0.5;
-  setPlayerInput(p, Math.cos(angle), Math.sin(angle));
+const DIRS = 16;
+const DIR_X = new Float64Array(DIRS);
+const DIR_Y = new Float64Array(DIRS);
+for (let i = 0; i < DIRS; i++) {
+  const a = (i / DIRS) * Math.PI * 2;
+  DIR_X[i] = Math.cos(a);
+  DIR_Y[i] = Math.sin(a);
 }
+
+/** How far the steering looks for bodies. Beyond this a chase enemy is not a threat this second. */
+const SENSE = 260;
+/** Anything nearer than this in a candidate direction makes that direction close to unusable. */
+const TOUCH = 52;
+const MAX_TRACKED = 96;
+/** How strongly the previous heading is preferred, in the same units as the other pulls. */
+const MOMENTUM = 18;
+/**
+ * How dearly a body in the way is priced against the pulls that want to go there. Measured over
+ * sixteen seeds: at 4 a hands-off run averages 249 s and two seeds reach five minutes; at 8 it
+ * averages 566 s and twelve do. Below about 6 the late game is simply not reachable, and the
+ * instrument cannot see the half of the run it is meant to be measuring.
+ */
+const THREAT_W = 8;
+/**
+ * How far out of its way the policy goes for experience. Raising it is counter-productive: at 45
+ * the runs are shorter and the levels lower, because gems come to the player by magnetism anyway
+ * and walking to them walks into bodies.
+ */
+const GEM_W = 14;
+
+// scratch, reused every step: the simulation must not allocate inside its own loop
+const eDx = new Float64Array(MAX_TRACKED);
+const eDy = new Float64Array(MAX_TRACKED);
+const eDist = new Float64Array(MAX_TRACKED);
 
 const AIM_LEAD_TICKS = 10;
 const CROWD_RADIUS = 340;
+/** Behaviours whose shots go where the character faces, rather than at a target or all round. */
+const DIRECTIONAL: ReadonlySet<string> = new Set(['slash', 'stream']);
+
+export function driveAutopilot(world: World, tick: number): void {
+  const p = world.player;
+
+  // --- gather the bodies that matter this step, once
+  const n = world.grid.queryInto(p.x - SENSE, p.y - SENSE, p.x + SENSE, p.y + SENSE, world.queryBuf);
+  let count = 0;
+  let nearestD = Infinity;
+  let nearestX = 0;
+  let nearestY = 0;
+  for (let i = 0; i < n && count < MAX_TRACKED; i++) {
+    const e = world.enemies.items[world.queryBuf[i]];
+    if (!e.active) continue;
+    const dx = e.x - p.x;
+    const dy = e.y - p.y;
+    const d = Math.hypot(dx, dy);
+    if (d > SENSE || d < 1e-6) continue;
+    eDx[count] = dx / d;
+    eDy[count] = dy / d;
+    // a body's own radius is what the player actually collides with, not its centre
+    eDist[count] = Math.max(1, d - e.radius);
+    count++;
+    if (d < nearestD) {
+      nearestD = d;
+      nearestX = dx / d;
+      nearestY = dy / d;
+    }
+  }
+
+  // --- the pulls that do not depend on direction
+  const gem = nearestGem(world, 320);
+  const side = aboutToFire(world) ? crowdSide(world) : 0;
+  // when the field has thinned out, go and find the fight: the weapons only reach 140 px, and a
+  // player who keeps their distance collects no experience and never builds anything
+  const engage = count === 0 || nearestD > 210;
+
+  let best = 0;
+  let bestScore = -Infinity;
+  for (let d = 0; d < DIRS; d++) {
+    const ux = DIR_X[d];
+    const uy = DIR_Y[d];
+    let threat = 0;
+    for (let i = 0; i < count; i++) {
+      // only bodies ahead of this direction are in the way; behind is somebody else's problem
+      const facing = ux * eDx[i] + uy * eDy[i];
+      if (facing <= 0) continue;
+      const dist = eDist[i];
+      threat += (facing * facing * SENSE * THREAT_W) / dist;
+      if (dist < TOUCH && facing > 0.5) threat += 300;
+    }
+    let s = -threat;
+    if (gem) s += (ux * gem.x + uy * gem.y) * GEM_W;
+    if (engage && nearestD < Infinity) s += (ux * nearestX + uy * nearestY) * 22;
+    // turning costs a step of distance and buys a swing that lands: worth it, but not at any price
+    if (side !== 0 && Math.sign(ux) === side) s += Math.abs(ux) * 26;
+    // momentum. Without it the best direction flips between two near-equal neighbours every step
+    // and the character vibrates on the spot, which is the one thing a crowd never forgives.
+    s += (ux * p.inputX + uy * p.inputY) * MOMENTUM;
+    // with nothing else to say, drift rather than dither on the spot
+    if (count === 0 && !gem) s += Math.cos((tick / 60) * 0.5 - Math.atan2(uy, ux)) * 5;
+    if (s > bestScore) {
+      bestScore = s;
+      best = d;
+    }
+  }
+
+  setPlayerInput(p, DIR_X[best], DIR_Y[best]);
+}
 
 /** Whether a weapon that fires to the side is about to come off cooldown. */
 function aboutToFire(world: World): boolean {
@@ -97,17 +143,14 @@ function aboutToFire(world: World): boolean {
   return false;
 }
 
-/** Behaviours whose shots go where the character faces, rather than at a target or all round. */
-const DIRECTIONAL: ReadonlySet<string> = new Set(['slash', 'stream']);
-
 /** Which side, -1 or 1, holds the weight of the nearby crowd; 0 when nothing is near. */
 function crowdSide(world: World): number {
   const p = world.player;
   const r = CROWD_RADIUS;
-  const n = world.grid.queryInto(p.x - r, p.y - r, p.x + r, p.y + r, world.queryBuf);
+  const n = world.grid.queryInto(p.x - r, p.y - r, p.x + r, p.y + r, world.queryBuf2);
   let bias = 0;
   for (let i = 0; i < n; i++) {
-    const e = world.enemies.items[world.queryBuf[i]];
+    const e = world.enemies.items[world.queryBuf2[i]];
     if (!e.active) continue;
     const dx = e.x - p.x;
     const dy = e.y - p.y;
@@ -118,23 +161,6 @@ function crowdSide(world: World): number {
     bias += (dx > 0 ? 1 : -1) * (Math.abs(dx) / Math.sqrt(d2)) / d2;
   }
   return bias > 0 ? 1 : bias < 0 ? -1 : 0;
-}
-
-/** The vertical part of a retreat: step off the line the crowd is walking down. */
-function dodgeY(world: World): number {
-  const p = world.player;
-  const danger = 110;
-  const n = world.grid.queryInto(p.x - danger, p.y - danger, p.x + danger, p.y + danger, world.queryBuf);
-  let away = 0;
-  for (let i = 0; i < n; i++) {
-    const e = world.enemies.items[world.queryBuf[i]];
-    if (!e.active) continue;
-    const dy = p.y - e.y;
-    const d2 = (p.x - e.x) ** 2 + dy * dy;
-    if (d2 > danger * danger || d2 < 1) continue;
-    away += dy / d2;
-  }
-  return away > 0 ? 1 : away < 0 ? -1 : 0;
 }
 
 /** Direction to the nearest gem within `maxDist`, or null. */
