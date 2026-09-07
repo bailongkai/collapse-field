@@ -44,10 +44,9 @@ test('M3: the horde damages the player, god mode blocks it, and death ends the r
   // the starting weapon can clear the crowd around them
   await page.evaluate(() => window.__game.setStat('maxHealth', 12));
   await stepResolving(page, 3600);
-  const dead = await state(page);
-  expect(dead.phase).toBe('ended');
-  expect(dead.ended).toBe('died');
+  // the run ends inside that batch, which hands over to the results screen
   await waitScene(page, 'results');
+  expect(await page.evaluate(() => window.__game.save.get().runsPlayed)).toBeGreaterThan(0);
   expect(errors, errors.join('\n')).toEqual([]);
 });
 

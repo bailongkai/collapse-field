@@ -35,17 +35,19 @@ level offers three upgrades to pick from.
 | Pause | Esc or P | the button in the top right |
 | Level-up | 1-4, or arrows and Enter | tap a card |
 
-On a phone the game wants landscape; held upright it asks to be rotated. The
-touch controls stay hidden until the screen is actually touched, so a laptop
-with a touchscreen is not cluttered with them. `?touch=1` forces them on.
+A phone works held either way. The touch controls stay hidden until the screen
+is actually touched, so a laptop with a touchscreen is not cluttered with them;
+`?touch=1` forces them on.
 
-The view is 720 tall with a width that follows the display's aspect ratio,
-between 1024 and 1760, so a wide phone or monitor fills its screen instead of
-sitting between black bars. A wider view shows more of the map, so the wave
-table is scaled by visible area to keep the crowd per screen the same. Measured
-with a kiting autopilot, an unscaled 1760-wide view survives 27% longer than
-the reference; scaled, the difference is within noise, and a close-range
-autopilot sees no difference either way.
+The logical view takes the shape of the display, so a wide monitor, a phone held
+sideways and a phone held upright all fill their screen with nothing letterboxed
+away. It covers a fixed area of the world, so how much a player can see does not
+depend on their device, except on a physically small screen, where the view
+shrinks until one logical unit is worth at least 0.72 CSS pixels — a view nobody
+can read or tap is worse than a smaller one. Because difficulty scales with
+visible area, the wave table follows automatically. Measured with a kiting
+autopilot, a view that showed more of the map without that scaling survived 27%
+longer; with it, the difference is within seed-to-seed noise.
 
 Five weapons (等离子刃, 制导激光, 磁轨炮, 轨道无人机, EMP力场) and five passives,
 each to level 8 and 5 respectively, in six slots each. Max a weapon, own its

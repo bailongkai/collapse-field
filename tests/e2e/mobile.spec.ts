@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openGame, snap, state, waitScene, realWait, TouchSession, toScreen } from './helpers';
+import { openGame, snap, state, waitScene, realWait, sceneName, TouchSession, toScreen } from './helpers';
 
 /**
  * Touch play on a phone held landscape. Everything here goes through real touch events rather than
@@ -115,18 +115,37 @@ test('mobile: a level-up card can be tapped', async ({ page }) => {
   expect(errors, errors.join('\n')).toEqual([]);
 });
 
-test('mobile: holding the phone upright asks the player to rotate', async ({ page }) => {
-  await openGame(page, '?test=1&touch=1');
-  const gate = page.locator('#orientation-gate');
-  await expect(gate).toBeHidden();
+test('mobile: rotating to portrait keeps the game playable', async ({ page }) => {
+  const errors = await openGame(page, '?test=1&touch=1&seed=61');
+  await page.evaluate(() => window.__game.startRun({ seed: 61 }));
+  await waitScene(page, 'game');
 
+  const landscape = await page.evaluate(() => window.__game.getViewSize());
+  expect(landscape.width).toBeGreaterThan(landscape.height);
+
+  // the run survives the rotation and the view takes the new shape
   await page.setViewportSize({ width: 360, height: 863 });
-  await expect(gate).toBeVisible();
-  await expect(gate).toContainText('横屏');
+  await page.waitForFunction(() => {
+    const v = window.__game.getViewSize();
+    return v.height > v.width;
+  }, undefined, { timeout: 10_000 });
+  expect(await sceneName(page)).toBe('game');
+  const portrait = await page.evaluate(() => window.__game.getViewSize());
+  expect(portrait.height / portrait.width).toBeCloseTo(863 / 360, 0);
   await snap(page, 'mobile-portrait');
 
+  // and it is still playable: the stick moves the player
+  const before = (await state(page)).player.y;
+  const touch = new TouchSession(page);
+  const origin = { x: 180, y: 700 };
+  await touch.press(STICK, origin);
+  await touch.dragTo(STICK, { x: origin.x, y: origin.y - 150 });
+  await page.waitForFunction((y0) => window.__game.getState().player.y < y0 - 20, before, { timeout: 15_000 });
+  await touch.release(STICK, { x: origin.x, y: origin.y - 150 });
+
   await page.setViewportSize({ width: 863, height: 360 });
-  await expect(gate).toBeHidden();
+  await page.waitForFunction(() => window.__game.getViewSize().width > window.__game.getViewSize().height);
+  expect(errors, errors.join('\n')).toEqual([]);
 });
 
 test('mobile: the canvas fills the phone width instead of sitting between bars', async ({ page }) => {

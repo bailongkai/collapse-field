@@ -11,35 +11,52 @@ export const REF_AREA = REF_W * REF_H;
 /** Kept for layouts that want the reference size; live layout should read the scale manager. */
 export const GAME_H = REF_H;
 export const GAME_W = REF_W;
-/** Bounds on the logical width, so an ultrawide monitor cannot reveal half the map. */
-export const MIN_VIEW_W = 1024;
-export const MAX_VIEW_W = 1760;
-/** A phone gets a smaller logical view; below this it would show too little of the map. */
-export const MIN_VIEW_H = 420;
 /**
- * How many CSS pixels one logical unit should cover, at least. A phone in landscape is only a few
- * hundred CSS pixels tall, and holding the logical view at 720 squeezed a 64-unit button down to
- * thirty CSS pixels and the player sprite to twenty — too small to hit and too small to read. Below
- * this ratio the view shrinks instead, so everything is drawn bigger.
+ * How many CSS pixels one logical unit should cover, at least. A phone is only a few hundred CSS
+ * pixels across, and holding the logical view at the reference size squeezed a 64-unit button down
+ * to thirty CSS pixels and the player sprite to twenty — too small to hit and too small to read.
+ * Below this ratio the view shrinks instead, so everything is drawn bigger.
  */
 export const MIN_CSS_PER_UNIT = 0.72;
-/** Aspect bounds for the logical view, so it never becomes a slit or a square. */
-export const MIN_VIEW_ASPECT = 1.25;
+/** Aspect bounds for the logical view: wide enough for an ultrawide, tall enough for a phone. */
+export const MIN_VIEW_ASPECT = 0.45;
 export const MAX_VIEW_ASPECT = 2.6;
+/** No dimension may collapse below this, whatever the window shape. */
+export const MIN_VIEW_SIDE = 420;
 
-/** Logical width for a display of the given aspect ratio, at the reference height. */
-export function logicalWidthFor(aspect: number): number {
-  const raw = Math.round(REF_H * aspect);
-  return Math.max(MIN_VIEW_W, Math.min(MAX_VIEW_W, raw));
+/**
+ * The logical view for a display of this CSS size.
+ *
+ * The view matches the display's shape exactly, so nothing is ever letterboxed, and covers a fixed
+ * area of the world so that how much a player can see — and therefore the difficulty, which scales
+ * with visible area — does not depend on their device. The one exception is a physically small
+ * screen: there the area shrinks until a logical unit is worth at least MIN_CSS_PER_UNIT, because
+ * a view nobody can read or tap is worse than a smaller one.
+ *
+ * At the reference 1280x720 this returns exactly the reference view.
+ */
+export function logicalSizeFor(cssWidth: number, cssHeight: number): { width: number; height: number } {
+  const w = Math.max(1, cssWidth);
+  const h = Math.max(1, cssHeight);
+  const aspect = Math.max(MIN_VIEW_ASPECT, Math.min(MAX_VIEW_ASPECT, w / h));
+  const area = Math.min(REF_AREA, (w * h) / (MIN_CSS_PER_UNIT * MIN_CSS_PER_UNIT));
+  let height = Math.round(Math.sqrt(area / aspect));
+  let width = Math.round(height * aspect);
+  // never let a dimension collapse: a slit of a view is unplayable whatever its area
+  if (width < MIN_VIEW_SIDE) {
+    width = MIN_VIEW_SIDE;
+    height = Math.round(width / aspect);
+  }
+  if (height < MIN_VIEW_SIDE) {
+    height = MIN_VIEW_SIDE;
+    width = Math.round(height * aspect);
+  }
+  return { width, height };
 }
 
-/** The logical view for a display of this CSS size. */
-export function logicalSizeFor(cssWidth: number, cssHeight: number): { width: number; height: number } {
-  const aspect = cssHeight > 0 ? cssWidth / cssHeight : 16 / 9;
-  const height = Math.max(MIN_VIEW_H, Math.min(REF_H, Math.round(cssHeight / MIN_CSS_PER_UNIT)));
-  const clampedAspect = Math.max(MIN_VIEW_ASPECT, Math.min(MAX_VIEW_ASPECT, aspect));
-  const width = Math.max(MIN_VIEW_W, Math.min(MAX_VIEW_W, Math.round(height * clampedAspect)));
-  return { width, height };
+/** True when the view is taller than it is wide, which changes how the panels lay out. */
+export function isPortrait(width: number, height: number): boolean {
+  return height > width;
 }
 export const FIXED_DT_MS = 1000 / 60;
 export const FIXED_DT = 1 / 60;

@@ -23,7 +23,6 @@ import { sfx } from '../audio/sfx';
 import { music } from '../audio/music';
 import { app } from '../app';
 import { metaBonuses } from '../../core/save/upgrades';
-import { onOrientationGate } from '../orientation';
 import { t } from '../../i18n';
 import type { HudScene } from './HudScene';
 
@@ -39,7 +38,6 @@ export class GameScene extends Phaser.Scene {
   private input_!: InputController;
   private joystick!: VirtualJoystick;
   private offTouch: (() => void) | null = null;
-  private offGate: (() => void) | null = null;
   private floorView!: FloorView;
   private playerView!: PlayerView;
   private enemyView!: EnemyView;
@@ -115,9 +113,6 @@ export class GameScene extends Phaser.Scene {
     this.bindHook();
 
     this.scale.on(Phaser.Scale.Events.RESIZE, this.onResize, this);
-    this.offGate = onOrientationGate((visible) => {
-      if (visible) this.openPause();
-    });
     this.input.keyboard?.on('keydown-ESC', () => this.openPause());
     this.input.keyboard?.on('keydown-P', () => this.openPause());
     this.game.events.on(Phaser.Core.Events.HIDDEN, this.onHidden);
@@ -145,8 +140,6 @@ export class GameScene extends Phaser.Scene {
     this.levelUpPending = false;
     this.offTouch?.();
     this.offTouch = null;
-    this.offGate?.();
-    this.offGate = null;
     this.joystick.destroy();
     window.__game?.detach();
     this.floorView.destroy();

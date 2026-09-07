@@ -3,6 +3,7 @@ import { formatTime, t } from '../../i18n';
 import { textStyle, COLORS } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
 import { restartOnResize } from '../ui/responsive';
+import { fitPanel } from '../layout';
 import { IconRow } from '../ui/iconRow';
 import { commitRun } from '../../core/save/saveData';
 import { app } from '../app';
@@ -40,10 +41,12 @@ export class ResultsScene extends Phaser.Scene {
       });
     }
 
-    this.add.rectangle(cx, this.scale.height / 2, this.scale.width, this.scale.height, 0x05070c, 0.93);
-    this.add.nineslice(cx, this.scale.height / 2, 'ui', 'panel_glass', 720, 520, 24, 24, 24, 24).setAlpha(0.97).setTint(0x16243a);
+    const cy = this.scale.height / 2;
+    const panel = fitPanel(this, 720, 520);
+    this.add.rectangle(cx, cy, this.scale.width, this.scale.height, 0x05070c, 0.93);
+    this.add.nineslice(cx, cy, 'ui', 'panel_glass', panel.w, panel.h, 24, 24, 24, 24).setAlpha(0.97).setTint(0x16243a);
     this.add
-      .text(cx, 168, survived ? t('results.survived') : t('results.died'), textStyle(44, { bold: true, color: survived ? COLORS.good : COLORS.warn }))
+      .text(cx, cy - panel.h / 2 + 52, survived ? t('results.survived') : t('results.died'), textStyle(Math.round(Math.min(44, panel.w * 0.075)), { bold: true, color: survived ? COLORS.good : COLORS.warn }))
       .setOrigin(0.5);
 
     const rows: [string, string][] = [
@@ -52,19 +55,30 @@ export class ResultsScene extends Phaser.Scene {
       [t('results.kills'), String(data.kills ?? 0)],
       [t('results.gold'), String(data.gold ?? 0)],
     ];
+    const half = Math.min(150, panel.w / 2 - 30);
+    const rowsTop = cy - panel.h / 2 + 120;
     rows.forEach(([label, value], i) => {
-      const y = 250 + i * 36;
-      this.add.text(cx - 150, y, label, textStyle(20, { color: COLORS.dim })).setOrigin(0, 0.5);
-      this.add.text(cx + 150, y, value, textStyle(20, { bold: true })).setOrigin(1, 0.5);
+      const y = rowsTop + i * 36;
+      this.add.text(cx - half, y, label, textStyle(19, { color: COLORS.dim })).setOrigin(0, 0.5);
+      this.add.text(cx + half, y, value, textStyle(19, { bold: true })).setOrigin(1, 0.5);
     });
 
-    const weapons = new IconRow(this, cx - 130, 430, 6, 32);
+    const iconsTop = rowsTop + rows.length * 36 + 24;
+    const weapons = new IconRow(this, cx - 130, iconsTop, 6, 32);
     weapons.setItems(data.weapons ?? [], 'weapon');
-    const passives = new IconRow(this, cx - 130, 472, 6, 32);
+    const passives = new IconRow(this, cx - 130, iconsTop + 42, 6, 32);
     passives.setItems(data.passives ?? [], 'passive');
 
-    new UiButton(this, cx - 130, 540, { id: 'results.retry', label: t('results.retry'), width: 220, onPress: () => this.retry(data.seed) });
-    new UiButton(this, cx + 130, 540, { id: 'results.menu', label: t('results.menu'), width: 220, onPress: () => this.scene.start('Menu') });
+    const btnW = Math.min(220, panel.w / 2 - 24);
+    const btnY = cy + panel.h / 2 - 48;
+    const stacked = panel.w < 520;
+    if (stacked) {
+      new UiButton(this, cx, btnY - 60, { id: 'results.retry', label: t('results.retry'), width: Math.min(260, panel.w - 48), onPress: () => this.retry(data.seed) });
+      new UiButton(this, cx, btnY, { id: 'results.menu', label: t('results.menu'), width: Math.min(260, panel.w - 48), onPress: () => this.scene.start('Menu') });
+    } else {
+      new UiButton(this, cx - btnW / 2 - 10, btnY, { id: 'results.retry', label: t('results.retry'), width: btnW, onPress: () => this.retry(data.seed) });
+      new UiButton(this, cx + btnW / 2 + 10, btnY, { id: 'results.menu', label: t('results.menu'), width: btnW, onPress: () => this.scene.start('Menu') });
+    }
     this.input.keyboard?.on('keydown-ENTER', () => this.retry(data.seed));
     this.input.keyboard?.on('keydown-M', () => this.scene.start('Menu'));
   }

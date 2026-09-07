@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { restartOnResize } from '../ui/responsive';
-import { minTouchUnits } from '../layout';
+import { fitPanel, minTouchUnits } from '../layout';
 import { t, tDynamic } from '../../i18n';
 import { COLORS, textStyle } from '../ui/textStyles';
 import { registerButton } from '../ui/buttonRegistry';
@@ -49,13 +49,14 @@ export class LevelUpScene extends Phaser.Scene {
     const choices = game.sim.run.choices ?? [];
 
     this.scaleUi = 1;
-    this.cardW = Math.round(CARD_W * this.scaleUi);
-    this.cardH = Math.round(CARD_H * this.scaleUi);
-    const gap = Math.round(CARD_GAP * this.scaleUi);
+    const wanted = fitPanel(this, 560, 140 + choices.length * (CARD_H + CARD_GAP));
+    this.cardW = Math.min(CARD_W, wanted.w - 80);
+    this.cardH = Math.min(CARD_H, Math.max(72, (wanted.h - 140) / Math.max(1, choices.length) - CARD_GAP));
+    const gap = CARD_GAP;
 
     this.add.rectangle(this.scale.width / 2, this.scale.height / 2, this.scale.width, this.scale.height, 0x05070c, 0.6);
-    const panelH = Math.round(140 * this.scaleUi) + choices.length * (this.cardH + gap);
-    const panelW = Math.round(560 * this.scaleUi);
+    const panelH = 140 + choices.length * (this.cardH + gap);
+    const panelW = this.cardW + 80;
     this.add.nineslice(this.scale.width / 2, this.scale.height / 2, 'ui', 'panel_glass', panelW, panelH, 24, 24, 24, 24).setAlpha(0.96).setTint(PANEL_TINT);
     this.add
       .text(this.scale.width / 2, this.scale.height / 2 - panelH / 2 + Math.round(42 * this.scaleUi), t('levelup.title'), textStyle(Math.round(32 * this.scaleUi), { bold: true, color: COLORS.accent }))

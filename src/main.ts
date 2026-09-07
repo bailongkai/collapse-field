@@ -13,10 +13,8 @@ import { SettingsScene } from './game/scenes/SettingsScene';
 import { ShopScene } from './game/scenes/ShopScene';
 import { ResultsScene } from './game/scenes/ResultsScene';
 import { contentSummary } from './data';
-import { installOrientationGate } from './game/orientation';
 
 initApp();
-installOrientationGate();
 
 const initial = logicalSizeForWindow(window.innerWidth, window.innerHeight);
 

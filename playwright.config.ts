@@ -14,6 +14,7 @@ const HEADLESS_GL_ARGS = [
 const PERF_SPECS = ['**/perf.spec.ts', '**/afk.spec.ts'];
 const MOBILE_SPECS = ['**/mobile.spec.ts'];
 const IPHONE_SPECS = ['**/iphone.spec.ts'];
+const PORTRAIT_SPECS = ['**/portrait.spec.ts'];
 
 export default defineConfig({
   testDir: 'tests/e2e',
@@ -37,7 +38,7 @@ export default defineConfig({
   },
   projects: [
     // functional specs; safe to parallelise
-    { name: 'default', testIgnore: [...PERF_SPECS, ...MOBILE_SPECS, ...IPHONE_SPECS], workers: 4 },
+    { name: 'default', testIgnore: [...PERF_SPECS, ...MOBILE_SPECS, ...IPHONE_SPECS, ...PORTRAIT_SPECS], workers: 4 },
     // a phone held landscape, with a real touchscreen and no keyboard
     {
       name: 'mobile',
@@ -58,6 +59,13 @@ export default defineConfig({
       testMatch: IPHONE_SPECS,
       workers: 1,
       use: { ...devices['iPhone 14 landscape'] },
+    },
+    // a phone held upright, the other shape the game has to work in
+    {
+      name: 'portrait',
+      testMatch: PORTRAIT_SPECS,
+      workers: 1,
+      use: { ...devices['iPhone 14'] },
     },
     {
       name: 'bench',

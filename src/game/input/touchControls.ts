@@ -5,10 +5,11 @@ const BASE_RADIUS = 68;
 const KNOB_RADIUS = 30;
 const DEAD_ZONE = 8;
 /**
- * The stick only starts below the HUD strip. It has to clear the on-screen pause button's lower
- * edge, otherwise one touch would both press the button and grab the stick.
+ * Fraction of the view, from the top, where the stick refuses to start. It has to clear the HUD and
+ * the on-screen pause button, otherwise one touch would both press the button and grab the stick.
+ * A fraction rather than a fixed distance, because the view is much taller on a phone held upright.
  */
-const START_ZONE_TOP = 180;
+const START_ZONE_FRACTION = 0.26;
 
 /**
  * A floating virtual stick: it appears wherever the player first presses and follows the drag, so
@@ -87,7 +88,7 @@ export class VirtualJoystick {
 
   private onDown(pointer: Phaser.Input.Pointer): void {
     if (!this.enabled || this.pointerId !== -1) return;
-    if (pointer.y < START_ZONE_TOP) return; // leave the HUD strip free for the pause button
+    if (pointer.y < this.scene.scale.height * START_ZONE_FRACTION) return; // leave the HUD strip free
     this.pointerId = pointer.id;
     // thumbs rest near the edges: clamping the origin as well as the drawing would read that press
     // as an instant shove towards the middle of the screen

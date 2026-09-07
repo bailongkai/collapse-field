@@ -4,6 +4,7 @@ import { formatTime, onLocaleChanged, t } from '../../i18n';
 import { textStyle, COLORS } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
 import { restartOnResize } from '../ui/responsive';
+import { isPortraitScene } from '../layout';
 import { app } from '../app';
 import { music } from '../audio/music';
 import { audioContextOf } from '../audio/context';
@@ -26,18 +27,36 @@ export class MenuScene extends Phaser.Scene {
   create(): void {
     restartOnResize(this);
     const cx = this.scale.width / 2;
+    const cy = this.scale.height / 2;
+    const narrow = isPortraitScene(this) || this.scale.width < 700;
     this.cameras.main.setBackgroundColor('#05070c');
-    const floor = this.add.tileSprite(cx, this.scale.height / 2, this.scale.width, this.scale.height, 'floor').setTint(0x3a4452).setAlpha(0.6);
+    const floor = this.add.tileSprite(cx, cy, this.scale.width, this.scale.height, 'floor').setTint(0x3a4452).setAlpha(0.6);
     this.tweens.add({ targets: floor, tilePositionX: 256, tilePositionY: 256, duration: 30000, repeat: -1 });
 
-    this.title = this.add.text(cx, 190, '', textStyle(64, { bold: true, color: COLORS.accent, stroke: true })).setOrigin(0.5);
-    this.subtitle = this.add.text(cx, 250, '', textStyle(20, { color: COLORS.dim })).setOrigin(0.5);
-    this.startBtn = new UiButton(this, cx, 360, { id: 'menu.start', label: '', width: 300, height: 64, fontSize: 26, onPress: () => this.startGame() });
-    this.shopBtn = new UiButton(this, cx - 120, 440, { id: 'menu.shop', label: '', width: 220, height: 50, fontSize: 20, onPress: () => this.openShop() });
-    this.settingsBtn = new UiButton(this, cx + 120, 440, { id: 'menu.settings', label: '', width: 220, height: 50, fontSize: 20, onPress: () => this.openSettings() });
+    // laid out around the centre so the same design works on a wide monitor and a phone held upright
+    const titleSize = Math.round(Math.min(64, this.scale.width * 0.09));
+    this.title = this.add.text(cx, cy - 170, '', textStyle(titleSize, { bold: true, color: COLORS.accent, stroke: true })).setOrigin(0.5);
+    this.subtitle = this.add.text(cx, cy - 110, '', textStyle(18, { color: COLORS.dim, align: 'center', wrapWidth: this.scale.width - 48 })).setOrigin(0.5);
+
+    const startW = Math.min(300, this.scale.width - 80);
+    this.startBtn = new UiButton(this, cx, cy, { id: 'menu.start', label: '', width: startW, height: 64, fontSize: 26, onPress: () => this.startGame() });
+
+    // side by side when there is room, stacked when there is not
+    const rowW = narrow ? Math.min(260, this.scale.width - 80) : 220;
+    if (narrow) {
+      this.shopBtn = new UiButton(this, cx, cy + 84, { id: 'menu.shop', label: '', width: rowW, height: 50, fontSize: 20, onPress: () => this.openShop() });
+      this.settingsBtn = new UiButton(this, cx, cy + 148, { id: 'menu.settings', label: '', width: rowW, height: 50, fontSize: 20, onPress: () => this.openSettings() });
+    } else {
+      this.shopBtn = new UiButton(this, cx - 120, cy + 84, { id: 'menu.shop', label: '', width: rowW, height: 50, fontSize: 20, onPress: () => this.openShop() });
+      this.settingsBtn = new UiButton(this, cx + 120, cy + 84, { id: 'menu.settings', label: '', width: rowW, height: 50, fontSize: 20, onPress: () => this.openSettings() });
+    }
+
     this.gold = this.add.text(this.scale.width - 16, 16, '', textStyle(18, { bold: true, color: COLORS.gold })).setOrigin(1, 0);
-    this.hint = this.add.text(cx, 540, '', textStyle(16, { color: COLORS.dim })).setOrigin(0.5);
-    this.best = this.add.text(cx, 580, '', textStyle(16, { color: COLORS.gold })).setOrigin(0.5);
+    const footer = narrow ? cy + 220 : cy + 180;
+    this.hint = this.add
+      .text(cx, footer, '', textStyle(15, { color: COLORS.dim, align: 'center', wrapWidth: this.scale.width - 48 }))
+      .setOrigin(0.5);
+    this.best = this.add.text(cx, footer + 46, '', textStyle(15, { color: COLORS.gold })).setOrigin(0.5);
     this.add.text(this.scale.width - 12, this.scale.height - 10, `v${VERSION} · Phaser ${Phaser.VERSION}`, textStyle(12, { color: COLORS.dim })).setOrigin(1, 1);
 
     this.applyStrings();

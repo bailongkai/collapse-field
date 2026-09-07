@@ -40,8 +40,6 @@ export const zhCN = {
   'settings.volume.value': '{n}%',
   'common.back': '返回',
   'common.loading': '加载中…',
-  'orientation.rotate': '请横屏游玩',
-  'orientation.hint': '把设备转到横向即可开始',
   'common.ok': '确定',
   'hud.level': 'Lv {n}',
   'hud.kills': '击杀',

@@ -72,11 +72,19 @@ The starting weapon fires from the first tick, so a test that measures a crowd
 has to account for it. `tests/unit/horde.test.ts` strips the weapons for exactly
 this reason.
 
-The logical view is 720 tall with a variable width, so scene layout must read
-`this.scale.width` rather than a constant, and anything gameplay-facing takes
-the view size as an explicit input. `Simulation` receives it in its options and
-defaults to the reference 1280x720, which is why unit tests still see exactly
-the authored balance.
+The logical view takes the shape of the display and can be portrait, so scene
+layout must read `this.scale.width` / `.height` rather than any constant, panels
+must go through `fitPanel`, and a screen with two columns needs a one-column
+fallback for a narrow phone. Anything gameplay-facing takes the view size as an
+explicit input: `Simulation` receives it in its options and defaults to the
+reference 1280x720, which is why unit tests still see exactly the authored
+balance.
+
+Touch targets are the other constraint the reference size hides. On a phone a
+logical unit is worth well under one CSS pixel, so anything a finger has to hit
+is checked against `minTouchUnits`. Buttons are containers: Phaser normalises a
+container's hit test by its displayOrigin, so a hit rectangle for one that has
+had `setSize` called must be authored from the top-left, not centred.
 
 Calibrating balance needs more seeds than feels necessary. Three seeds gave a
 confident but wrong answer about how view width affects difficulty; the spread

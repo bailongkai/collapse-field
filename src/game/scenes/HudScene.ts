@@ -20,6 +20,7 @@ export class HudScene extends Phaser.Scene {
   private bossName!: Phaser.GameObjects.Text;
   private toast!: Phaser.GameObjects.Text;
   private toastMs = 0;
+  private bossBarW = 400;
   private weaponRow!: IconRow;
   private passiveRow!: IconRow;
   private last = { time: -1, level: -1, kills: -1, xp: -1, build: '' };
@@ -40,8 +41,12 @@ export class HudScene extends Phaser.Scene {
     this.levelText = this.add.text(this.scale.width - 12, 10, '', textStyle(14, { bold: true })).setOrigin(1, 0.5);
     this.timer = this.add.bitmapText(this.scale.width / 2, 30, DIGIT_FONT_KEY, '00:00', 32).setOrigin(0.5, 0);
     this.killsText = this.add.text(this.scale.width - 12, 76, '', textStyle(16, { color: COLORS.dim, align: 'right' })).setOrigin(1, 0);
-    this.bossBarBg = this.add.rectangle(this.scale.width / 2, this.scale.height - 40, 400, 12, 0x2a0f14).setOrigin(0.5).setVisible(false);
-    this.bossBarFill = this.add.rectangle(this.scale.width / 2 - 200, this.scale.height - 40, 400, 12, 0xff5555).setOrigin(0, 0.5).setVisible(false);
+    this.bossBarW = Math.min(400, this.scale.width - 80);
+    this.bossBarBg = this.add.rectangle(this.scale.width / 2, this.scale.height - 40, this.bossBarW, 12, 0x2a0f14).setOrigin(0.5).setVisible(false);
+    this.bossBarFill = this.add
+      .rectangle(this.scale.width / 2 - this.bossBarW / 2, this.scale.height - 40, this.bossBarW, 12, 0xff5555)
+      .setOrigin(0, 0.5)
+      .setVisible(false);
     this.bossName = this.add.text(this.scale.width / 2, this.scale.height - 58, '', textStyle(16, { bold: true, color: COLORS.warn })).setOrigin(0.5).setVisible(false);
     this.toast = this.add.text(this.scale.width / 2, 120, '', textStyle(22, { bold: true, color: COLORS.gold, stroke: true })).setOrigin(0.5).setVisible(false);
 
@@ -107,7 +112,7 @@ export class HudScene extends Phaser.Scene {
       this.bossBarBg.setVisible(true);
       this.bossBarFill.setVisible(true);
       this.bossName.setVisible(true).setText(t(boss.name as Parameters<typeof t>[0]));
-      this.bossBarFill.setSize(400 * Math.max(0, Math.min(1, boss.hp / boss.maxHp)), 12);
+      this.bossBarFill.setSize(this.bossBarW * Math.max(0, Math.min(1, boss.hp / boss.maxHp)), 12);
     } else if (this.bossBarBg.visible) {
       this.bossBarBg.setVisible(false);
       this.bossBarFill.setVisible(false);

@@ -1,10 +1,10 @@
 import type Phaser from 'phaser';
-import { logicalSizeFor, MAX_VIEW_W, MIN_VIEW_W } from '../config';
+import { logicalSizeFor } from '../config';
 
 /**
- * The logical view is a fixed 720 tall with a width that follows the display's aspect ratio, so a
- * wide phone or monitor fills its screen instead of sitting between black bars. Everything laid out
- * against the width has to read it at runtime rather than from a constant.
+ * The logical view matches the shape of the display, so a wide monitor, a phone held sideways and a
+ * phone held upright all fill their screen. Nothing may assume the reference size: anything laid
+ * out against the view has to read it at runtime.
  */
 export interface ViewSize {
   width: number;
@@ -28,7 +28,21 @@ export function centerY(scene: Phaser.Scene): number {
   return scene.scale.height / 2;
 }
 
-export const VIEW_WIDTH_BOUNDS = { min: MIN_VIEW_W, max: MAX_VIEW_W };
+/** True when this scene's canvas is taller than it is wide. */
+export function isPortraitScene(scene: Phaser.Scene): boolean {
+  return scene.scale.height > scene.scale.width;
+}
+
+/**
+ * A panel that fits: the requested size, shrunk to leave a margin on a screen too small for it.
+ * Portrait phones are narrow enough that every fixed panel width overflowed.
+ */
+export function fitPanel(scene: Phaser.Scene, wantW: number, wantH: number, margin = 24): { w: number; h: number } {
+  return {
+    w: Math.min(wantW, scene.scale.width - margin * 2),
+    h: Math.min(wantH, scene.scale.height - margin * 2),
+  };
+}
 
 /** Apple's minimum comfortable touch target, in CSS pixels. */
 export const MIN_TOUCH_CSS = 46;

@@ -55,6 +55,8 @@ export async function stepResolving(page: Page, ticks: number): Promise<number> 
   for (let guard = 0; guard < 64 && done < ticks; guard++) {
     done += await step(page, ticks - done);
     if (done >= ticks) break;
+    // the run can end inside the batch, which unbinds the hook: that is a normal outcome here
+    if (!(await page.evaluate(() => window.__game.hasRun()))) break;
     const phase = (await state(page)).phase;
     if (phase !== 'levelup') break;
     await page.evaluate(() => window.__game.pickChoice(0));

@@ -4,7 +4,7 @@
   "description": "科幻风的 Vampire Survivors-like：在失守的空间站撑到救援抵达",
   "start_url": "./",
   "display": "fullscreen",
-  "orientation": "landscape",
+  "orientation": "any",
   "background_color": "#05070c",
   "theme_color": "#05070c",
   "lang": "zh-CN",

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Simulation } from '../../src/core/sim/simulation';
-import { MAX_VIEW_W, MIN_VIEW_W, REF_H, REF_W, RUN_SECONDS, logicalWidthFor } from '../../src/config';
+import { MIN_CSS_PER_UNIT, REF_AREA, REF_H, REF_W, RUN_SECONDS, logicalSizeFor } from '../../src/config';
 import { densityScale, spawnRingRadius } from '../../src/core/sim/systems/spawnSystem';
 import { stageDef } from '../../src/core/content/registry';
 
@@ -103,23 +103,52 @@ describe('balance', () => {
 describe('view size and wave density', () => {
   const stage = stageDef('station');
 
-  it('the logical width follows the aspect ratio inside its bounds', () => {
-    expect(logicalWidthFor(16 / 9)).toBe(REF_W);
-    expect(logicalWidthFor(2.4)).toBe(1728); // a 20:9 phone, wider than the reference and uncapped
-    expect(logicalWidthFor(32 / 9)).toBe(MAX_VIEW_W); // an ultrawide monitor is capped
-    expect(logicalWidthFor(4 / 3)).toBe(MIN_VIEW_W); // and a squarer window is floored
-    expect(logicalWidthFor(21 / 9)).toBeLessThanOrEqual(MAX_VIEW_W);
+  it('the view matches the display shape and never letterboxes', () => {
+    const cases: [string, number, number][] = [
+      ['desktop 16:9', 1280, 720],
+      ['laptop', 1440, 900],
+      ['ultrawide', 2560, 1080],
+      ['phone landscape', 750, 340],
+      ['phone portrait', 390, 844],
+      ['tablet portrait', 820, 1180],
+    ];
+    for (const [name, w, h] of cases) {
+      const v = logicalSizeFor(w, h);
+      // the logical view has the display's aspect, so the canvas fills it
+      expect(v.width / v.height, `${name}: ${v.width}x${v.height}`).toBeCloseTo(w / h, 1);
+      // and a logical unit is always worth enough CSS pixels to see and to tap
+      expect(w / v.width, `${name}: ${(w / v.width).toFixed(2)} css per unit`).toBeGreaterThanOrEqual(MIN_CSS_PER_UNIT - 0.01);
+    }
   });
 
-  it('density is one at the reference view and grows with the visible area', () => {
+  it('the reference display gets exactly the reference view', () => {
+    expect(logicalSizeFor(REF_W, REF_H)).toEqual({ width: REF_W, height: REF_H });
+  });
+
+  it('no display sees more of the map than the reference', () => {
+    for (const [w, h] of [[2560, 1080], [3840, 2160], [1920, 1080], [390, 844], [750, 340]]) {
+      const v = logicalSizeFor(w, h);
+      expect(v.width * v.height, `${w}x${h} -> ${v.width}x${v.height}`).toBeLessThanOrEqual(REF_AREA * 1.02);
+    }
+  });
+
+  it('a portrait phone gets a portrait view, not a squeezed landscape one', () => {
+    const v = logicalSizeFor(390, 844);
+    expect(v.height).toBeGreaterThan(v.width);
+    expect(v.width).toBeGreaterThan(400); // wide enough to fight in
+  });
+
+  it('density is one at the reference view and follows the visible area', () => {
     expect(densityScale(REF_W, REF_H)).toBe(1);
-    expect(densityScale(MAX_VIEW_W, REF_H)).toBeCloseTo(MAX_VIEW_W / REF_W, 6);
+    const portrait = logicalSizeFor(390, 844);
+    expect(densityScale(portrait.width, portrait.height)).toBeCloseTo((portrait.width * portrait.height) / REF_AREA, 6);
   });
 
-  it('a wider view pushes the spawn ring out, so enemies still arrive off screen', () => {
-    const wide = spawnRingRadius(stage, MAX_VIEW_W, REF_H);
-    expect(wide).toBeGreaterThan(spawnRingRadius(stage, REF_W, REF_H));
-    expect(wide).toBeGreaterThan(MAX_VIEW_W / 2);
+  it('the spawn ring always sits outside the view, whatever its shape', () => {
+    for (const [w, h] of [[REF_W, REF_H], [1041, 472], [542, 1172]]) {
+      const ring = spawnRingRadius(stage, w, h);
+      expect(ring, `${w}x${h}`).toBeGreaterThan(Math.hypot(w / 2, h / 2));
+    }
   });
 
   it('a wide view holds proportionally more enemies, keeping the crowd per screen the same', () => {
@@ -132,15 +161,15 @@ describe('view size and wave density', () => {
       return s.world.enemies.count;
     };
     const narrow = measure(REF_W);
-    const wide = measure(MAX_VIEW_W);
+    const wide = measure(1760);
     const ratio = wide / narrow;
-    const expected = MAX_VIEW_W / REF_W;
+    const expected = 1760 / REF_W;
     expect(ratio, `narrow ${narrow}, wide ${wide}`).toBeGreaterThan(expected * 0.75);
     expect(ratio, `narrow ${narrow}, wide ${wide}`).toBeLessThan(expected * 1.25);
   });
 
   it('a hands-off run on a wide view lasts about as long as on the reference view', () => {
-    const wide = SEEDS.map((seed) => playRun(seed, MAX_VIEW_W, REF_H));
+    const wide = SEEDS.map((seed) => playRun(seed, 1760, REF_H));
     // recorded so a wave-table change that only breaks wide screens is visible in the output
     for (const r of wide) {
       console.log(`wide seed ${r.seed}: ${r.survivedSec}s, level ${r.level}, ${r.kills} kills`);
