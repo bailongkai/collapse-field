@@ -14,8 +14,11 @@ export const WEAPONS = {
     rarity: 100,
     maxLevel: 8,
     behavior: 'slash',
-    base: { damage: 10, cooldown: 1350, amount: 1, area: 1, speed: 1, duration: 150, pierce: Infinity, knockback: 1, interval: 100, hitCooldown: 0 },
-    levels: [{ amount: 1 }, { damage: 5 }, { area: 0.1 }, { damage: 8 }, { area: 0.1 }, { damage: 8 }, { damage: 8 }],
+    // two swings from the start, one to each side. The weapon is still directional — the band is
+    // horizontal, so lining the crowd up with it is the player's job — but it is never the case
+    // that backing away from a horde points the only starting weapon at nothing.
+    base: { damage: 10, cooldown: 1350, amount: 2, area: 1, speed: 1, duration: 150, pierce: Infinity, knockback: 1, interval: 100, hitCooldown: 0 },
+    levels: [{ damage: 4 }, { damage: 5 }, { area: 0.1 }, { damage: 8 }, { area: 0.1 }, { damage: 8 }, { damage: 8 }],
     visual: { frame: 'fx_slash', blend: 'add', tint: 0x4fe0ff, sfx: 'fire' },
     evolution: { requires: 'reactorCore', into: 'annihilationBlade' },
   },

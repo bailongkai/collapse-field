@@ -30,13 +30,13 @@ describe('stream (磁轨炮)', () => {
     for (const b of shots) expect(b.vx).toBeGreaterThan(0);
   });
 
-  it('keeps the spread within six degrees', () => {
+  it('keeps the spread within the cone', () => {
     const s = newSim();
     s.giveWeapon('railgun', 8);
     s.setInput(1, 0);
     s.stepMany(40);
     for (const b of bolts(s)) {
-      expect(Math.abs(Math.atan2(b.vy, b.vx))).toBeLessThanOrEqual((6 * Math.PI) / 180 + 1e-6);
+      expect(Math.abs(Math.atan2(b.vy, b.vx))).toBeLessThanOrEqual((14 * Math.PI) / 180 + 1e-6);
     }
   });
 
@@ -178,50 +178,88 @@ describe('the whole kit together', () => {
   });
 });
 
-describe('directional weapons can hit while retreating', () => {
-  it('the blade swings at the crowd even when the player runs the other way', () => {
+describe('aiming is the player\'s job, and facing is left or right', () => {
+  it('facing only ever points left or right, whatever direction the player walks', () => {
     const s = newSim();
-    // the enemy is behind the player, who is running away from it
-    const e = tank(s, 'mech', -120);
-    e.hp = 1e6;
-    e.maxHp = 1e6;
-    s.setInput(1, 0); // facing right, away from the enemy
+    for (const [dx, dy, want] of [
+      [1, 0, 0],
+      [0.6, -0.8, 0], // up and to the right still faces right
+      [-1, 0, Math.PI],
+      [-0.3, 0.95, Math.PI], // mostly downwards, but the last horizontal input was left
+    ] as const) {
+      s.setInput(dx, dy);
+      s.stepMany(1);
+      expect(s.world.player.facing, `input ${dx},${dy}`).toBeCloseTo(want, 6);
+    }
+  });
+
+  it('walking straight up or down leaves the facing alone', () => {
+    const s = newSim();
+    s.setInput(-1, 0);
     s.stepMany(1);
-    expect(1e6 - e.hp, 'the starting weapon cannot hit anything while backing off').toBeGreaterThan(0);
+    s.setInput(0, -1);
+    s.stepMany(30);
+    expect(s.world.player.facing).toBeCloseTo(Math.PI, 6);
   });
 
-  it('the railgun fires at the nearest enemy rather than the way the player is moving', () => {
+  it('the blade sweeps both sides at once, so backing away is never hopeless', () => {
+    const s = newSim();
+    const right = tank(s, 'mech', 110);
+    const left = tank(s, 'mech', -110);
+    s.setInput(1, 0); // running right, away from the enemy on the left
+    s.stepMany(10); // the mirrored swing follows one volley interval later
+    expect(1e9 - right.hp, 'the swing missed what it was aimed at').toBeGreaterThan(0);
+    expect(1e9 - left.hp, 'the mirrored swing never landed').toBeGreaterThan(0);
+  });
+
+  it('but the band is horizontal, so a crowd overhead is a crowd the blade misses', () => {
+    const s = newSim();
+    const above = tank(s, 'mech', 60, -170);
+    s.setInput(1, 0);
+    s.stepMany(10);
+    expect(above.hp, 'the sweep should pass under a crowd that is above the player').toBe(1e9);
+  });
+
+  it('the sweep is a band, so it catches enemies off the centre line', () => {
+    const s = newSim();
+    const off = tank(s, 'drone', 90, 40);
+    s.setInput(1, 0);
+    s.stepMany(1);
+    expect(1e9 - off.hp).toBeGreaterThan(0);
+  });
+
+  it('the railgun fires where the player faces, not at whatever is nearest', () => {
     const s = newSim();
     s.run.weapons.length = 0;
     s.world.weaponInstances.length = 0;
     s.giveWeapon('railgun', 1);
-    s.spawn('mech', 1, { x: 0, y: -300 }); // above the player
-    s.setInput(1, 0); // moving right
+    s.spawn('mech', 1, { x: 0, y: -300 }); // directly above, and deliberately ignored
+    s.setInput(1, 0);
     s.stepMany(2);
     const shots = bolts(s);
     expect(shots.length).toBeGreaterThan(0);
-    for (const b of shots) expect(b.vy, 'the shot did not go towards the enemy').toBeLessThan(0);
+    for (const b of shots) expect(b.vx, 'the shot did not go where the player faces').toBeGreaterThan(0);
   });
 
-  it('with nothing in range they still fire along the facing direction', () => {
+  it('the guided laser is the one weapon that aims itself', () => {
     const s = newSim();
     s.run.weapons.length = 0;
     s.world.weaponInstances.length = 0;
-    s.giveWeapon('railgun', 1);
-    s.setInput(0, 1); // facing down, no enemies anywhere
+    s.giveWeapon('guidedLaser', 1);
+    s.spawn('mech', 1, { x: 0, y: -300 });
+    s.setInput(1, 0); // facing right, away from the target
     s.stepMany(2);
     const shots = bolts(s);
-    expect(shots.length).toBeGreaterThan(0);
-    for (const b of shots) expect(b.vy).toBeGreaterThan(0);
+    expect(shots.length, 'the guided laser did not fire').toBeGreaterThan(0);
+    for (const b of shots) expect(b.vy, 'the guided laser should track its target').toBeLessThan(0);
   });
 
-  it('a fleeing player still kills things', () => {
+  it('a player pushing through the horde still kills things', () => {
     const s = newSim();
     s.setStatOverride('growth', 0);
     s.spawn('drone', 60, { radius: 200 });
-    // run away in a straight line for ten seconds
     s.setInput(1, 0);
     s.stepMany(60 * 10);
-    expect(s.run.kills, 'a retreating player killed nothing').toBeGreaterThan(5);
+    expect(s.run.kills, 'a moving player killed nothing').toBeGreaterThan(5);
   });
 });

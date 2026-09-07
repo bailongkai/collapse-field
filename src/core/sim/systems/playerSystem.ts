@@ -9,7 +9,9 @@ export function stepPlayer(player: Player, stats: PlayerStats, dt: number): void
     const speed = PLAYER_BASE_SPEED * stats.moveSpeed;
     player.x += inputX * speed * dt;
     player.y += inputY * speed * dt;
-    player.facing = Math.atan2(inputY, inputX);
+    // left or right only, and vertical movement leaves it alone, so turning is one deliberate input
+    if (inputX > 0) player.facing = 0;
+    else if (inputX < 0) player.facing = Math.PI;
   }
   if (player.iframesMs > 0) player.iframesMs = Math.max(0, player.iframesMs - dt * 1000);
   if (stats.recovery > 0 && player.hp < stats.maxHealth) {

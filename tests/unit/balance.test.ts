@@ -56,11 +56,13 @@ describe('balance', () => {
   });
 
   it('a hands-off run lasts minutes, not seconds: a build does come online', () => {
-    // Gates set from a sixteen-seed sweep of the current content: survival 189-217 s, level 5-13,
-    // kills from 116. The per-seed floors sit well below the measured minima because seed-to-seed
-    // spread is wider than any change worth catching; the aggregate gates are the sharp ones.
+    // Gates set from a sixteen-seed sweep of the current content: survival 133-243 s (mean 196),
+    // level 3-10 (median 6), kills from 37 (median 242). The spread is much wider than it was when
+    // every weapon aimed itself, because how well the run goes now depends on whether the player
+    // keeps the crowd in the swing; that is the point, so the per-seed floors sit well below the
+    // measured minima and the aggregate gates are the sharp ones.
     for (const r of results) {
-      expect(r.survivedSec, `seed ${r.seed} ended at ${r.survivedSec}s`).toBeGreaterThan(120);
+      expect(r.survivedSec, `seed ${r.seed} ended at ${r.survivedSec}s`).toBeGreaterThan(90);
       expect(r.level, `seed ${r.seed} reached level ${r.level}`).toBeGreaterThanOrEqual(3);
       expect(r.build.split(' ').length, `seed ${r.seed} build: ${r.build}`).toBeGreaterThan(1);
     }
@@ -78,7 +80,10 @@ describe('balance', () => {
   });
 
   it('kills scale with the wave table rather than flatlining', () => {
-    for (const r of results) expect(r.kills, `seed ${r.seed} got ${r.kills} kills`).toBeGreaterThan(60);
+    for (const r of results) expect(r.kills, `seed ${r.seed} got ${r.kills} kills`).toBeGreaterThan(40);
+    const kills = results.map((r) => r.kills).sort((a, b) => a - b);
+    const median = kills[Math.floor(kills.length / 2)];
+    expect(median, `median kills ${median}`).toBeGreaterThan(100);
   });
 
   it('runs bank gold, so the shop is reachable at all', () => {
@@ -174,10 +179,12 @@ describe('view size and wave density', () => {
     for (const r of wide) {
       console.log(`wide seed ${r.seed}: ${r.survivedSec}s, level ${r.level}, ${r.kills} kills`);
     }
-    // the same gates the reference view has to pass
+    // A floor low enough that only a broken wide view trips it. Per-seed survival swings widely
+    // now that aiming is the player's job, so the distribution below is what this test is really
+    // about; a single unlucky seed is not evidence that wide screens are broken.
     for (const r of wide) {
-      expect(r.survivedSec, `wide seed ${r.seed} ended at ${r.survivedSec}s`).toBeGreaterThan(120);
-      expect(r.level).toBeGreaterThan(3);
+      expect(r.survivedSec, `wide seed ${r.seed} ended at ${r.survivedSec}s`).toBeGreaterThan(60);
+      expect(r.level, `wide seed ${r.seed} reached level ${r.level}`).toBeGreaterThanOrEqual(3);
     }
     expect(wide.filter((r) => r.reachedEnd), 'a wide view must not hand the player the whole run').toEqual([]);
 
@@ -190,5 +197,8 @@ describe('view size and wave density', () => {
     console.log(`average survival: reference ${refAvg.toFixed(0)}s, wide ${wideAvg.toFixed(0)}s`);
     expect(wideAvg, `reference ${refAvg.toFixed(0)}s vs wide ${wideAvg.toFixed(0)}s`).toBeLessThan(refAvg * 1.8);
     expect(wideAvg, `reference ${refAvg.toFixed(0)}s vs wide ${wideAvg.toFixed(0)}s`).toBeGreaterThan(refAvg * 0.5);
+    // and a wide view must not quietly hand out a bigger build either
+    const med = (rs: RunResult[]): number => rs.map((r) => r.level).sort((a, b) => a - b)[Math.floor(rs.length / 2)];
+    expect(med(wide), `reference level ${med(referenceRuns)} vs wide ${med(wide)}`).toBeLessThanOrEqual(med(referenceRuns) + 3);
   });
 });

@@ -2,6 +2,12 @@ export interface Player {
   x: number;
   y: number;
   hp: number;
+  /**
+   * Which way the character faces, as an angle of either 0 (right) or PI (left). Directional
+   * weapons fire along it. It is deliberately not the full movement direction: a character that
+   * aimed exactly where they walked would swing into empty space the moment they backed away from
+   * a crowd, and one that aimed at the nearest enemy would need no positioning at all.
+   */
   facing: number;
   /** last input direction, normalised; zero means standing still */
   inputX: number;

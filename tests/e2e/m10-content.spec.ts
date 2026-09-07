@@ -40,6 +40,8 @@ test('content: the mid-run field has spitters firing and dashers lunging', async
     window.__game.godMode(true);
     window.__game.setStat('growth', 0);
     window.__game.setStat('moveSpeed', 0);
+    // toothless weapons, so this watches the enemies act rather than how fast the blade clears them
+    window.__game.setStat('might', 0);
     window.__game.spawn('spitter', 6, { radius: 300 });
     window.__game.spawn('dasher', 6, { radius: 320 });
   });

@@ -14,7 +14,7 @@ describe('weaponParams', () => {
   it('level 8 sums every delta', () => {
     const w = weaponDef('plasmaBlade');
     const p = weaponParams(w, 8);
-    expect(p.damage).toBe(10 + 5 + 8 + 8 + 8);
+    expect(p.damage).toBe(10 + 4 + 5 + 8 + 8 + 8);
     expect(p.amount).toBe(2);
     expect(p.area).toBeCloseTo(1.2, 6);
   });

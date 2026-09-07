@@ -28,10 +28,13 @@ test('M3: the horde damages the player, god mode blocks it, and death ends the r
   await waitScene(page, 'game');
   await page.evaluate(() => window.__game.setTimeScale(0));
 
+  // toothless weapons, so the crowd stays put: this measures the contact-damage and death path,
+  // not how quickly the starting weapon clears the enemies standing on the player. It also keeps
+  // the health pool still, since a level-up would otherwise hand out a bigger one mid-assertion.
+  await page.evaluate(() => window.__game.setStat('might', 0));
   await page.evaluate(() => window.__game.godMode(true));
   await page.evaluate(() => window.__game.spawn('infected', 30, { radius: 30 }));
   const full = await state(page);
-  // kills drop gems, so level-ups can interrupt a long batch; resolve them and keep going
   expect(await stepResolving(page, 300)).toBe(300);
   expect((await state(page)).hp).toBe(full.hp);
 
@@ -40,8 +43,6 @@ test('M3: the horde damages the player, god mode blocks it, and death ends the r
   const hurt = await state(page);
   expect(hurt.hp).toBeLessThan(full.hp);
 
-  // a fragile player, so this measures the contact-damage and death path rather than how quickly
-  // the starting weapon can clear the crowd around them
   await page.evaluate(() => window.__game.setStat('maxHealth', 12));
   await stepResolving(page, 3600);
   // the run ends inside that batch, which hands over to the results screen

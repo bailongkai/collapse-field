@@ -30,6 +30,18 @@ never from `Date.now` or a Phaser timer.
 
 ## The shape of a run
 
+Aiming is the player's job, and the character faces left or right only. Facing
+follows horizontal input and vertical movement leaves it alone, so turning is
+one deliberate press rather than a direction vector that drifts with every step.
+The blade sweeps a horizontal band to both sides at once; the railgun fires in a
+cone to the side it faces; only the guided laser picks its own target, and that
+is its whole identity. Two earlier rules were both wrong and are worth not
+re-inventing: firing along the full movement direction makes the starting weapon
+useless the moment the player backs away from a crowd, and aiming every weapon
+at the nearest enemy removes positioning from the game entirely. Changing any of
+this shifts the whole difficulty curve, so re-measure with
+`tests/unit/balance.test.ts` over at least sixteen seeds before believing it.
+
 Weapons evolve rather than only levelling: a maxed weapon plus its paired
 passive turns the next supply chest into an evolution. Evolutions live in the
 same weapon table with `evolvedOnly`, are never offered on level-up, and replace

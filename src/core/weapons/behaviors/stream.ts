@@ -1,14 +1,13 @@
 import type { WeaponBehavior } from '../types';
 
 const BOLT_SPEED = 700;
-const SPREAD = (6 * Math.PI) / 180;
-/** how far the railgun looks for a target before falling back to the facing direction */
-const AIM_RANGE = 700;
+/** a wider cone than a rifle: the shots have to cover a side, not thread a needle */
+const SPREAD = (14 * Math.PI) / 180;
 
 /**
- * 磁轨炮 / knife: a burst of fast rounds with a small spread, aimed at the nearest enemy and
- * falling back to the facing direction when nothing is in range. Unlike the guided laser it always
- * fires, which is what makes it the reliable damage floor.
+ * 磁轨炮 / knife: a burst of fast rounds in a cone to the side the character faces. Unlike the
+ * guided laser it always fires whether or not anything is in range, which is what makes it the
+ * reliable damage floor — and unlike the guided laser, pointing it is the player's job.
  */
 export const stream: WeaponBehavior = {
   onFire(ctx, inst, eff) {
@@ -19,9 +18,7 @@ export const stream: WeaponBehavior = {
   onVolleyShot(ctx, inst, eff) {
     const p = ctx.spawnProjectile();
     if (!p) return;
-    const target = ctx.nearestEnemy(ctx.player.x, ctx.player.y, AIM_RANGE);
-    const aim = target ? Math.atan2(target.y - ctx.player.y, target.x - ctx.player.x) : ctx.player.facing;
-    const angle = aim + (ctx.rng.next() * 2 - 1) * SPREAD;
+    const angle = ctx.player.facing + (ctx.rng.next() * 2 - 1) * SPREAD;
     const speed = BOLT_SPEED * eff.speed;
     p.kind = 'bolt';
     p.weaponSlot = inst.slot;
