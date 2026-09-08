@@ -3,7 +3,7 @@ import { t, tDynamic } from '../../i18n';
 import { COLORS, textStyle } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
 import { restartOnResize } from '../ui/responsive';
-import { fitPanel } from '../layout';
+import { fitPanel, isPortraitScene } from '../layout';
 import { UPGRADE_LIST } from '../../data/upgrades';
 import { buyUpgrade, upgradeCost, upgradeLevel } from '../../core/save/upgrades';
 import { buyCharacter, isCharacterUnlocked } from '../../core/save/unlocks';
@@ -25,12 +25,16 @@ export class ShopScene extends Phaser.Scene {
     const cx = this.scale.width / 2;
     const cy = this.scale.height / 2;
     const priced = CHARACTER_LIST.filter((c) => c.cost !== undefined);
-    const rowCount = UPGRADE_LIST.length + priced.length;
-    const rowH = Math.max(40, Math.min(ROW_H, (this.scale.height - 240) / rowCount));
-    const panel = fitPanel(this, 760, 190 + rowCount * rowH);
-    const narrow = panel.w < 640;
+    // upgrades and characters side by side when there is room; one column under the other on a
+    // phone held upright. Thirteen rows in one column on a landscape screen squeezed the text
+    // together until the names sat on the descriptions.
+    const wide = this.scale.width >= 980 && !isPortraitScene(this);
+    const rowsTall = wide ? Math.max(UPGRADE_LIST.length, priced.length) : UPGRADE_LIST.length + priced.length;
+    const rowH = Math.max(44, Math.min(ROW_H, (this.scale.height - (wide ? 200 : 260)) / rowsTall));
+    const panel = fitPanel(this, wide ? 1180 : 760, (wide ? 170 : 210) + rowsTall * rowH);
+    const narrow = !wide && panel.w < 640;
+    const colW = wide ? (panel.w - 72) / 2 : panel.w - 48;
     const left = cx - panel.w / 2 + 24;
-
     this.add.rectangle(cx, cy, this.scale.width, this.scale.height, 0x05070c, 0.85);
     this.add.nineslice(cx, cy, 'ui', 'panel_glass', panel.w, panel.h, 24, 24, 24, 24).setAlpha(0.97).setTint(0x16243a);
     this.add.text(left, cy - panel.h / 2 + 36, t('shop.title'), textStyle(26, { bold: true, color: COLORS.accent })).setOrigin(0, 0.5);
@@ -39,7 +43,7 @@ export class ShopScene extends Phaser.Scene {
       .setOrigin(1, 0.5);
 
     const btnW = narrow ? 118 : 150;
-    const buyX = cx + panel.w / 2 - btnW / 2 - 20;
+    const buyX = left + colW - btnW / 2;
     UPGRADE_LIST.forEach((def, i) => {
       const y = cy - panel.h / 2 + 88 + i * rowH;
       const level = upgradeLevel(ctx.save, def.id);
@@ -55,7 +59,7 @@ export class ShopScene extends Phaser.Scene {
         this.add.text(textX, y - 12, t(def.nameKey), textStyle(19, { bold: true })).setOrigin(0, 0.5);
         this.add.text(textX, y + 12, t(def.descKey), textStyle(14, { color: COLORS.dim })).setOrigin(0, 0.5);
         this.add
-          .text(cx + 60, y, levelLabel, textStyle(16, { color: level >= def.maxLevel ? COLORS.good : COLORS.text }))
+          .text(left + colW - btnW - 96, y, levelLabel, textStyle(16, { color: level >= def.maxLevel ? COLORS.good : COLORS.text }))
           .setOrigin(0, 0.5);
       }
       const btn = new UiButton(this, buyX, y, {
@@ -70,13 +74,15 @@ export class ShopScene extends Phaser.Scene {
     });
 
     // characters are bought here too, so gold has somewhere to go once the upgrades are maxed
-    const charTop = cy - panel.h / 2 + 88 + UPGRADE_LIST.length * rowH + 8;
-    this.add.text(left, charTop, t('shop.characters'), textStyle(18, { bold: true, color: COLORS.accent })).setOrigin(0, 0.5);
+    const charLeft = wide ? left + colW + 24 : left;
+    const charTop = wide ? cy - panel.h / 2 + 60 : cy - panel.h / 2 + 88 + UPGRADE_LIST.length * rowH + 8;
+    const charBuyX = charLeft + colW - btnW / 2;
+    this.add.text(charLeft, charTop, t('shop.characters'), textStyle(18, { bold: true, color: COLORS.accent })).setOrigin(0, 0.5);
     priced.forEach((def, i) => {
       const y = charTop + 30 + i * rowH;
       const owned = isCharacterUnlocked(ctx.save, def.id);
-      this.add.image(left + 18, y, 'game', def.frame).setDisplaySize(32, 32);
-      const textX = left + 44;
+      this.add.image(charLeft + 18, y, 'game', def.frame).setDisplaySize(32, 32);
+      const textX = charLeft + 44;
       const weapon = tDynamic(`weapon.${def.startingWeapon}.name`);
       if (narrow) {
         this.add.text(textX, y - 11, t(def.nameKey), textStyle(17, { bold: true })).setOrigin(0, 0.5);
@@ -85,7 +91,7 @@ export class ShopScene extends Phaser.Scene {
         this.add.text(textX, y - 12, t(def.nameKey), textStyle(19, { bold: true })).setOrigin(0, 0.5);
         this.add.text(textX, y + 12, weapon, textStyle(14, { color: COLORS.dim })).setOrigin(0, 0.5);
       }
-      const btn = new UiButton(this, buyX, y, {
+      const btn = new UiButton(this, charBuyX, y, {
         id: `shop.buyChar.${def.id}`,
         label: owned ? t('shop.owned') : t('shop.buy', { n: def.cost ?? 0 }),
         width: btnW,

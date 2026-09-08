@@ -95,7 +95,7 @@ export const ENEMIES = {
   /** 掠袭艇: faster than the player. The orbit is the one stage where running is not an answer. */
   raider: {
     id: 'raider', nameKey: 'enemy.raider.name', frame: 'enemy_raider', faceTarget: false,
-    hp: 10, damage: 6, speed: 175, radius: 13, gemTier: 'blue', knockbackResist: 0.3,
+    hp: 10, damage: 6, speed: 160, radius: 13, gemTier: 'blue', knockbackResist: 0.3,
     behavior: 'chase', deathFx: 'small',
   },
   /** 护航艇: a ranged ship that keeps its distance and shoots. */

@@ -20,7 +20,7 @@ describe('characters', () => {
   it('level bonuses reach the stats', () => {
     const s = new Simulation({ seed: 1, characterId: 'unit', stageId: 'station' });
     const armor0 = s.stats.armor;
-    s.setLevel(10);
+    s.setLevel(12);
     expect(s.stats.armor).toBe(armor0 + 1);
   });
 });
@@ -43,6 +43,8 @@ describe('stages', () => {
       s.run.god = true;
       s.setStatOverride('might', 0);
       s.setStatOverride('moveSpeed', 0);
+      // the orbit only starts pushing speed once a build has had a few minutes
+      s.setTime(240);
       s.stepMany(60 * 20);
       const alive = s.world.enemies.aliveList();
       let best = 0;

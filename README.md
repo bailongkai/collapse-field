@@ -114,3 +114,17 @@ All art and sound effects by [Kenney](https://kenney.nl), CC0. See `CREDITS.md`.
 The score is synthesised at runtime in `src/game/audio/music.ts` rather than
 shipped as a file: the Kenney packs have no music, and generating it keeps the
 project free of any third-party licence to track.
+
+## Characters and stages
+
+Five characters, one per starting weapon: 幸存者 (等离子刃), 陆战队员 (磁轨炮),
+系统工程师 (制导激光), 维护单元 M-7 (EMP 力场), 领航员 (轨道无人机). The four
+priced ones are bought with gold in the shop. Four stages in a chain — 失守的空间站,
+货运甲板, 生物实验舱, 外层轨道 — each with its own floor, enemies, events and boss;
+surviving one opens the next. Both are picked on the launch screen behind Start,
+which remembers the last choice.
+
+Hands-off balance over sixteen seeds (survivor, mean survival): station 312 s,
+cargo 519 s, lab 395 s, orbit 220 s. The orbit is the hardest on purpose: its
+wave rows carry a speed multiplier and its raiders outrun the player, so running
+in a straight line stops working there and nowhere else.

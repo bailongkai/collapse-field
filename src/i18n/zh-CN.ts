@@ -136,7 +136,7 @@ export const zhCN = {
   'character.engineer.name': '系统工程师',
   'character.engineer.desc': '站内工程师。冷却短、运气好、拾取远，但只有 85 点生命。起始武器：制导激光',
   'character.unit.name': '维护单元 M-7',
-  'character.unit.desc': '空间站维护机器人。150 生命、2 点护甲、持续回血，走得慢。起始武器：EMP 力场',
+  'character.unit.desc': '空间站维护机器人。130 生命、1 点护甲、持续回血，走得慢。起始武器：EMP 力场',
   'character.navigator.name': '领航员',
   'character.navigator.desc': '侦察飞行员。经验和金币获取更多，脚步略快。起始武器：轨道无人机',
   'stage.station.name': '失守的空间站',
