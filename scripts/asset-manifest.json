@@ -740,7 +740,7 @@
       "tiles": [
         "PNG/Tiles/tile_86.png",
         "PNG/Tiles/tile_87.png",
-        "PNG/Tiles/tile_109.png",
+        "PNG/Tiles/tile_94.png",
         "PNG/Tiles/tile_114.png"
       ],
       "tileSize": 64,
@@ -751,8 +751,8 @@
       "tiles": [
         "PNG/Tiles/tile_07.png",
         "PNG/Tiles/tile_10.png",
-        "PNG/Tiles/tile_271.png",
-        "PNG/Tiles/tile_274.png"
+        "PNG/Tiles/tile_08.png",
+        "PNG/Tiles/tile_11.png"
       ],
       "tileSize": 64,
       "grid": 4

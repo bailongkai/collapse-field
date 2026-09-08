@@ -58,7 +58,7 @@ export class LaunchScene extends Phaser.Scene {
     const cardH = portrait ? 58 : 66;
     const gap = 8;
     const colCount = portrait ? 1 : 2;
-    const listH = (n: number): number => 34 + n * (cardH + gap);
+    const listH = (n: number): number => 40 + n * (cardH + gap);
     const wantH = portrait ? 150 + listH(chars.length) + listH(stages.length) : 170 + Math.max(listH(chars.length), listH(stages.length));
     const panel = fitPanel(this, portrait ? 520 : 900, wantH);
     const k = Math.min(1, panel.h / wantH);
@@ -78,9 +78,9 @@ export class LaunchScene extends Phaser.Scene {
     const stageTop = portrait ? charTop + listH(chars.length) * k : charTop;
 
     this.add.text(charX, charTop, t('launch.character'), textStyle(Math.round(17 * k), { bold: true, color: COLORS.dim })).setOrigin(0, 0.5);
-    chars.forEach((c, i) => this.characterCard(c, charX, charTop + 30 * k + i * (rowH + rowGap), colW, rowH, k));
+    chars.forEach((c, i) => this.characterCard(c, charX, charTop + 30 * k + rowH / 2 + i * (rowH + rowGap), colW, rowH, k));
     this.add.text(stageX, stageTop, t('launch.stage'), textStyle(Math.round(17 * k), { bold: true, color: COLORS.dim })).setOrigin(0, 0.5);
-    stages.forEach((s, i) => this.stageCard(s, stageX, stageTop + 30 * k + i * (rowH + rowGap), colW, rowH, k));
+    stages.forEach((s, i) => this.stageCard(s, stageX, stageTop + 30 * k + rowH / 2 + i * (rowH + rowGap), colW, rowH, k));
 
     const btnY = cy + panel.h / 2 - 40 * k;
     const btnW = Math.min(220, panel.w / 2 - 30);
