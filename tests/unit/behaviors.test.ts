@@ -178,6 +178,42 @@ describe('the whole kit together', () => {
   });
 });
 
+describe('the guided laser spreads its volley', () => {
+  it('sends each shot of a volley at a different enemy', () => {
+    const s = newSim();
+    s.run.weapons.length = 0;
+    s.world.weaponInstances.length = 0;
+    s.giveWeapon('guidedLaser', 8); // several shots per volley
+    for (const [x, y] of [[200, 0], [-200, 0], [0, 200], [0, -200]] as const) tank(s, 'mech', x, y);
+    s.stepMany(60);
+    const angles = new Set(bolts(s).map((b) => Math.round(Math.atan2(b.vy, b.vx) * 100)));
+    expect(angles.size, 'the whole volley went the same way').toBeGreaterThan(1);
+  });
+
+  it('spreads the damage rather than overkilling one body', () => {
+    const s = newSim();
+    s.run.weapons.length = 0;
+    s.world.weaponInstances.length = 0;
+    s.giveWeapon('guidedLaser', 8);
+    const bodies = [[200, 0], [-200, 0], [0, 200], [0, -200]].map(([x, y]) => tank(s, 'mech', x, y));
+    s.stepMany(120);
+    const hurt = bodies.filter((e) => e.hp < 1e9).length;
+    expect(hurt, `only ${hurt} of four bodies were hit`).toBeGreaterThan(2);
+  });
+
+  it('still puts the whole volley into a boss standing on its own', () => {
+    const s = newSim();
+    s.run.weapons.length = 0;
+    s.world.weaponInstances.length = 0;
+    s.giveWeapon('guidedLaser', 8);
+    const lone = tank(s, 'mech', 200, 0);
+    s.stepMany(120);
+    const shots = bolts(s);
+    expect(1e9 - lone.hp, 'the lone target was not shot').toBeGreaterThan(0);
+    for (const b of shots) expect(b.vx, 'a shot went somewhere other than the only target').toBeGreaterThan(0);
+  });
+});
+
 describe('aiming is the player\'s job, and facing is left or right', () => {
   it('facing only ever points left or right, whatever direction the player walks', () => {
     const s = newSim();

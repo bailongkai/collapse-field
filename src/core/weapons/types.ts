@@ -35,6 +35,8 @@ export interface WeaponContext {
   stats: PlayerStats;
   spawnProjectile(): Projectile | null;
   nearestEnemy(x: number, y: number, maxDist: number): Enemy | null;
+  /** The target for shot `index` of a volley: the index-th nearest, wrapping round when short. */
+  volleyTarget(x: number, y: number, maxDist: number, index: number): Enemy | null;
   queryEnemies(x0: number, y0: number, x1: number, y1: number, out: Int32Array): number;
   enemyById(id: number): Enemy;
   /** Visits the projectiles this weapon slot currently owns (orbiters). */

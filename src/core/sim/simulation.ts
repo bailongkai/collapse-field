@@ -123,6 +123,7 @@ export class Simulation {
       stats: this.cachedStats,
       spawnProjectile: () => this.world.projectiles.spawn(),
       nearestEnemy: (x, y, maxDist) => this.world.nearestEnemy(x, y, maxDist),
+      volleyTarget: (x, y, maxDist, index) => this.world.volleyTarget(x, y, maxDist, index),
       queryEnemies: (x0, y0, x1, y1, out) => this.world.grid.queryInto(x0, y0, x1, y1, out),
       enemyById: (id) => this.world.enemies.items[id],
       forEachProjectile: (slot, fn) => {

@@ -4,8 +4,14 @@ const BOLT_SPEED = 500;
 const RANGE = 640;
 
 /**
- * 制导激光 / magic wand: each shot picks the nearest enemy and flies at where it is now. Shots with
- * no target in range are skipped rather than fired blindly, matching the original.
+ * 制导激光 / magic wand: the volley fans out over the nearest enemies, one target per shot, and
+ * flies at where each is now. Shots with nothing in range are skipped rather than fired blindly.
+ *
+ * The targets have to be distinct. Every shot picking "the nearest" put the whole volley into one
+ * body — the shots are a hundred milliseconds apart, so nothing has moved between them — and a
+ * level eight laser emptied five bolts into a single drone while the rest of the screen closed in.
+ * When there are fewer bodies than shots the volley wraps round, which is what puts every bolt into
+ * a boss that is standing on its own.
  */
 export const aimed: WeaponBehavior = {
   onFire(ctx, inst, eff) {
@@ -13,8 +19,8 @@ export const aimed: WeaponBehavior = {
     inst.volleyTimer = 0;
     return 'cooldown';
   },
-  onVolleyShot(ctx, inst, eff) {
-    const target = ctx.nearestEnemy(ctx.player.x, ctx.player.y, RANGE);
+  onVolleyShot(ctx, inst, eff, index) {
+    const target = ctx.volleyTarget(ctx.player.x, ctx.player.y, RANGE, index);
     if (!target) return;
     const p = ctx.spawnProjectile();
     if (!p) return;
