@@ -301,7 +301,7 @@ export class Simulation {
     this.run.kills++;
     this.world.events.push('death', e.x, e.y, 0, e.defId, e.def.deathFx === 'big');
     dropForEnemy(this.world, e, this.stage.gemCap);
-    rollDrops(this.world, e, this.world.rng, this.cachedStats.luck, this.reg.pickupList);
+    rollDrops(this.world, e, this.world.rng, this.cachedStats.luck, this.reg.pickupList, this.run.timeMs);
     if (isBoss) this.world.events.push('bossKilled', e.x, e.y, 0, e.defId, true);
     this.world.enemies.free(e);
   }
@@ -613,6 +613,7 @@ export class Simulation {
         cooldownLeft: 0,
         volleyLeft: 0,
         volleyTimer: 0,
+        volleyFacing: 0,
         activeCount: 0,
         lastHitTick: new Int32Array(ENEMY_CAP).fill(-1e9),
       };

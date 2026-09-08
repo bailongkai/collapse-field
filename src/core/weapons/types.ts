@@ -16,6 +16,15 @@ export interface WeaponInstance {
   /** shots left in the current volley and the ms timer between them */
   volleyLeft: number;
   volleyTimer: number;
+  /**
+   * The character's facing at the moment the volley was fired, latched.
+   *
+   * A volley's shots are an interval apart, and facing flips the instant a key goes down, so a
+   * behaviour that re-reads it per shot has the mirrored swing computed against a direction that
+   * has already changed: turn between the two and PI + PI collapses to 0, putting both crescents on
+   * the same side. That happens exactly when the player is reacting to a crowd.
+   */
+  volleyFacing: number;
   /** projectiles this weapon currently owns (orbit) */
   activeCount: number;
   /** tick of the last hit per enemy slot; -1e9 means "never" (reset when a slot is reused) */

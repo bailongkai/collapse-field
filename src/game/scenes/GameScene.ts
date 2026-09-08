@@ -424,6 +424,10 @@ export class GameScene extends Phaser.Scene {
           // sliding past behind the panel only competes with it
           break;
         case 'evolve': {
+          // An evolution that came out of a chest is the last and loudest row of the reveal that is
+          // about to open. Naming it in a banner first, behind the panel, gives the ending away
+          // before the reveal has dealt a single card.
+          if (this.sim.run.chestQueue.length > 0 || this.scene.isActive('Chest')) break;
           const def = this.sim.reg.weapons[e.id];
           this.toast(t('toast.evolve', { name: def ? t(def.nameKey) : e.id }), 3200);
           this.cameras.main.flash(500, 255, 120, 220);

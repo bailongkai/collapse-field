@@ -32,6 +32,8 @@ const FINALE_EXTRA_MS = 260;
 
 const ROW_H = 74;
 const ROW_GAP = 10;
+/** title, chest and the prompt: everything in the panel that is not a reward row */
+const CHROME_H = 208;
 
 interface Row {
   container: Phaser.GameObjects.Container;
@@ -85,12 +87,20 @@ export class ChestScene extends Phaser.Scene {
     const result = this.result;
 
     const items = this.revealItems(result);
-    const u = fitPanel(this, 560, 208 + items.length * (ROW_H + ROW_GAP));
-    this.scaleUi = Math.min(1, u.w / 560);
+    // One vertical factor, applied to the rows, the gaps AND the chrome above and below them.
+    // Flooring the row height alone was wrong: six rows on a 472-unit landscape phone floored to 56
+    // and then rebuilt a 604-tall panel, which put the title above the screen and the only prompt
+    // the reveal has below it. A boss chest rolls five rewards a quarter of the time.
+    const wantH = CHROME_H + items.length * (ROW_H + ROW_GAP);
+    const u = fitPanel(this, 560, wantH);
+    const kH = Math.min(1, u.h / wantH);
+    this.scaleUi = Math.min(1, u.w / 560, kH);
     const rowW = Math.min(460, u.w - 80);
-    const rowH = Math.max(56, Math.min(ROW_H, (u.h - 208) / Math.max(1, items.length) - ROW_GAP));
+    const rowH = ROW_H * kH;
+    const rowGap = ROW_GAP * kH;
+    const chrome = CHROME_H * kH;
     const panelW = rowW + 80;
-    const panelH = 208 + items.length * (rowH + ROW_GAP);
+    const panelH = chrome + items.length * (rowH + rowGap);
     const cx = this.scale.width / 2;
     const cy = this.scale.height / 2;
 
@@ -99,31 +109,31 @@ export class ChestScene extends Phaser.Scene {
 
     const titleKey = result.grade === 'boss' ? 'chest.title_boss' : 'chest.title';
     this.add
-      .text(cx, cy - panelH / 2 + Math.round(40 * this.scaleUi), t(titleKey), textStyle(Math.round(30 * this.scaleUi), { bold: true, color: COLORS.accent }))
+      .text(cx, cy - panelH / 2 + Math.round(40 * kH), t(titleKey), textStyle(Math.round(30 * this.scaleUi), { bold: true, color: COLORS.accent }))
       .setOrigin(0.5);
 
     // the light behind the lid, and the chest itself flying in from where it was picked up
-    this.ring = this.add.image(cx, cy - panelH / 2 + Math.round(104 * this.scaleUi), 'game', 'fx_ring')
+    this.ring = this.add.image(cx, cy - panelH / 2 + Math.round(100 * kH), 'game', 'fx_ring')
       .setBlendMode(Phaser.BlendModes.ADD)
       .setTint(this.burstTint(items.length))
       .setAlpha(0)
       .setScale(0.6 * this.scaleUi);
-    this.chestImg = this.add.image(cx, cy - panelH / 2 + Math.round(104 * this.scaleUi), 'game', 'pk_chest')
-      .setDisplaySize(Math.round(72 * this.scaleUi), Math.round(72 * this.scaleUi));
+    this.chestImg = this.add.image(cx, cy - panelH / 2 + Math.round(100 * kH), 'game', 'pk_chest')
+      .setDisplaySize(Math.round(68 * this.scaleUi), Math.round(68 * this.scaleUi));
 
-    const top = cy - panelH / 2 + Math.round(152 * this.scaleUi);
+    const top = cy - panelH / 2 + Math.round((CHROME_H - 60) * kH);
     items.forEach((item, i) => {
       const at = FIRST_REVEAL_MS + i * REVEAL_GAP + (i === items.length - 1 && items.length >= 5 ? FINALE_EXTRA_MS : 0);
-      const y = top + i * (rowH + ROW_GAP) + rowH / 2;
+      const y = top + i * (rowH + rowGap) + rowH / 2;
       this.rows.push({ container: this.buildRow(item, cx, y, rowW, rowH), at, shown: false });
     });
 
     this.hint = this.add
-      .text(cx, cy + panelH / 2 - Math.round(26 * this.scaleUi), t('chest.continue'), textStyle(Math.round(16 * this.scaleUi), { color: COLORS.dim }))
+      .text(cx, cy + panelH / 2 - Math.round(26 * kH), t('chest.continue'), textStyle(Math.round(16 * this.scaleUi), { color: COLORS.dim }))
       .setOrigin(0.5)
       .setAlpha(0);
 
-    this.bindInput(panelW, panelH);
+    this.bindInput();
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       for (const c of this.cleanups) c();
       this.cleanups.length = 0;
@@ -172,7 +182,7 @@ export class ChestScene extends Phaser.Scene {
     return c;
   }
 
-  private bindInput(panelW: number, panelH: number): void {
+  private bindInput(): void {
     const kb = this.input.keyboard;
     const go = (): void => this.advance();
     kb?.on('keydown-ENTER', go);
@@ -180,8 +190,10 @@ export class ChestScene extends Phaser.Scene {
     kb?.on('keydown-ESC', go);
 
     // the whole panel is the button: on a phone there is nothing else to hit
+    // the whole screen, not just the panel: the reveal has exactly one action, and a dead margin
+    // around the panel only serves to summon the virtual joystick underneath it
     const hit = this.add
-      .rectangle(this.scale.width / 2, this.scale.height / 2, Math.max(panelW, minTouchUnits(this)), Math.max(panelH, minTouchUnits(this)), 0x000000, 0)
+      .rectangle(this.scale.width / 2, this.scale.height / 2, Math.max(this.scale.width, minTouchUnits(this)), Math.max(this.scale.height, minTouchUnits(this)), 0x000000, 0)
       .setInteractive({ useHandCursor: true });
     hit.on('pointerdown', (p: Phaser.Input.Pointer) => {
       this.armed = p.id;

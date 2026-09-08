@@ -36,7 +36,9 @@ export const PICKUPS = {
   // the only chest that can fall out of an ordinary kill, and the only one that is not persistent
   wreckChest: {
     id: 'wreckChest', nameKey: 'pickup.wreckChest.name', frame: 'pk_chest', radius: 24,
-    effect: { kind: 'chest', grade: 'standard' }, dropChance: 0.004, maxOnGround: 1,
+    // rate-limited rather than count-limited: see PickupDef.minIntervalMs. One a minute at most,
+    // so a run that is going well cannot compound its own reward supply.
+    effect: { kind: 'chest', grade: 'standard' }, dropChance: 0.02, maxOnGround: 1, minIntervalMs: 60_000,
     magnetic: true, magnetRadius: 4000, magnetSpeed: 250, persistent: true, sfx: 'levelup',
   },
 } as const satisfies Record<string, PickupDef>;

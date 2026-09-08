@@ -19,13 +19,15 @@ export const slash: WeaponBehavior = {
   onFire(ctx, inst, eff) {
     inst.volleyLeft = Math.max(1, Math.round(eff.amount));
     inst.volleyTimer = 0;
+    // latched here rather than read per shot: see WeaponInstance.volleyFacing
+    inst.volleyFacing = ctx.player.facing;
     return 'cooldown';
   },
   onVolleyShot(ctx, inst, eff, index) {
     const p = ctx.spawnProjectile();
     if (!p) return;
-    // shot 0 goes where the character faces, shot 1 the other way, later shots alternate again
-    const angle = ctx.player.facing + (index % 2 === 1 ? Math.PI : 0);
+    // shot 0 goes where the character faced when the swing started, shot 1 the other way
+    const angle = inst.volleyFacing + (index % 2 === 1 ? Math.PI : 0);
     p.kind = 'slash';
     p.weaponSlot = inst.slot;
     p.x = ctx.player.x;

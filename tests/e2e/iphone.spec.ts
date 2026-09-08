@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { openGame, snap, state, waitScene, realWait } from './helpers';
+import { openGame, snap, state, waitScene, realWait, startRun, step, press } from './helpers';
 
 /**
  * The iPhone in landscape is the smallest canvas the game runs on, and the one where a finger has
@@ -106,5 +106,41 @@ test('iphone: the whole flow works with taps alone', async ({ page }) => {
 
   await realWait(300);
   expect((await state(page)).phase).toBe('running');
+  expect(errors, errors.join('\n')).toEqual([]);
+});
+
+test('iphone: a chest reveal with an evolution fits a landscape phone', async ({ page }) => {
+  // Six rows on a 472-unit-tall view used to build a 604-tall panel, because the row height was
+  // floored after fitPanel had already decided the budget: the title sat above the screen and the
+  // only prompt the reveal has sat below it. A boss chest rolls five rewards a quarter of the time.
+  const errors = await openGame(page, '?test=1&seed=61');
+  await startRun(page, 61);
+  await waitScene(page, 'game');
+  await page.evaluate(() => {
+    const g = window.__game;
+    g.setTimeScale(0);
+    g.godMode(true);
+    g.giveWeapon('guidedLaser', 3);
+    g.giveWeapon('railgun', 2);
+    g.givePassive('reactorCore', 2);
+    g.givePassive('nanoArmor', 1);
+    g.giveWeapon('plasmaBlade', 7); // one level short, so the reveal carries an evolution row too
+    g.setStat('luck', 6);
+    const s = g.getState();
+    g.spawnPickup('bossChest', s.player.x, s.player.y);
+  });
+  await step(page, 4);
+  await waitScene(page, 'chest');
+  await press(page, 'chest.continue');
+
+  const view = await page.evaluate(() => ({ w: window.__game.phaser.scale.width, h: window.__game.phaser.scale.height }));
+  expect(view.w, 'this case only means anything on a short, wide view').toBeGreaterThan(view.h);
+  const btn = (await page.evaluate(() => window.__game.ui.buttons())).find((b) => b.id === 'chest.continue');
+  expect(btn, 'the reveal had nothing to press').toBeDefined();
+  expect(btn!.y).toBeGreaterThan(0);
+  expect(btn!.y).toBeLessThan(view.h);
+  await snap(page, 'iphone-chest');
+  await press(page, 'chest.continue');
+  await waitScene(page, 'game');
   expect(errors, errors.join('\n')).toEqual([]);
 });

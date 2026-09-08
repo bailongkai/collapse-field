@@ -248,6 +248,22 @@ describe('aiming is the player\'s job, and facing is left or right', () => {
     expect(1e9 - left.hp, 'the mirrored swing never landed').toBeGreaterThan(0);
   });
 
+  it('turning mid-swing does not put both crescents on the same side', () => {
+    // The two shots of a volley are an interval apart and facing flips the instant an input lands,
+    // so a behaviour that re-read facing per shot computed the mirror against a direction that had
+    // already changed: PI + PI collapses to 0 and the left side is never swept. It happens exactly
+    // when the player turns to face an incoming crowd.
+    const s = newSim();
+    const right = tank(s, 'mech', 110);
+    const left = tank(s, 'mech', -110);
+    s.setInput(1, 0);
+    s.stepMany(1); // the first crescent goes right
+    s.setInput(-1, 0); // turn round before the mirrored one
+    s.stepMany(12);
+    expect(1e9 - right.hp).toBeGreaterThan(0);
+    expect(1e9 - left.hp, 'the mirrored swing followed the turn instead of mirroring the swing').toBeGreaterThan(0);
+  });
+
   it('but the band is horizontal, so a crowd overhead is a crowd the blade misses', () => {
     const s = newSim();
     const above = tank(s, 'mech', 60, -170);

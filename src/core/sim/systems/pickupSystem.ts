@@ -34,14 +34,22 @@ export function spawnPickup(world: World, defId: string, x: number, y: number): 
   return true;
 }
 
-/** Rolls this enemy's drops: its own table first, then the generic per-kill chances scaled by luck. */
-export function rollDrops(world: World, e: Enemy, rng: Rng, luck: number, generic: readonly PickupDef[]): void {
+/**
+ * Rolls this enemy's drops: its own table first, then the generic per-kill chances scaled by luck.
+ *
+ * `nowMs` is the run clock, used only for `minIntervalMs`. The interval is checked BEFORE the roll
+ * rather than after, so a rate-limited pickup draws no random value while it is on cooldown and the
+ * rng stream stays a function of the seed and the kills, not of the clock.
+ */
+export function rollDrops(world: World, e: Enemy, rng: Rng, luck: number, generic: readonly PickupDef[], nowMs: number): void {
   for (const drop of e.def?.drops ?? []) {
     if (rng.next() < drop.chance) spawnPickup(world, drop.pickup, e.x, e.y);
   }
   for (const def of generic) {
     if (def.dropChance <= 0) continue;
-    if (rng.next() < def.dropChance * luck) spawnPickup(world, def.id, e.x, e.y);
+    if (def.minIntervalMs !== undefined && nowMs - (world.lastDropMs[def.id] ?? -Infinity) < def.minIntervalMs) continue;
+    if (rng.next() >= def.dropChance * luck) continue;
+    if (spawnPickup(world, def.id, e.x, e.y)) world.lastDropMs[def.id] = nowMs;
   }
 }
 

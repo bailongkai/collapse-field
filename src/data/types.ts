@@ -159,6 +159,14 @@ export interface PickupDef {
   readonly magnetSpeed?: number;
   /** Left on the ground rather than recycled when the player walks away; chests are come-back-for. */
   readonly persistent?: boolean;
+  /**
+   * The least time that may pass between two of these dropping, in run milliseconds.
+   *
+   * A flat per-kill chance is a positive feedback loop for anything valuable: a run that is going
+   * well kills more, so it drops more, so it gets stronger. Measured, one seed on a wide view ended
+   * at level 53 with 6,522 kills and about twenty-six of these, while an ordinary run saw one.
+   */
+  readonly minIntervalMs?: number;
   readonly sfx: string;
 }
 
