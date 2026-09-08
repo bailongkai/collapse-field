@@ -10,7 +10,7 @@ import { app } from '../game/app';
 import { loadSave, writeSave } from '../core/save/saveData';
 import { VERSION } from '../config';
 
-export type SceneName = 'boot' | 'preload' | 'menu' | 'game' | 'levelup' | 'pause' | 'results';
+export type SceneName = 'boot' | 'preload' | 'menu' | 'game' | 'levelup' | 'chest' | 'pause' | 'results';
 
 export interface FrameStats {
   frames: number;
@@ -40,6 +40,7 @@ export interface HookRunState {
   xpNext: number;
   kills: number;
   gold: number;
+  chestsOpened: number;
   player: { x: number; y: number; facing: number };
   counts: { enemies: number; projectiles: number; gems: number; pickups: number; dmgNumbers: number };
   pickups: { id: number; defId: string; x: number; y: number }[];
@@ -143,7 +144,8 @@ export function installHook(game: Phaser.Game, contentProvider: () => GameDebugA
     phaser: game,
     scene() {
       const active = game.scene.getScenes(true).map((s) => s.scene.key);
-      for (const k of ['LevelUp', 'Pause', 'Results', 'Game', 'Menu', 'Preload', 'Boot']) {
+      // most-specific first: an overlay is what the player is looking at, whatever is behind it
+      for (const k of ['Chest', 'LevelUp', 'Pause', 'Results', 'Game', 'Menu', 'Preload', 'Boot']) {
         if (active.includes(k)) return sceneKeyToName(k);
       }
       return 'boot';

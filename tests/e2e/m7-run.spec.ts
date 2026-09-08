@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openGame, snap, startRun, state, stepResolving, events, waitScene, expectScenes } from './helpers';
+import { openGame, snap, startRun, state, stepResolving, events, waitScene, expectScenes, press } from './helpers';
 
 test('M7: the boss arrives, drops a chest and the chest upgrades a weapon', async ({ page }) => {
   const errors = await openGame(page, '?test=1&seed=31');
@@ -18,17 +18,25 @@ test('M7: the boss arrives, drops a chest and the chest upgrades a weapon', asyn
   expect(withBoss.enemies.byBehavior.boss).toBe(1);
   await snap(page, 'm7-boss');
 
-  const before = (await state(page)).weapons.reduce((n, w) => n + w.level, 0);
+  const levels = (s: Awaited<ReturnType<typeof state>>): number =>
+    [...s.weapons, ...s.passives].reduce((n, w) => n + w.level, 0);
+  const before = levels(await state(page));
   await page.evaluate(() => window.__game.killAll());
   await stepResolving(page, 2);
   expect((await state(page)).enemies.byBehavior.boss).toBe(0);
 
-  const chest = (await state(page)).pickups.find((p) => p.defId === 'chest');
+  const chest = (await state(page)).pickups.find((p) => p.defId === 'bossChest');
   expect(chest, 'the boss dropped a supply chest').toBeDefined();
   await page.evaluate((x) => window.__game.setPlayerPos(x.x, x.y), { x: chest!.x, y: chest!.y });
   await stepResolving(page, 4);
   expect(await events(page)).toContain('pickup:chest');
-  expect((await state(page)).weapons.reduce((n, w) => n + w.level, 0)).toBeGreaterThan(before);
+  expect(levels(await state(page)), 'the boss chest paid out nothing').toBeGreaterThan(before);
+
+  // the reveal is up over the frozen field; dismiss it and the run carries on
+  await waitScene(page, 'chest');
+  await press(page, 'chest.continue');
+  await press(page, 'chest.continue');
+  await waitScene(page, 'game');
 
   expect(errors, errors.join('\n')).toEqual([]);
 });

@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { openGame, snap, state, waitScene, realWait } from './helpers';
+import { openGame, snap, state, waitScene, realWait, startRun, step, press } from './helpers';
 
 /**
  * A phone held upright. The view takes the shape of the display rather than being letterboxed, so
@@ -134,5 +134,37 @@ test('portrait: the shop and results screens fit', async ({ page }) => {
   for (const b of await page.evaluate(() => window.__game.ui.buttons())) {
     expect(b.y + b.hitH / 2, `${b.id} overflows the bottom`).toBeLessThanOrEqual(v.logicalH + 1);
   }
+  expect(errors, errors.join('\n')).toEqual([]);
+});
+
+test('portrait: the chest reveal fits an upright phone', async ({ page }) => {
+  const errors = await openGame(page, '?test=1&seed=41');
+  await startRun(page, 41);
+  await waitScene(page, 'game');
+  await page.evaluate(() => {
+    window.__game.setTimeScale(0);
+    window.__game.godMode(true);
+    window.__game.giveWeapon('guidedLaser', 3);
+    window.__game.givePassive('reactorCore', 2);
+    const s = window.__game.getState();
+    window.__game.spawnPickup('bossChest', s.player.x, s.player.y);
+  });
+  await step(page, 4);
+  await waitScene(page, 'chest');
+  await press(page, 'chest.continue');
+
+  const view = await page.evaluate(() => ({ w: window.__game.phaser.scale.width, h: window.__game.phaser.scale.height }));
+  expect(view.h, 'the view should be taller than it is wide').toBeGreaterThan(view.w);
+  // the panel and its one button have to sit inside the screen, not off the bottom of it
+  const btn = (await page.evaluate(() => window.__game.ui.buttons())).find((b) => b.id === 'chest.continue');
+  expect(btn, 'the reveal had nothing to press').toBeDefined();
+  expect(btn!.x).toBeGreaterThan(0);
+  expect(btn!.x).toBeLessThan(view.w);
+  expect(btn!.y).toBeGreaterThan(0);
+  expect(btn!.y).toBeLessThan(view.h);
+
+  await snap(page, 'portrait-chest');
+  await press(page, 'chest.continue');
+  await waitScene(page, 'game');
   expect(errors, errors.join('\n')).toEqual([]);
 });

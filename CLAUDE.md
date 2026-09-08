@@ -45,7 +45,24 @@ this shifts the whole difficulty curve, so re-measure with
 Weapons evolve rather than only levelling: a maxed weapon plus its paired
 passive turns the next supply chest into an evolution. Evolutions live in the
 same weapon table with `evolvedOnly`, are never offered on level-up, and replace
-their base in place. Enemy behaviour is a per-instance state machine on
+their base in place.
+
+Supply chests are what make that reachable, and the reason is arithmetic worth
+remembering. Evolving needs seven levels on one weapon; a run hands out about
+nine level-ups; the offer shows three cards drawn from ten items, so the weapon
+being pushed appears about a third of the time. With the two boss chests the
+stage used to have, sixteen measured seeds produced zero evolutions — five
+weapons of content nobody had ever seen. A chest concentrates where a level-up
+scatters: `src/core/levelup/chest.ts` weights rewards steeply towards whatever
+is nearest to maxing, so a five-reward chest can finish a weapon.
+
+A chest resolves entirely inside `Simulation.openChest`, on the tick it is
+collected, and pushes a `ChestResult` onto `run.chestQueue`. `ChestScene` is
+theatre played over a decision already made. That is deliberate: it means chests
+need no run phase of their own, so the balance harness, `stepResolving` and
+`fastForward` all work without knowing they exist. `fastForward` does have to
+drain the queue, or one chest pauses the run and the span returns early looking
+like a run that simply ended. Enemy behaviour is a per-instance state machine on
 `aiState` / `aiTimer` / `aiTimer2`, which is how the ranged, dashing and boss
 enemies telegraph before they act.
 

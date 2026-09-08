@@ -50,6 +50,7 @@ export class GameScene extends Phaser.Scene {
   private profiler = new Profiler();
   private accumulator = 0;
   private levelUpPending = false;
+  private chestPending = false;
   private timeScale = 1;
   private layers!: Record<
     'floor' | 'decor' | 'shadows' | 'gems' | 'pickups' | 'enemies' | 'player' | 'projectiles' | 'fx' | 'numbers',
@@ -65,6 +66,7 @@ export class GameScene extends Phaser.Scene {
     this.accumulator = 0;
     this.timeScale = 1;
     this.levelUpPending = false;
+    this.chestPending = false;
     this.slotCache = [];
 
     const seed = data.seed ?? app().seed ?? (Date.now() >>> 0);
@@ -135,9 +137,11 @@ export class GameScene extends Phaser.Scene {
     this.scale.off(Phaser.Scale.Events.RESIZE, this.onResize, this);
     this.scene.stop('Hud');
     this.scene.stop('LevelUp');
+    this.scene.stop('Chest');
     this.scene.stop('Pause');
     this.profiler.detach();
     this.levelUpPending = false;
+    this.chestPending = false;
     this.offTouch?.();
     this.offTouch = null;
     this.joystick.destroy();
@@ -204,6 +208,34 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  /**
+   * Opens the chest reveal. Unlike the level-up overlay this does not pause the Game scene: the
+   * frozen battlefield keeps rendering behind the panel, which is most of what makes the moment
+   * feel like a moment. The clock is stopped through the simulation instead.
+   */
+  private openChestOverlay(): void {
+    if (this.chestPending || this.scene.isActive('Chest')) return;
+    this.chestPending = true;
+    this.sim.pause();
+    this.scene.launch('Chest');
+    this.scene.bringToTop('Chest');
+    // the launch is queued to a frame boundary, so the guard is handed to the scene itself
+    this.scene.get('Chest').events.once(Phaser.Scenes.Events.CREATE, () => {
+      this.chestPending = false;
+    });
+  }
+
+  /** Called by the reveal when it is finished with. */
+  closeChestOverlay(): void {
+    this.scene.stop('Chest');
+    // Two chests can be collected on the same tick. The next one is NOT opened here: the stop above
+    // is queued to a frame boundary, so `scene.isActive('Chest')` is still true for the rest of this
+    // one and opening now would be refused and the queue would strand, leaving the run paused
+    // forever. update() opens it on a later frame instead, and the clock stays stopped until the
+    // queue is empty because resume() is what hands it back.
+    if (this.sim.run.chestQueue.length === 0) this.sim.resume();
+  }
+
   /** Called by the overlay; applies the pick and closes or re-rolls in place. */
   applyLevelUpChoice(index: number): boolean {
     if (!this.sim.applyChoice(index)) return false;
@@ -244,7 +276,13 @@ export class GameScene extends Phaser.Scene {
     this.profiler.markSync(performance.now() - syncStart);
     this.profiler.endFrame();
 
-    if (run.phase === 'levelup') this.openLevelUpOverlay();
+    // A chest and a level-up can land on the same tick. The chest goes first and the level-up
+    // waits, because two overlays opening on top of each other reads as a bug. The phases cooperate
+    // by accident and it is worth saying why: sim.pause() only moves out of 'running', so a chest
+    // opened during a level-up leaves the phase alone, and closing it leaves the level-up intact.
+    const chestBusy = run.chestQueue.length > 0 || this.chestPending || this.scene.isActive('Chest');
+    if (run.chestQueue.length > 0) this.openChestOverlay();
+    if (run.phase === 'levelup' && !chestBusy) this.openLevelUpOverlay();
     if (run.phase === 'ended') this.finishRun();
   }
 
@@ -376,8 +414,8 @@ export class GameScene extends Phaser.Scene {
           sfx.play('boss');
           break;
         case 'chest':
-          if (e.n > 0) this.toast(t('toast.chest', { n: e.n }));
-          sfx.play('levelup');
+          // no toast: the reveal that is about to open says all of this at length, and a banner
+          // sliding past behind the panel only competes with it
           break;
         case 'evolve': {
           const def = this.sim.reg.weapons[e.id];
@@ -454,6 +492,7 @@ export class GameScene extends Phaser.Scene {
       xpNext: run.xpNext,
       kills: run.kills,
       gold: run.gold,
+      chestsOpened: run.chestsOpened,
       player: { x: w.player.x, y: w.player.y, facing: w.player.facing },
       counts: {
         enemies: w.enemies.count,
@@ -505,6 +544,16 @@ export class GameScene extends Phaser.Scene {
           // Resolve every pending offer before stepping again, otherwise the run sits frozen for
           // the rest of the span. Crossing two thresholds at once leaves the phase on 'levelup'
           // after the first pick, so this has to drain the queue rather than assume one pick ends it.
+          // A chest reveal is theatre over a result the simulation has already committed, so a
+          // hands-off span drains it rather than sitting behind it. Without this one chest pauses
+          // the run and the fast-forward returns early having played a fraction of the span it was
+          // asked for — quietly, because it looks like a run that simply ended.
+          if (this.sim.run.chestQueue.length > 0 || this.scene.isActive('Chest')) {
+            this.sim.run.chestQueue.length = 0;
+            this.scene.stop('Chest');
+            this.chestPending = false;
+            this.sim.resume();
+          }
           if (this.sim.run.phase === 'levelup') {
             if (policy === 'none') break;
             let picks = 0;

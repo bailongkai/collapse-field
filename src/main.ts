@@ -8,6 +8,7 @@ import { MenuScene } from './game/scenes/MenuScene';
 import { GameScene } from './game/scenes/GameScene';
 import { HudScene } from './game/scenes/HudScene';
 import { LevelUpScene } from './game/scenes/LevelUpScene';
+import { ChestScene } from './game/scenes/ChestScene';
 import { PauseScene } from './game/scenes/PauseScene';
 import { SettingsScene } from './game/scenes/SettingsScene';
 import { ShopScene } from './game/scenes/ShopScene';
@@ -32,7 +33,8 @@ const config: Phaser.Types.Core.GameConfig = {
   input: { gamepad: true, activePointers: 3 },
   render: { antialias: true, roundPixels: false },
   fps: { target: 60, forceSetTimeOut: false },
-  scene: [BootScene, PreloadScene, MenuScene, GameScene, HudScene, LevelUpScene, PauseScene, SettingsScene, ShopScene, ResultsScene],
+  scene: [BootScene, PreloadScene, MenuScene, GameScene, HudScene, LevelUpScene,
+    ChestScene, PauseScene, SettingsScene, ShopScene, ResultsScene],
 };
 
 const game = new Phaser.Game(config);
