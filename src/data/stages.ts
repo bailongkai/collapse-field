@@ -39,12 +39,12 @@ const EVENTS: readonly WaveEvent[] = [
   { at: 90, kind: 'swarm', enemy: 'interceptor', count: 25, pattern: 'hLine' },
   { at: 150, kind: 'elite', enemy: 'sentinel', hpMult: 1 },
   { at: 210, kind: 'swarm', enemy: 'drone', count: 40, pattern: 'vLine' },
-  { at: 300, kind: 'boss', enemy: 'mothership', hpMult: 1 },
+  { at: 300, kind: 'boss', enemy: 'mothership', hpMult: 1 }, // 400 hp: about 23 s of ideal output
   { at: 330, kind: 'elite', enemy: 'sentinel', hpMult: 2 },
   { at: 390, kind: 'swarm', enemy: 'interceptor', count: 35, pattern: 'diag' },
   { at: 510, kind: 'elite', enemy: 'sentinel', hpMult: 3.2 },
   { at: 540, kind: 'swarm', enemy: 'interceptor', count: 40, pattern: 'hLine' },
-  { at: 600, kind: 'boss', enemy: 'mothership', hpMult: 1.5 },
+  { at: 600, kind: 'boss', enemy: 'mothership', hpMult: 5.5 }, // 2200 hp: about 13 s, on a build ten times stronger
   { at: 690, kind: 'ring', enemy: 'robot', count: 40, radius: 520 },
   { at: 700, kind: 'elite', enemy: 'sentinel', hpMult: 4.5 },
   { at: 810, kind: 'swarm', enemy: 'interceptor', count: 50, pattern: 'hLine', speedMult: 1.2 },

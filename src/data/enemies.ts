@@ -51,9 +51,15 @@ export const ENEMIES = {
     behavior: 'dasher', deathFx: 'small',
     dash: { triggerRange: 240, telegraphMs: 500, durationMs: 450, speedMult: 5, cooldownMs: 2200 },
   },
+  /**
+   * 母舰. Its health lives in the two boss events rather than here, because the two fights are five
+   * minutes apart and the build in between them is not comparable. Measured over the runs that
+   * actually reach each boss: about 17 damage per second at 5:00 and about 173 at 10:00, ten times
+   * as much. A single number for both is a wall at the first and a formality at the second.
+   */
   mothership: {
     id: 'mothership', nameKey: 'enemy.mothership.name', frame: 'enemy_mothership', faceTarget: false,
-    hp: 1500, damage: 25, speed: 55, radius: 60, gemTier: 'red', gemCount: 10, knockbackResist: 1,
+    hp: 400, damage: 25, speed: 55, radius: 60, gemTier: 'red', gemCount: 10, knockbackResist: 1,
     behavior: 'boss', bossBar: true, drops: [{ pickup: 'bossChest', chance: 1 }], deathFx: 'big',
     boss: { chargeEveryMs: 6000, telegraphMs: 900, chargeMs: 700, chargeSpeedMult: 4.5, summon: 'drone', summonCount: 6, summonEveryMs: 9000 },
   },

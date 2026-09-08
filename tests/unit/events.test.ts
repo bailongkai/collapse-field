@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Simulation } from '../../src/core/sim/simulation';
-import { stageDef } from '../../src/core/content/registry';
+import { enemyDef, stageDef } from '../../src/core/content/registry';
 import { spawnRingRadius } from '../../src/core/sim/systems/spawnSystem';
 import { REF_H, REF_W } from '../../src/config';
 import type { Enemy } from '../../src/core/sim/entities/enemy';
@@ -97,7 +97,7 @@ describe('boss', () => {
     s.spawnBoss();
     const boss = byBehavior(s, 'boss')[0];
     expect(boss).toBeDefined();
-    expect(boss.maxHp).toBe(1500);
+    expect(boss.maxHp).toBe(enemyDef('mothership').hp); // the 5:00 event fights it at hpMult 1
 
     // even far away it keeps chasing rather than being teleported to the ring
     boss.x = s.world.player.x + spawnRingRadius(stage, REF_W, REF_H) * 5;
