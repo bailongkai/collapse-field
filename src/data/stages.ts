@@ -52,12 +52,124 @@ const EVENTS: readonly WaveEvent[] = [
   { at: 900, kind: 'reaper', enemy: 'annihilator' },
 ];
 
+/** 货运甲板: fewer, harder bodies. The density is low so every hit lands on something that matters. */
+const CARGO_WAVES: readonly WaveEntry[] = [
+  { minute: 0, mix: mix(['robot', 0.7], ['drone', 0.3]), minCount: 10, interval: 1600, batch: 2, hpMult: 1.1, dmgMult: 1.0 },
+  { minute: 1, mix: mix(['robot', 0.6], ['drone', 0.2], ['dasher', 0.2]), minCount: 16, interval: 1000, batch: 2, hpMult: 1.25, dmgMult: 1.0 },
+  { minute: 2, mix: mix(['robot', 0.5], ['dasher', 0.25], ['mech', 0.25]), minCount: 22, interval: 900, batch: 3, hpMult: 1.4, dmgMult: 1.05 },
+  { minute: 3, mix: mix(['robot', 0.4], ['dasher', 0.25], ['mech', 0.25], ['loader', 0.1]), minCount: 28, interval: 850, batch: 3, hpMult: 1.55, dmgMult: 1.05 },
+  { minute: 4, mix: mix(['robot', 0.35], ['dasher', 0.25], ['mech', 0.25], ['loader', 0.15]), minCount: 34, interval: 800, batch: 3, hpMult: 1.7, dmgMult: 1.1 },
+  { minute: 5, mix: mix(['robot', 0.3], ['dasher', 0.25], ['mech', 0.3], ['loader', 0.15]), minCount: 40, interval: 750, batch: 4, hpMult: 1.85, dmgMult: 1.1 },
+  { minute: 6, mix: mix(['robot', 0.25], ['dasher', 0.25], ['mech', 0.3], ['loader', 0.2]), minCount: 46, interval: 700, batch: 4, hpMult: 2.0, dmgMult: 1.15 },
+  { minute: 7, mix: mix(['robot', 0.25], ['dasher', 0.2], ['mech', 0.35], ['loader', 0.2]), minCount: 52, interval: 650, batch: 4, hpMult: 2.1, dmgMult: 1.15 },
+  { minute: 8, mix: mix(['robot', 0.2], ['dasher', 0.2], ['mech', 0.35], ['loader', 0.25]), minCount: 58, interval: 600, batch: 4, hpMult: 2.2, dmgMult: 1.2 },
+  { minute: 9, mix: mix(['robot', 0.2], ['dasher', 0.2], ['mech', 0.35], ['loader', 0.25]), minCount: 64, interval: 600, batch: 5, hpMult: 2.3, dmgMult: 1.2 },
+  { minute: 10, mix: mix(['dasher', 0.25], ['mech', 0.4], ['loader', 0.35]), minCount: 70, interval: 550, batch: 5, hpMult: 2.4, dmgMult: 1.25 },
+  { minute: 11, mix: mix(['dasher', 0.25], ['mech', 0.4], ['loader', 0.35]), minCount: 76, interval: 550, batch: 5, hpMult: 2.5, dmgMult: 1.25 },
+  { minute: 12, mix: mix(['robot', 0.15], ['dasher', 0.2], ['mech', 0.35], ['loader', 0.3]), minCount: 84, interval: 500, batch: 5, hpMult: 2.5, dmgMult: 1.3 },
+  { minute: 13, mix: mix(['dasher', 0.25], ['mech', 0.35], ['loader', 0.4]), minCount: 92, interval: 500, batch: 6, hpMult: 2.5, dmgMult: 1.3 },
+  { minute: 14, mix: mix(['dasher', 0.2], ['mech', 0.35], ['loader', 0.45]), minCount: 100, interval: 450, batch: 6, hpMult: 2.5, dmgMult: 1.3 },
+];
+const CARGO_EVENTS: readonly WaveEvent[] = [
+  { at: 90, kind: 'ring', enemy: 'robot', count: 18, radius: 420 },
+  { at: 150, kind: 'elite', enemy: 'sentinel', hpMult: 1.4 },
+  { at: 240, kind: 'swarm', enemy: 'dasher', count: 16, pattern: 'hLine' },
+  { at: 300, kind: 'boss', enemy: 'hauler', hpMult: 1 },
+  { at: 330, kind: 'elite', enemy: 'sentinel', hpMult: 2.4 },
+  { at: 420, kind: 'ring', enemy: 'mech', count: 14, radius: 480 },
+  { at: 510, kind: 'elite', enemy: 'sentinel', hpMult: 3.6 },
+  { at: 570, kind: 'swarm', enemy: 'dasher', count: 24, pattern: 'diag' },
+  { at: 600, kind: 'boss', enemy: 'hauler', hpMult: 4.5 },
+  { at: 700, kind: 'elite', enemy: 'sentinel', hpMult: 5 },
+  { at: 750, kind: 'ring', enemy: 'loader', count: 12, radius: 520 },
+  { at: 850, kind: 'elite', enemy: 'sentinel', hpMult: 6 },
+  { at: 900, kind: 'reaper', enemy: 'annihilator' },
+];
+
+/** 生物实验舱: numbers. Weak bodies in great quantity, with the swarm events doubled. */
+const LAB_WAVES: readonly WaveEntry[] = [
+  { minute: 0, mix: mix(['spore', 0.6], ['infected', 0.4]), minCount: 24, interval: 900, batch: 4, hpMult: 1.0, dmgMult: 1.0 },
+  { minute: 1, mix: mix(['spore', 0.55], ['infected', 0.45]), minCount: 40, interval: 600, batch: 5, hpMult: 1.05, dmgMult: 1.0 },
+  { minute: 2, mix: mix(['spore', 0.5], ['infected', 0.4], ['spitter', 0.1]), minCount: 60, interval: 500, batch: 6, hpMult: 1.1, dmgMult: 1.0 },
+  { minute: 3, mix: mix(['spore', 0.45], ['infected', 0.4], ['spitter', 0.15]), minCount: 80, interval: 450, batch: 7, hpMult: 1.2, dmgMult: 1.05 },
+  { minute: 4, mix: mix(['spore', 0.45], ['infected', 0.35], ['spitter', 0.2]), minCount: 100, interval: 400, batch: 8, hpMult: 1.3, dmgMult: 1.05 },
+  { minute: 5, mix: mix(['spore', 0.4], ['infected', 0.35], ['spitter', 0.2], ['dasher', 0.05]), minCount: 120, interval: 400, batch: 8, hpMult: 1.4, dmgMult: 1.1 },
+  { minute: 6, mix: mix(['spore', 0.4], ['infected', 0.3], ['spitter', 0.2], ['dasher', 0.1]), minCount: 140, interval: 350, batch: 9, hpMult: 1.5, dmgMult: 1.1 },
+  { minute: 7, mix: mix(['spore', 0.35], ['infected', 0.35], ['spitter', 0.2], ['dasher', 0.1]), minCount: 160, interval: 350, batch: 10, hpMult: 1.6, dmgMult: 1.15 },
+  { minute: 8, mix: mix(['spore', 0.35], ['infected', 0.3], ['spitter', 0.25], ['dasher', 0.1]), minCount: 180, interval: 300, batch: 10, hpMult: 1.75, dmgMult: 1.15 },
+  { minute: 9, mix: mix(['spore', 0.3], ['infected', 0.35], ['spitter', 0.25], ['dasher', 0.1]), minCount: 200, interval: 300, batch: 11, hpMult: 1.9, dmgMult: 1.2 },
+  { minute: 10, mix: mix(['spore', 0.3], ['infected', 0.3], ['spitter', 0.25], ['dasher', 0.15]), minCount: 220, interval: 280, batch: 12, hpMult: 2.05, dmgMult: 1.2 },
+  { minute: 11, mix: mix(['spore', 0.3], ['infected', 0.3], ['spitter', 0.25], ['dasher', 0.15]), minCount: 240, interval: 260, batch: 12, hpMult: 2.2, dmgMult: 1.25 },
+  { minute: 12, mix: mix(['spore', 0.25], ['infected', 0.3], ['spitter', 0.3], ['dasher', 0.15]), minCount: 260, interval: 250, batch: 13, hpMult: 2.35, dmgMult: 1.25 },
+  { minute: 13, mix: mix(['spore', 0.25], ['infected', 0.3], ['spitter', 0.3], ['dasher', 0.15]), minCount: 280, interval: 240, batch: 14, hpMult: 2.5, dmgMult: 1.3 },
+  { minute: 14, mix: mix(['spore', 0.2], ['infected', 0.3], ['spitter', 0.3], ['dasher', 0.2]), minCount: 300, interval: 220, batch: 15, hpMult: 2.5, dmgMult: 1.3 },
+];
+const LAB_EVENTS: readonly WaveEvent[] = [
+  { at: 60, kind: 'swarm', enemy: 'spore', count: 50, pattern: 'hLine' },
+  { at: 150, kind: 'elite', enemy: 'sentinel', hpMult: 1 },
+  { at: 180, kind: 'swarm', enemy: 'infected', count: 40, pattern: 'vLine' },
+  { at: 240, kind: 'swarm', enemy: 'spore', count: 80, pattern: 'diag' },
+  { at: 300, kind: 'boss', enemy: 'broodmother', hpMult: 1 },
+  { at: 330, kind: 'elite', enemy: 'sentinel', hpMult: 2 },
+  { at: 390, kind: 'swarm', enemy: 'spore', count: 100, pattern: 'hLine' },
+  { at: 450, kind: 'ring', enemy: 'infected', count: 60, radius: 500 },
+  { at: 510, kind: 'elite', enemy: 'sentinel', hpMult: 3.2 },
+  { at: 540, kind: 'swarm', enemy: 'spore', count: 120, pattern: 'vLine', speedMult: 1.2 },
+  { at: 600, kind: 'boss', enemy: 'broodmother', hpMult: 4 },
+  { at: 690, kind: 'swarm', enemy: 'infected', count: 70, pattern: 'diag' },
+  { at: 700, kind: 'elite', enemy: 'sentinel', hpMult: 4.5 },
+  { at: 780, kind: 'ring', enemy: 'spitter', count: 40, radius: 520 },
+  { at: 810, kind: 'swarm', enemy: 'spore', count: 150, pattern: 'hLine', speedMult: 1.3 },
+  { at: 850, kind: 'elite', enemy: 'sentinel', hpMult: 5.5 },
+  { at: 900, kind: 'reaper', enemy: 'annihilator' },
+];
+
+/**
+ * 外层轨道: speed. Everything here moves faster than it does anywhere else, and from minute six
+ * the ordinary spawns are quicker than the player, so a straight line stops being an answer.
+ */
+const ORBIT_WAVES: readonly WaveEntry[] = [
+  { minute: 0, mix: mix(['drone', 0.7], ['raider', 0.3]), minCount: 14, interval: 1300, batch: 2, hpMult: 1.0, dmgMult: 1.0, speedMult: 1.1 },
+  { minute: 1, mix: mix(['drone', 0.5], ['raider', 0.4], ['interceptor', 0.1]), minCount: 26, interval: 800, batch: 3, hpMult: 1.1, dmgMult: 1.0, speedMult: 1.1 },
+  { minute: 2, mix: mix(['drone', 0.4], ['raider', 0.4], ['interceptor', 0.2]), minCount: 38, interval: 700, batch: 4, hpMult: 1.2, dmgMult: 1.05, speedMult: 1.15 },
+  { minute: 3, mix: mix(['drone', 0.3], ['raider', 0.4], ['interceptor', 0.2], ['escort', 0.1]), minCount: 50, interval: 650, batch: 4, hpMult: 1.3, dmgMult: 1.05, speedMult: 1.15 },
+  { minute: 4, mix: mix(['raider', 0.4], ['interceptor', 0.25], ['escort', 0.2], ['spitter', 0.15]), minCount: 60, interval: 600, batch: 5, hpMult: 1.4, dmgMult: 1.1, speedMult: 1.2 },
+  { minute: 5, mix: mix(['raider', 0.4], ['interceptor', 0.25], ['escort', 0.2], ['dasher', 0.15]), minCount: 70, interval: 600, batch: 5, hpMult: 1.5, dmgMult: 1.1, speedMult: 1.2 },
+  { minute: 6, mix: mix(['raider', 0.35], ['interceptor', 0.3], ['escort', 0.2], ['dasher', 0.15]), minCount: 85, interval: 550, batch: 5, hpMult: 1.65, dmgMult: 1.15, speedMult: 1.25 },
+  { minute: 7, mix: mix(['raider', 0.35], ['interceptor', 0.3], ['escort', 0.2], ['mech', 0.15]), minCount: 100, interval: 500, batch: 6, hpMult: 1.8, dmgMult: 1.15, speedMult: 1.25 },
+  { minute: 8, mix: mix(['raider', 0.3], ['interceptor', 0.3], ['escort', 0.25], ['mech', 0.15]), minCount: 115, interval: 500, batch: 6, hpMult: 1.95, dmgMult: 1.2, speedMult: 1.3 },
+  { minute: 9, mix: mix(['raider', 0.3], ['interceptor', 0.3], ['escort', 0.25], ['dasher', 0.15]), minCount: 130, interval: 450, batch: 6, hpMult: 2.1, dmgMult: 1.2, speedMult: 1.3 },
+  { minute: 10, mix: mix(['raider', 0.3], ['interceptor', 0.3], ['escort', 0.2], ['mech', 0.2]), minCount: 150, interval: 450, batch: 7, hpMult: 2.25, dmgMult: 1.25, speedMult: 1.35 },
+  { minute: 11, mix: mix(['raider', 0.3], ['interceptor', 0.3], ['escort', 0.25], ['dasher', 0.15]), minCount: 170, interval: 400, batch: 7, hpMult: 2.4, dmgMult: 1.25, speedMult: 1.35 },
+  { minute: 12, mix: mix(['raider', 0.3], ['interceptor', 0.3], ['escort', 0.2], ['mech', 0.2]), minCount: 190, interval: 400, batch: 8, hpMult: 2.5, dmgMult: 1.3, speedMult: 1.4 },
+  { minute: 13, mix: mix(['raider', 0.3], ['interceptor', 0.3], ['escort', 0.25], ['dasher', 0.15]), minCount: 220, interval: 350, batch: 8, hpMult: 2.5, dmgMult: 1.3, speedMult: 1.4 },
+  { minute: 14, mix: mix(['raider', 0.35], ['interceptor', 0.3], ['escort', 0.2], ['mech', 0.15]), minCount: 250, interval: 300, batch: 10, hpMult: 2.5, dmgMult: 1.3, speedMult: 1.45 },
+];
+const ORBIT_EVENTS: readonly WaveEvent[] = [
+  { at: 90, kind: 'swarm', enemy: 'raider', count: 25, pattern: 'hLine', speedMult: 1.2 },
+  { at: 150, kind: 'elite', enemy: 'sentinel', hpMult: 1 },
+  { at: 210, kind: 'swarm', enemy: 'interceptor', count: 40, pattern: 'vLine', speedMult: 1.2 },
+  { at: 300, kind: 'boss', enemy: 'flagship', hpMult: 1 },
+  { at: 330, kind: 'elite', enemy: 'sentinel', hpMult: 2 },
+  { at: 390, kind: 'swarm', enemy: 'raider', count: 35, pattern: 'diag', speedMult: 1.3 },
+  { at: 510, kind: 'elite', enemy: 'sentinel', hpMult: 3.2 },
+  { at: 540, kind: 'ring', enemy: 'escort', count: 24, radius: 520 },
+  { at: 600, kind: 'boss', enemy: 'flagship', hpMult: 4 },
+  { at: 690, kind: 'ring', enemy: 'raider', count: 50, radius: 520 },
+  { at: 700, kind: 'elite', enemy: 'sentinel', hpMult: 4.5 },
+  { at: 810, kind: 'swarm', enemy: 'interceptor', count: 60, pattern: 'hLine', speedMult: 1.4 },
+  { at: 850, kind: 'elite', enemy: 'sentinel', hpMult: 5.5 },
+  { at: 900, kind: 'reaper', enemy: 'annihilator' },
+];
+
 export const STAGES = {
   station: {
     id: 'station',
     nameKey: 'stage.station.name',
+    descKey: 'stage.station.desc',
+    order: 0,
     durationSec: 900,
-    floorTexture: 'floor',
+    floorTexture: 'floor_station',
     floorTint: 0xc8d4e6,
     decorFrames: ['decor_0', 'decor_1', 'decor_2', 'decor_3', 'decor_4', 'decor_5', 'decor_6', 'decor_7'],
     waves: WAVES,
@@ -66,7 +178,56 @@ export const STAGES = {
     spawnMargin: 96,
     despawnFactor: 1.6,
   },
+  cargo: {
+    id: 'cargo',
+    nameKey: 'stage.cargo.name',
+    descKey: 'stage.cargo.desc',
+    order: 1,
+    durationSec: 900,
+    floorTexture: 'floor_cargo',
+    floorTint: 0xd8c8b0,
+    decorFrames: ['decor_cargo_0', 'decor_cargo_1', 'decor_cargo_2', 'decor_cargo_3', 'decor_cargo_4'],
+    waves: CARGO_WAVES,
+    events: CARGO_EVENTS,
+    gemCap: 300,
+    spawnMargin: 96,
+    despawnFactor: 1.6,
+  },
+  lab: {
+    id: 'lab',
+    nameKey: 'stage.lab.name',
+    descKey: 'stage.lab.desc',
+    order: 2,
+    durationSec: 900,
+    floorTexture: 'floor_lab',
+    floorTint: 0x8fd8b0,
+    decorFrames: ['decor_lab_0', 'decor_lab_1', 'decor_lab_2', 'decor_lab_3', 'decor_lab_4', 'decor_lab_5', 'decor_lab_6'],
+    waves: LAB_WAVES,
+    events: LAB_EVENTS,
+    // more bodies means more gems; the cap goes up so late experience is not folded away
+    gemCap: 400,
+    spawnMargin: 96,
+    despawnFactor: 1.6,
+  },
+  orbit: {
+    id: 'orbit',
+    nameKey: 'stage.orbit.name',
+    descKey: 'stage.orbit.desc',
+    order: 3,
+    durationSec: 900,
+    floorTexture: 'floor_orbit',
+    floorTint: 0x9fb4d8,
+    decorFrames: ['decor_orbit_0', 'decor_orbit_1', 'decor_orbit_2', 'decor_orbit_3', 'decor_orbit_4', 'decor_orbit_5'],
+    waves: ORBIT_WAVES,
+    events: ORBIT_EVENTS,
+    gemCap: 300,
+    spawnMargin: 120,
+    despawnFactor: 1.6,
+  },
 } as const satisfies Record<string, StageDef>;
+
+/** Stages in campaign order. */
+export const STAGE_ORDER: readonly StageDef[] = Object.values(STAGES).slice().sort((a, b) => a.order - b.order);
 
 export type StageId = keyof typeof STAGES;
 export const STAGE_LIST: readonly StageDef[] = Object.values(STAGES);

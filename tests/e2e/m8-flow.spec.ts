@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { openGame, snap, state, ff, waitScene, expectScenes, sceneName, realWait } from './helpers';
+import { openGame, snap, state, ff, waitScene, expectScenes, sceneName, realWait, pressStart } from './helpers';
 
 test('M8: menu to game to pause to results to menu, driven the way a player would', async ({ page }) => {
   const errors = await openGame(page, '?test=1&seed=71');
 
-  expect(await page.evaluate(() => window.__game.ui.press('menu.start'))).toBe(true);
+  await pressStart(page);
   await waitScene(page, 'game');
   await expectScenes(page, ['Game', 'Hud']);
 
@@ -108,6 +108,9 @@ test('M8: Enter on the menu does not start a run under an open panel', async ({ 
   await expectScenes(page, ['Menu']);
   await page.waitForFunction(() => window.__game.ui.buttons().some((b) => b.id === 'menu.start'));
   await page.keyboard.press('Enter');
+  // Enter opens the launch screen, and Enter there starts the run
+  await page.waitForFunction(() => window.__game.ui.buttons().some((b) => b.id === 'launch.start'));
+  await page.keyboard.press('Enter');
   await waitScene(page, 'game');
   expect(errors, errors.join('\n')).toEqual([]);
 });
@@ -115,7 +118,7 @@ test('M8: Enter on the menu does not start a run under an open panel', async ({ 
 test('M8: audio stays inside its caps during real play, and the score starts with the run', async ({ page }) => {
   const errors = await openGame(page, '?debug=1&seed=91');
   // the real Start button is the gesture that lets the browser begin audio
-  expect(await page.evaluate(() => window.__game.ui.press('menu.start'))).toBe(true);
+  await pressStart(page);
   await waitScene(page, 'game');
   await page.waitForFunction(() => window.__game.getPerf().musicPlaying === true, undefined, { timeout: 5000 });
   await page.evaluate(() => {

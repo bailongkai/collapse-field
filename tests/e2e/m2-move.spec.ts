@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openGame, snap, startRun, state, step, sceneName, realWait, waitScene, expectScenes } from './helpers';
+import { openGame, snap, startRun, state, step, sceneName, realWait, waitScene, expectScenes, pressStart } from './helpers';
 
 test('M2: fixed-step movement, camera follow and pause semantics', async ({ page }) => {
   const errors = await openGame(page, '?test=1&seed=42');
@@ -42,7 +42,7 @@ test('M2: fixed-step movement, camera follow and pause semantics', async ({ page
 
 test('M2: real keyboard input moves the player and the run can end into results', async ({ page }) => {
   const errors = await openGame(page, '?test=1&seed=7');
-  await page.evaluate(() => window.__game.ui.press('menu.start'));
+  await pressStart(page);
   await waitScene(page, 'game');
   // no experience means no level-up overlay can interrupt the movement being measured
   await page.evaluate(() => window.__game.setStat('growth', 0));

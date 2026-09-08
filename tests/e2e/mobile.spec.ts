@@ -18,6 +18,11 @@ test('mobile: a tap starts the run and the virtual stick drives the player', asy
   expect(startButton).toBeDefined();
   const startAt = await toScreen(page, startButton!.x, startButton!.y);
   await page.touchscreen.tap(startAt.x, startAt.y);
+  // Start opens the launch screen; its own Start begins the run
+  await page.waitForFunction(() => window.__game.ui.buttons().some((b) => b.id === 'launch.start'));
+  const go = await page.evaluate(() => window.__game.ui.buttons().find((b) => b.id === 'launch.start')!);
+  const goAt = await toScreen(page, go.x, go.y);
+  await page.touchscreen.tap(goAt.x, goAt.y);
   await waitScene(page, 'game');
 
   // touching the screen is what reveals the touch controls

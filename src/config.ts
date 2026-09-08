@@ -93,7 +93,7 @@ export const HIT_FLASH_MS = 80;
  * the grid stores an enemy's centre: a body whose centre is outside the query box can still
  * overlap it. A content test keeps this in step with the data.
  */
-export const MAX_ENEMY_RADIUS = 60;
+export const MAX_ENEMY_RADIUS = 72;
 
 export const WEAPON_SLOTS = 6;
 export const PASSIVE_SLOTS = 6;

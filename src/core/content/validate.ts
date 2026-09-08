@@ -55,12 +55,17 @@ export function validateContent(frames?: ReadonlySet<string>): string[] {
   for (const [key, d] of Object.entries(CONTENT.characters)) {
     check(d.id === key, `character ${key}: id mismatch`);
     check(hasKey(d.nameKey), `character ${key}: missing i18n ${d.nameKey}`);
+    check(hasKey(d.descKey), `character ${key}: missing i18n ${d.descKey}`);
     check(CONTENT.weapons[d.startingWeapon], `character ${key}: unknown starting weapon "${d.startingWeapon}"`);
+    check(d.cost === undefined || d.cost > 0, `character ${key}: cost must be positive when present`);
     frameOk(d.frame, `character ${key}`);
   }
+  const orders = Object.values(CONTENT.stages).map((s) => s.order).sort((a, b) => a - b);
+  check(orders.every((o, i) => o === i), `stages: orders must be 0..n-1, got ${orders.join(',')}`);
   for (const [key, s] of Object.entries(CONTENT.stages)) {
     check(s.id === key, `stage ${key}: id mismatch`);
     check(hasKey(s.nameKey), `stage ${key}: missing i18n ${s.nameKey}`);
+    check(hasKey(s.descKey), `stage ${key}: missing i18n ${s.descKey}`);
     const minutes = Math.ceil(s.durationSec / 60);
     check(s.waves.length >= minutes, `stage ${key}: ${s.waves.length} wave rows for ${minutes} minutes`);
     s.waves.forEach((w, i) => {
@@ -69,6 +74,7 @@ export function validateContent(frames?: ReadonlySet<string>): string[] {
       for (const m of w.mix) check(CONTENT.enemies[m.enemy], `stage ${key}: wave ${i} references unknown enemy "${m.enemy}"`);
       check(w.hpMult <= 2.5 + 1e-9, `stage ${key}: wave ${i} hpMult ${w.hpMult} exceeds the 2.5 cap`);
       check(w.dmgMult <= 1.3 + 1e-9, `stage ${key}: wave ${i} dmgMult ${w.dmgMult} exceeds the 1.3 cap`);
+      check((w.speedMult ?? 1) <= 1.5 + 1e-9, `stage ${key}: wave ${i} speedMult ${w.speedMult} exceeds the 1.5 cap`);
       check(w.minCount > 0 && w.interval > 0 && w.batch > 0, `stage ${key}: wave ${i} has a non-positive count/interval/batch`);
     });
     let prev = -1;

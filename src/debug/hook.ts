@@ -110,7 +110,7 @@ export interface GameDebugApi extends Omit<RunHandlers, 'profileStart' | 'profil
   ui: { buttons(): { id: string; x: number; y: number; hitW: number; hitH: number; enabled: boolean }[]; press(id: string): boolean };
   profile: { start(): void; stop(): FrameStats };
   screenshot(): Promise<string>;
-  content(): { weapons: string[]; passives: string[]; enemies: string[]; pickups: string[] };
+  content(): { weapons: string[]; passives: string[]; enemies: string[]; pickups: string[]; characters: string[]; stages: string[] };
   i18n: { setLocale(l: Locale): void; getLocale(): Locale; t(k: string): string };
   save: { get(): SaveData; reset(): void; addGold(n: number): void };
   mute(on: boolean): void;

@@ -25,7 +25,7 @@ export function dasherStep(e: Enemy, player: Player, dt: number): void {
       return;
     case DASH: {
       e.aiTimer -= ms;
-      const speed = e.def!.speed * cfg.speedMult;
+      const speed = e.def!.speed * e.speedMult * cfg.speedMult;
       e.x += e.dirX * speed * dt;
       e.y += e.dirY * speed * dt;
       if (e.aiTimer <= 0) {

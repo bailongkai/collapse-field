@@ -68,6 +68,11 @@ test('portrait: the whole flow works with taps alone', async ({ page }) => {
   const errors = await openGame(page, '?test=1');
   const start = await target(page, 'menu.start');
   await page.touchscreen.tap(start.x, start.y);
+  await page.waitForFunction(() => window.__game.ui.buttons().some((b) => b.id === 'launch.start'));
+  await snap(page, 'portrait-launch');
+  const go = await target(page, 'launch.start');
+  expect(go.h).toBeGreaterThanOrEqual(MIN_TOUCH_CSS);
+  await page.touchscreen.tap(go.x, go.y);
   await waitScene(page, 'game');
   await page.waitForFunction(() => window.__game.ui.buttons().some((b) => b.id === 'hud.pause' && b.enabled));
   await snap(page, 'portrait-game');

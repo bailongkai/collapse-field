@@ -65,7 +65,8 @@ export function spawnEnemy(world: World, defId: string, o: SpawnOptions = {}): E
   e.dmgMult = o.dmgMult ?? 1;
   e.dirX = o.dirX ?? 0;
   e.dirY = o.dirY ?? 0;
-  e.lineSpeed = def.speed * (o.speedMult ?? 1);
+  e.speedMult = o.speedMult ?? 1;
+  e.lineSpeed = def.speed * e.speedMult;
   // line enemies are removed by position once they have crossed the view; this is only a safety
   // net for one that somehow never does, so it is far longer than any crossing
   e.lifeMs = def.behavior === 'boss' && def.boss ? def.boss.chargeEveryMs : 40000;
@@ -140,7 +141,7 @@ export class Spawner {
           for (let i = 0; i < batch; i++) {
             const idx = world.rng.weightedIndex(w);
             if (idx < 0) break;
-            if (!spawnOnRing(world, row.mix[idx].enemy, ring, { hpMult, dmgMult: row.dmgMult })) break;
+            if (!spawnOnRing(world, row.mix[idx].enemy, ring, { hpMult, dmgMult: row.dmgMult, speedMult: row.speedMult })) break;
           }
         }
       }

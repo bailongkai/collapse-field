@@ -14,7 +14,7 @@ export function rangedStep(world: World, e: Enemy, player: Player, dt: number): 
   const dist = Math.hypot(dx, dy) || 1;
   const nx = dx / dist;
   const ny = dy / dist;
-  const speed = e.def!.speed;
+  const speed = e.def!.speed * e.speedMult;
   e.facing = Math.atan2(dy, dx);
 
   if (dist > cfg.range + 40) {

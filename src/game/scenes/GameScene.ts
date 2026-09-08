@@ -291,6 +291,11 @@ export class GameScene extends Phaser.Scene {
     if (run.phase === 'ended') this.finishRun();
   }
 
+  private enemyName(id: string): string {
+    const def = this.sim.reg.enemies[id];
+    return def ? t(def.nameKey) : id;
+  }
+
   private finishRun(): void {
     const run = this.sim.run;
     this.scene.start('Results', {
@@ -302,6 +307,8 @@ export class GameScene extends Phaser.Scene {
       weapons: run.weapons.map((w) => ({ ...w })),
       passives: run.passives.map((p) => ({ ...p })),
       seed: run.seed,
+      characterId: run.characterId,
+      stageId: run.stageId,
     });
   }
 
@@ -410,7 +417,7 @@ export class GameScene extends Phaser.Scene {
           sfx.play('hit');
           break;
         case 'bossSpawned':
-          this.toast(t('toast.boss'));
+          this.toast(t('toast.boss', { name: this.enemyName(e.id) }));
           this.cameras.main.shake(400, 0.008);
           sfx.play('boss');
           break;
@@ -436,7 +443,7 @@ export class GameScene extends Phaser.Scene {
           break;
         }
         case 'bossKilled':
-          this.toast(t('toast.bossKilled'), 3000);
+          this.toast(t('toast.bossKilled', { name: this.enemyName(e.id) }), 3000);
           this.cameras.main.flash(400, 255, 255, 255);
           this.cameras.main.shake(700, 0.012);
           this.slowMotion(650);

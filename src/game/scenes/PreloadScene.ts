@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { STAGES } from '../../data/stages';
 import { t } from '../../i18n';
 import { textStyle } from '../ui/textStyles';
 import { SFX_KEYS, sfx } from '../audio/sfx';
@@ -26,7 +27,7 @@ export class PreloadScene extends Phaser.Scene {
     this.load.setPath('assets/');
     this.load.atlas('game', 'atlas/game.png', 'atlas/game.json');
     this.load.atlas('ui', 'atlas/ui.png', 'atlas/ui.json');
-    this.load.image('floor', 'tiles/floor.png');
+    for (const stage of Object.values(STAGES)) this.load.image(stage.floorTexture, `tiles/${stage.floorTexture}.png`);
     for (const key of SFX_KEYS) this.load.audio(key, `audio/${key}.ogg`);
   }
 

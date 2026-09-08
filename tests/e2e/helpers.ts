@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 import type { GameDebugApi, HookRunState } from '../../src/debug/hook';
 
@@ -36,6 +36,16 @@ export function sceneName(page: Page): Promise<string> {
 
 export function press(page: Page, id: string): Promise<boolean> {
   return page.evaluate((i) => window.__game.ui.press(i), id);
+}
+
+/**
+ * Starts a run the way a player does: Start opens the launch screen, and its own Start button
+ * begins the run with whatever is selected there.
+ */
+export async function pressStart(page: Page): Promise<void> {
+  expect(await page.evaluate(() => window.__game.ui.press('menu.start'))).toBe(true);
+  await page.waitForFunction(() => window.__game.ui.buttons().some((b) => b.id === 'launch.start'));
+  expect(await page.evaluate(() => window.__game.ui.press('launch.start'))).toBe(true);
 }
 
 export function startRun(page: Page, seed = 42): Promise<void> {

@@ -45,7 +45,7 @@ export function bossStep(world: World, e: Enemy, player: Player, dt: number): vo
       return;
     case CHARGE: {
       e.aiTimer -= ms;
-      const speed = e.def!.speed * cfg.chargeSpeedMult;
+      const speed = e.def!.speed * e.speedMult * cfg.chargeSpeedMult;
       e.x += e.dirX * speed * dt;
       e.y += e.dirY * speed * dt;
       if (e.aiTimer <= 0) {

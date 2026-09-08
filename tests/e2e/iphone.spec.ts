@@ -39,8 +39,9 @@ test('iphone: a button is hit everywhere it is drawn, not just its top-left', as
     await openGame(page, '?test=1');
     await page.touchscreen.tap(s.x + dx, s.y + dy);
     await page.waitForTimeout(400);
-    const scene = await page.evaluate(() => window.__game.scene());
-    expect(scene, `a tap at (${dx.toFixed(0)}, ${dy.toFixed(0)}) from the centre did nothing`).toBe('game');
+    // Start opens the launch screen; that it opened at all is what the tap has to prove
+    const opened = await page.evaluate(() => window.__game.ui.buttons().some((b) => b.id === 'launch.start'));
+    expect(opened, `a tap at (${dx.toFixed(0)}, ${dy.toFixed(0)}) from the centre did nothing`).toBe(true);
   }
   expect(errors, errors.join('\n')).toEqual([]);
 });
@@ -61,6 +62,11 @@ test('iphone: a thumb-sized tap near the edge of Start still begins the run', as
   const s = await cssSizeOf(page, 'menu.start');
   // a real thumb lands off-centre; aim a third of the way towards the top edge
   await page.touchscreen.tap(s.x, s.y - s.h / 3);
+  await page.waitForFunction(() => window.__game.ui.buttons().some((b) => b.id === 'launch.start'));
+  // and the same off-centre thumb on the launch screen's own Start
+  const go = await cssSizeOf(page, 'launch.start');
+  expect(go.h, `launch.start is ${go.h.toFixed(0)} CSS px tall`).toBeGreaterThanOrEqual(MIN_TOUCH_CSS);
+  await page.touchscreen.tap(go.x, go.y - go.h / 3);
   await waitScene(page, 'game');
   expect((await state(page)).time).toBeGreaterThanOrEqual(0);
   expect(errors, errors.join('\n')).toEqual([]);
@@ -92,6 +98,10 @@ test('iphone: the whole flow works with taps alone', async ({ page }) => {
   const errors = await openGame(page, '?test=1');
   const start = await cssSizeOf(page, 'menu.start');
   await page.touchscreen.tap(start.x, start.y);
+  await page.waitForFunction(() => window.__game.ui.buttons().some((b) => b.id === 'launch.start'));
+  await snap(page, 'iphone-launch');
+  const go = await cssSizeOf(page, 'launch.start');
+  await page.touchscreen.tap(go.x, go.y);
   await waitScene(page, 'game');
   await page.waitForFunction(() => window.__game.ui.buttons().some((b) => b.id === 'hud.pause' && b.enabled));
   const pause = await cssSizeOf(page, 'hud.pause');

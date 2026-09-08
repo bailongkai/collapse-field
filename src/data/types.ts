@@ -104,6 +104,12 @@ export interface WaveEntry {
   readonly batch: number;
   readonly hpMult: number;
   readonly dmgMult: number;
+  /**
+   * Multiplies every enemy's move speed for this minute. The player moves at 200 px/s and the
+   * fastest ordinary enemy at 150, so without this a straight line is never caught; a stage that
+   * wants to punish running has to say so here.
+   */
+  readonly speedMult?: number;
 }
 export type WaveEvent = { readonly at: number } & (
   | { readonly kind: 'swarm'; readonly enemy: string; readonly count: number; readonly pattern: 'hLine' | 'vLine' | 'diag'; readonly speedMult?: number }
@@ -116,6 +122,9 @@ export type WaveEvent = { readonly at: number } & (
 export interface StageDef {
   readonly id: string;
   readonly nameKey: I18nKey;
+  readonly descKey: I18nKey;
+  /** position in the campaign; surviving stage n unlocks stage n + 1 */
+  readonly order: number;
   readonly durationSec: number;
   readonly floorTexture: string;
   readonly floorTint: number;
@@ -179,4 +188,6 @@ export interface CharacterDef {
   readonly baseStats: PlayerStats;
   readonly startingWeapon: string;
   readonly levelBonuses?: readonly { everyLevels: number; stat: StatKey; amount: number }[];
+  /** gold to unlock in the shop; absent means available from the start */
+  readonly cost?: number;
 }

@@ -72,10 +72,27 @@ ground shadows in `src/game/view/shadowView.ts` are a single Blitter. Shadows do
 more work than they look like: they are what makes sprites drawn from three
 different art packs read as standing on the same floor.
 
+## Characters and stages
+
+A character is stats plus a starting weapon plus a level-up bonus, and there is
+one per base weapon, so the first minute already plays five ways. Priced
+characters are bought with gold in the shop (`src/core/save/unlocks.ts`); the
+launch screen (`LaunchScene`) is the only place the menu starts a run from, and
+it remembers the last selection in the save.
+
+Stages are a chain: surviving stage n opens n + 1, recorded in
+`save.unlocks.stages` by `commitRun`. Each stage owns its floor texture
+(`scripts/build-floor.mjs` makes one per entry in `manifest.floors`), its decor,
+its wave table and its events. `WaveEntry.speedMult` exists because the player
+moves at 200 px/s and the fastest ordinary enemy at 150, so nothing short of it
+can make running in a straight line stop working; only the orbit uses it.
+
 ## Adding content
 
 A weapon of an existing archetype is a data change in `src/data/weapons.ts` plus
-an atlas frame in `scripts/asset-manifest.json`. A new archetype also needs a
+an atlas frame in `scripts/asset-manifest.json`. A character is a data change in
+`src/data/characters.ts` plus a frame; a stage is a data change in
+`src/data/stages.ts` plus a floor entry and decor frames. A new archetype also needs a
 behavior file and an entry in `src/core/weapons/registry.ts`. An enemy is a data
 change plus a frame. `tests/unit/content.test.ts` will fail if a referenced
 frame, i18n key or behavior is missing, so run the unit tests first.

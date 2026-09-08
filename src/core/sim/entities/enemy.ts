@@ -22,6 +22,8 @@ export interface Enemy {
   dirX: number;
   dirY: number;
   lineSpeed: number;
+  /** multiplies the definition's move speed for this instance; a stage's wave row sets it */
+  speedMult: number;
   /** ms remaining before a line enemy despawns as a safety net */
   lifeMs: number;
   isEvent: boolean;
@@ -39,7 +41,7 @@ export function createEnemy(id: number): Enemy {
   return {
     id, serial: 0, active: false, defId: '', def: null, behavior: 'chase',
     x: 0, y: 0, hp: 0, maxHp: 0, radius: 0, kbx: 0, kby: 0, flashMs: 0,
-    dirX: 0, dirY: 0, lineSpeed: 0, lifeMs: 0, isEvent: false, dmgMult: 1, facing: 0,
+    dirX: 0, dirY: 0, lineSpeed: 0, speedMult: 1, lifeMs: 0, isEvent: false, dmgMult: 1, facing: 0,
     aiState: 0, aiTimer: 0, aiTimer2: 0,
   };
 }
