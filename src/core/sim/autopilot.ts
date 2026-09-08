@@ -53,11 +53,22 @@ const THREAT_W = 8;
  * and walking to them walks into bodies.
  */
 const GEM_W = 14;
+/**
+ * How much a body carrying a reward is worth going after. A person who can see a supply chest
+ * inside an elite goes and kills it; a policy that only reads bodies as obstacles walks past every
+ * chest in the run, which measures the kiting rather than the reward.
+ */
+const PRIZE_W = 35;
+/** and its bulk is discounted, because the prize is worth taking a hit for */
+const PRIZE_THREAT_SCALE = 0.5;
+/** how many bodies within sense count as "no room to fight here" */
+const CROWDED = 14;
 
 // scratch, reused every step: the simulation must not allocate inside its own loop
 const eDx = new Float64Array(MAX_TRACKED);
 const eDy = new Float64Array(MAX_TRACKED);
 const eDist = new Float64Array(MAX_TRACKED);
+const ePrize = new Uint8Array(MAX_TRACKED);
 
 const AIM_LEAD_TICKS = 10;
 const CROWD_RADIUS = 340;
@@ -73,6 +84,9 @@ export function driveAutopilot(world: World, tick: number): void {
   let nearestD = Infinity;
   let nearestX = 0;
   let nearestY = 0;
+  let prizeD = Infinity;
+  let prizeX = 0;
+  let prizeY = 0;
   for (let i = 0; i < n && count < MAX_TRACKED; i++) {
     const e = world.enemies.items[world.queryBuf[i]];
     if (!e.active) continue;
@@ -84,11 +98,18 @@ export function driveAutopilot(world: World, tick: number): void {
     eDy[count] = dy / d;
     // a body's own radius is what the player actually collides with, not its centre
     eDist[count] = Math.max(1, d - e.radius);
+    const prize = (e.def?.drops?.length ?? 0) > 0;
+    ePrize[count] = prize ? 1 : 0;
     count++;
     if (d < nearestD) {
       nearestD = d;
       nearestX = dx / d;
       nearestY = dy / d;
+    }
+    if (prize && d < prizeD) {
+      prizeD = d;
+      prizeX = dx / d;
+      prizeY = dy / d;
     }
   }
 
@@ -98,6 +119,8 @@ export function driveAutopilot(world: World, tick: number): void {
   // when the field has thinned out, go and find the fight: the weapons only reach 140 px, and a
   // player who keeps their distance collects no experience and never builds anything
   const engage = count === 0 || nearestD > 210;
+  // nothing is worth chasing through a wall of bodies
+  const safety = Math.max(0, 1 - count / CROWDED);
 
   let best = 0;
   let bestScore = -Infinity;
@@ -110,12 +133,16 @@ export function driveAutopilot(world: World, tick: number): void {
       const facing = ux * eDx[i] + uy * eDy[i];
       if (facing <= 0) continue;
       const dist = eDist[i];
-      threat += (facing * facing * SENSE * THREAT_W) / dist;
+      const w = ePrize[i] ? THREAT_W * PRIZE_THREAT_SCALE : THREAT_W;
+      threat += (facing * facing * SENSE * w) / dist;
       if (dist < TOUCH && facing > 0.5) threat += 300;
     }
     let s = -threat;
     if (gem) s += (ux * gem.x + uy * gem.y) * GEM_W;
     if (engage && nearestD < Infinity) s += (ux * nearestX + uy * nearestY) * 22;
+    // a chest on legs is worth going after, but only when there is room to fight it. Standing to
+    // trade blows in the middle of a full field is how a run ends, prize or no prize.
+    if (prizeD < Infinity) s += (ux * prizeX + uy * prizeY) * PRIZE_W * safety;
     // turning costs a step of distance and buys a swing that lands: worth it, but not at any price
     if (side !== 0 && Math.sign(ux) === side) s += Math.abs(ux) * 26;
     // momentum. Without it the best direction flips between two near-equal neighbours every step

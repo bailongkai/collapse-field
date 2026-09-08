@@ -16,6 +16,7 @@ import { stepGems, vacuumGems } from './systems/gemSystem';
 import { EventScheduler } from './systems/eventSystem';
 import { rollDrops, spawnPickup, stepPickups, type PickupCollected } from './systems/pickupSystem';
 import { rollLevelUp } from '../levelup/roll';
+import { rollChestRewards, type ChestGrade } from '../levelup/chest';
 import { CHEST_CONSOLATION_GOLD } from '../../config';
 import { driveAutopilot } from './autopilot';
 import { auraRadius } from '../weapons/behaviors/aura';
@@ -26,7 +27,7 @@ import type { WeaponContext, WeaponInstance } from '../weapons/types';
 import { ENEMY_CAP, WEAPON_SLOTS, PASSIVE_SLOTS } from '../../config';
 import type { Enemy } from './entities/enemy';
 import { PLAYER_BASE_SPEED } from '../../config';
-import type { LevelUpChoice, OwnedItem, RunEnd, RunPhase } from './runState';
+import type { ChestResult, LevelUpChoice, OwnedItem, RunEnd, RunPhase } from './runState';
 
 export interface SimulationOptions {
   seed: number;
@@ -61,6 +62,10 @@ export interface RunState {
   passives: OwnedItem[];
   pendingLevelUps: number;
   choices: LevelUpChoice[] | null;
+  /** chests opened and already applied, waiting for the view to play their reveal */
+  chestQueue: ChestResult[];
+  /** how many chests this run has opened, for the results screen */
+  chestsOpened: number;
   reaperSpawned: boolean;
   ended?: RunEnd;
   god: boolean;
@@ -111,6 +116,8 @@ export class Simulation {
       passives: [],
       pendingLevelUps: 0,
       choices: null,
+      chestQueue: [],
+      chestsOpened: 0,
       reaperSpawned: false,
       god: false,
     };
@@ -333,25 +340,9 @@ export class Simulation {
         this.killAllOnScreen();
         break;
       }
-      case 'chest': {
-        // a chest evolves an eligible weapon in preference to handing out levels
-        const evolved = this.evolveEligibleWeapon();
-        if (evolved) {
-          world.events.push('chest', c.x, c.y, 0, c.def.id, true);
-          break;
-        }
-        const upgraded = this.grantWeaponLevels(effect.weaponLevels);
-        if (upgraded === 0) {
-          // a focused build can max and evolve everything it owns; a chest must never be empty
-          const gold = Math.round(CHEST_CONSOLATION_GOLD * this.cachedStats.greed);
-          run.gold += gold;
-          world.events.push('chest', c.x, c.y, 0, c.def.id, true);
-          world.events.push('pickup', c.x, c.y, gold, 'coin');
-          break;
-        }
-        world.events.push('chest', c.x, c.y, upgraded, c.def.id, true);
+      case 'chest':
+        this.openChest(effect.grade, c.x, c.y);
         break;
-      }
     }
   }
 
@@ -398,16 +389,61 @@ export class Simulation {
   }
 
   /** Chest reward: raises random owned weapons that are not yet maxed. */
-  private grantWeaponLevels(count: number): number {
-    let granted = 0;
-    for (let i = 0; i < count; i++) {
-      const upgradable = this.run.weapons.filter((w) => w.level < this.reg.weapons[w.id].maxLevel);
-      if (upgradable.length === 0) break;
-      const pick = upgradable[this.world.rng.int(0, upgradable.length - 1)];
-      this.giveWeapon(pick.id, pick.level + 1);
-      granted++;
+  /**
+   * Opens a chest: rolls its rewards, applies them, and queues the result for the view to reveal.
+   *
+   * Everything commits inside this tick. The reveal that the player sees is theatre played over a
+   * decision already made, which is what lets a chest exist without a run phase of its own — every
+   * headless harness, the balance runs and the fast-forward in the debug hook all keep working
+   * without knowing chests exist.
+   *
+   * The order matters and used to be the other way round. Evolving ran first and returned early, so
+   * a chest whose own levels were what pushed a weapon to max could not then act on the condition
+   * it had just created; the player had to find another chest, and there were only ever two in a
+   * run. Levels are granted first now, and then every weapon that has become eligible evolves, as a
+   * bonus on top rather than instead.
+   */
+  openChest(grade: ChestGrade, x: number, y: number): ChestResult {
+    const run = this.run;
+    const rewards = rollChestRewards({
+      weapons: run.weapons,
+      passives: run.passives,
+      grade,
+      luck: this.cachedStats.luck,
+      rng: this.world.rng,
+      reg: this.reg,
+    });
+    for (const r of rewards) {
+      if (r.kind === 'weapon') this.giveWeapon(r.id, r.toLevel);
+      else if (r.kind === 'passive') this.givePassive(r.id, r.toLevel);
     }
-    return granted;
+
+    const evolved: string[] = [];
+    // a chest that maxes two weapons at once evolves both
+    for (let guard = 0; guard < WEAPON_SLOTS; guard++) {
+      const into = this.evolveEligibleWeapon();
+      if (!into) break;
+      evolved.push(into);
+    }
+
+    // a focused build can max and evolve everything it owns; a chest must never be empty
+    let gold = 0;
+    if (rewards.length === 0 && evolved.length === 0) {
+      gold = Math.round(CHEST_CONSOLATION_GOLD * this.cachedStats.greed);
+      run.gold += gold;
+      this.world.events.push('pickup', x, y, gold, 'coin');
+    }
+
+    const result: ChestResult = { grade, x, y, rewards, evolved, gold };
+    run.chestQueue.push(result);
+    run.chestsOpened++;
+    this.world.events.push('chest', x, y, rewards.length, grade, true);
+    return result;
+  }
+
+  /** Drops the oldest queued chest result, for the view once it has played the reveal. */
+  takeChestResult(): ChestResult | null {
+    return this.run.chestQueue.shift() ?? null;
   }
 
   /** Debug hook: place a pickup on the ground. */

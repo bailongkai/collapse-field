@@ -161,7 +161,10 @@ export class Spawner {
       const dx = e.x - world.player.x;
       const dy = e.y - world.player.y;
       if (dx * dx + dy * dy <= far2) return;
-      if (e.isEvent) {
+      // an event enemy that has been outrun is simply gone — except when it is carrying something.
+      // A sentinel that can be walked away from is a chest the player never gets, so it is put back
+      // on the ring like an ordinary spawn and has to be dealt with.
+      if (e.isEvent && !e.def?.drops?.length) {
         world.enemies.free(e);
         return;
       }

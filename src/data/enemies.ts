@@ -22,6 +22,18 @@ export const ENEMIES = {
     hp: 8, damage: 5, speed: 150, radius: 14, gemTier: 'blue', knockbackResist: 0.2,
     behavior: 'chase', deathFx: 'small',
   },
+  /**
+   * 掠夺者哨兵: a walking supply chest. Deliberately not a boss — no health bar, no charge, no
+   * summons, and it hits softly — because its job is to be a few seconds of detour that punctuates
+   * the run, and the stage already has two scripted boss fights. What it does have is enough health
+   * to need shooting and almost total knockback resistance, so it cannot be shoved aside and
+   * ignored: the decision it asks for is whether to stop and deal with it.
+   */
+  sentinel: {
+    id: 'sentinel', nameKey: 'enemy.sentinel.name', frame: 'enemy_mech', tint: 0xffd166, faceTarget: true,
+    hp: 160, damage: 8, speed: 52, radius: 30, gemTier: 'red', gemCount: 6, knockbackResist: 0.95,
+    behavior: 'chase', drops: [{ pickup: 'chest', chance: 1 }], deathFx: 'big',
+  },
   mech: {
     id: 'mech', nameKey: 'enemy.mech.name', frame: 'enemy_mech', faceTarget: true,
     hp: 120, damage: 18, speed: 45, radius: 26, gemTier: 'red', knockbackResist: 0.8,
@@ -42,7 +54,7 @@ export const ENEMIES = {
   mothership: {
     id: 'mothership', nameKey: 'enemy.mothership.name', frame: 'enemy_mothership', faceTarget: false,
     hp: 1500, damage: 25, speed: 55, radius: 60, gemTier: 'red', gemCount: 10, knockbackResist: 1,
-    behavior: 'boss', bossBar: true, drops: [{ pickup: 'chest', chance: 1 }], deathFx: 'big',
+    behavior: 'boss', bossBar: true, drops: [{ pickup: 'bossChest', chance: 1 }], deathFx: 'big',
     boss: { chargeEveryMs: 6000, telegraphMs: 900, chargeMs: 700, chargeSpeedMult: 4.5, summon: 'drone', summonCount: 6, summonEveryMs: 9000 },
   },
   annihilator: {

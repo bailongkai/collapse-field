@@ -21,15 +21,34 @@ const WAVES: readonly WaveEntry[] = [
   { minute: 14, mix: mix(['robot', 0.2], ['mech', 0.4], ['interceptor', 0.1], ['spitter', 0.15], ['dasher', 0.15]), minCount: 250, interval: 300, batch: 10, hpMult: 2.5, dmgMult: 1.3 },
 ];
 
+/**
+ * Chest cadence across the run: 150 / 300 / 330 / 510 / 600 / 700 / 850 s — five sentinels and two
+ * bosses, plus whatever falls out of the wreckage.
+ *
+ * Before this a run had exactly two chests, both from bosses. That is why builds measured as never
+ * finishing: evolving a weapon needs seven levels on that one weapon, the level-up screen offers
+ * three cards out of ten items so the weapon a player is trying to finish appears about a third of
+ * the time, and with two chests there was no other way to concentrate. Not one run in sixteen ever
+ * saw an evolution, which is five weapons of content nobody had played.
+ *
+ * The sentinel multipliers track measured player output rather than the wave table's own curve:
+ * a hands-off run is at roughly 30 damage per second at 3:00 and 180 by 14:00, and each of these
+ * is meant to be a five-to-ten second detour at the time it appears.
+ */
 const EVENTS: readonly WaveEvent[] = [
   { at: 90, kind: 'swarm', enemy: 'interceptor', count: 25, pattern: 'hLine' },
+  { at: 150, kind: 'elite', enemy: 'sentinel', hpMult: 1 },
   { at: 210, kind: 'swarm', enemy: 'drone', count: 40, pattern: 'vLine' },
   { at: 300, kind: 'boss', enemy: 'mothership', hpMult: 1 },
+  { at: 330, kind: 'elite', enemy: 'sentinel', hpMult: 2 },
   { at: 390, kind: 'swarm', enemy: 'interceptor', count: 35, pattern: 'diag' },
-  { at: 510, kind: 'swarm', enemy: 'interceptor', count: 40, pattern: 'hLine' },
+  { at: 510, kind: 'elite', enemy: 'sentinel', hpMult: 3.2 },
+  { at: 540, kind: 'swarm', enemy: 'interceptor', count: 40, pattern: 'hLine' },
   { at: 600, kind: 'boss', enemy: 'mothership', hpMult: 1.5 },
   { at: 690, kind: 'ring', enemy: 'robot', count: 40, radius: 520 },
+  { at: 700, kind: 'elite', enemy: 'sentinel', hpMult: 4.5 },
   { at: 810, kind: 'swarm', enemy: 'interceptor', count: 50, pattern: 'hLine', speedMult: 1.2 },
+  { at: 850, kind: 'elite', enemy: 'sentinel', hpMult: 5.5 },
   { at: 900, kind: 'reaper', enemy: 'annihilator' },
 ];
 

@@ -64,16 +64,19 @@ export function stepPickups(world: World, stats: PlayerStats, dt: number, farRad
     const dy = p.y - item.y;
     const d2 = dx * dx + dy * dy;
 
-    if (d2 > far2 && def.effect.kind !== 'chest') {
+    if (d2 > far2 && !def.persistent) {
       world.pickups.free(item);
       return;
     }
 
     if (def.magnetic) {
-      if (!item.attracted && d2 <= magnet2) item.attracted = true;
+      // a chest reaches out about half a screen. It is the payoff for a fight, and one that can be
+      // walked past without noticing is a reward that did not happen.
+      const reachIn2 = def.magnetRadius !== undefined ? def.magnetRadius * def.magnetRadius : magnet2;
+      if (!item.attracted && d2 <= reachIn2) item.attracted = true;
       if (item.attracted) {
         const d = Math.sqrt(d2) || 1;
-        const speed = 420;
+        const speed = def.magnetSpeed ?? 420;
         item.x += (dx / d) * speed * dt;
         item.y += (dy / d) * speed * dt;
       }

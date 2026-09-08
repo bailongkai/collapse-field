@@ -65,6 +65,17 @@ export class EventScheduler {
         if (boss) world.events.push('bossSpawned', boss.x, boss.y, boss.maxHp, event.enemy, true);
         break;
       }
+      case 'elite': {
+        // walks in from the ring like anything else, but on its own and carrying a chest
+        const elite = spawnEnemy(world, event.enemy, {
+          x: world.player.x + ring * 0.9,
+          y: world.player.y,
+          isEvent: true,
+          hpMult: event.hpMult,
+        });
+        if (elite) world.events.push('elite', elite.x, elite.y, elite.maxHp, event.enemy, true);
+        break;
+      }
       case 'reaper': {
         const reaper = spawnEnemy(world, event.enemy, {
           x: world.player.x + ring * 0.8,

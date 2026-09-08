@@ -106,8 +106,8 @@ describe('boss', () => {
 
     s.damageEnemy(boss, 1e6, 1, 0, 0);
     expect(boss.active).toBe(false);
-    const chests = s.world.pickups.items.filter((p) => p.active && p.defId === 'chest');
-    expect(chests).toHaveLength(1);
+    const chests = s.world.pickups.items.filter((p) => p.active && p.defId === 'bossChest');
+    expect(chests, 'a boss drops the boss-grade chest').toHaveLength(1);
     expect(s.world.gems.count).toBeGreaterThanOrEqual(10);
   });
 
@@ -203,13 +203,30 @@ describe('pickups', () => {
     expect(byBehavior(s, 'reaper')).toHaveLength(1);
   });
 
-  it('the supply chest raises owned weapons', () => {
+  it('the supply chest raises what the player already owns', () => {
     const s = newSim();
     s.giveWeapon('guidedLaser', 1);
-    const before = s.run.weapons.reduce((n, w) => n + w.level, 0);
+    s.givePassive('reactorCore', 1);
+    const levels = () => [...s.run.weapons, ...s.run.passives].reduce((n, w) => n + w.level, 0);
+    const before = levels();
     s.spawnPickup('chest', s.world.player.x, s.world.player.y);
     s.stepMany(2);
-    expect(s.run.weapons.reduce((n, w) => n + w.level, 0)).toBe(before + 3);
+    // a chest pays one, three or five, so the exact count is a roll; that it paid is not
+    const gained = levels() - before;
+    expect([1, 3, 5], `a chest granted ${gained} levels`).toContain(gained);
+    expect(s.run.chestsOpened).toBe(1);
+  });
+
+  it('never hands out a weapon the player did not choose', () => {
+    const s = newSim();
+    const owned = s.run.weapons.map((w) => w.id).sort();
+    for (let i = 0; i < 12; i++) {
+      s.spawnPickup('chest', s.world.player.x, s.world.player.y);
+      s.stepMany(2);
+    }
+    // levels may have turned a weapon into its evolution, but no new base weapon appeared
+    const now = s.run.weapons.map((w) => w.id);
+    expect(now.length, 'a chest opened a new weapon slot').toBe(owned.length);
   });
 
   it('respects the ground limit for a pickup type', () => {

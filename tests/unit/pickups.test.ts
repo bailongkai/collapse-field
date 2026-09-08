@@ -56,19 +56,20 @@ describe('pickups do not strand', () => {
     const alive = s.world.enemies.aliveList();
     const boss = s.world.enemies.items[alive[s.world.enemies.count - 1]];
     s.damageEnemy(boss, 1e9, 1, 0, 0);
-    expect(onGround(s, 'chest'), 'the boss chest was dropped on the floor of a full pool').toBe(1);
+    expect(onGround(s, 'bossChest'), 'the boss chest was dropped on the floor of a full pool').toBe(1);
   });
 });
 
 describe('a chest is never empty', () => {
   it('gives gold when there is nothing left to upgrade', () => {
     const s = newSim();
-    // a single maxed, already evolved weapon: no level can be granted
+    // a single maxed, already evolved weapon and a maxed passive: nothing at all can be raised
     s.run.weapons.length = 0;
     s.world.weaponInstances.length = 0;
     s.giveWeapon('plasmaBlade', 8);
     s.givePassive('reactorCore', 1);
     expect(s.evolveEligibleWeapon()).toBe('annihilationBlade');
+    s.givePassive('reactorCore', 5);
     const gold0 = s.run.gold;
     s.spawnPickup('chest', s.world.player.x, s.world.player.y);
     s.stepMany(3);

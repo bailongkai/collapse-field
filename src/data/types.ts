@@ -110,6 +110,8 @@ export type WaveEvent = { readonly at: number } & (
   | { readonly kind: 'boss'; readonly enemy: string; readonly hpMult: number }
   | { readonly kind: 'ring'; readonly enemy: string; readonly count: number; readonly radius: number }
   | { readonly kind: 'reaper'; readonly enemy: string }
+  /** One tough enemy carrying a reward, on its own: the run's punctuation between boss fights. */
+  | { readonly kind: 'elite'; readonly enemy: string; readonly hpMult: number }
 );
 export interface StageDef {
   readonly id: string;
@@ -131,7 +133,11 @@ export type PickupEffect =
   | { kind: 'heal'; amount: number }
   | { kind: 'vacuum' }
   | { kind: 'nuke' }
-  | { kind: 'chest'; weaponLevels: number }
+  /**
+   * A supply chest. `grade` decides how many rewards it rolls, not what they are: a chest that
+   * cost a scripted boss fight should never pay out a single weapon level.
+   */
+  | { kind: 'chest'; grade: 'standard' | 'boss' }
   | { kind: 'gold'; amount: number };
 export interface PickupDef {
   readonly id: string;
@@ -143,6 +149,16 @@ export interface PickupDef {
   readonly dropChance: number;
   readonly maxOnGround?: number;
   readonly magnetic: boolean;
+  /**
+   * How near the player has to get before this is pulled in, when it differs from the usual magnet
+   * radius. A chest is the payoff for a fight and must not be walkable-past, so it reaches out
+   * about half a screen rather than the arm's length a coin does.
+   */
+  readonly magnetRadius?: number;
+  /** How fast it closes once it is coming, when the usual pickup speed is wrong for it. */
+  readonly magnetSpeed?: number;
+  /** Left on the ground rather than recycled when the player walks away; chests are come-back-for. */
+  readonly persistent?: boolean;
   readonly sfx: string;
 }
 
