@@ -4,7 +4,7 @@
 			"image": "game.png",
 			"format": "RGBA8888",
 			"size": {
-				"w": 1127,
+				"w": 1155,
 				"h": 286
 			},
 			"scale": 1,
@@ -183,19 +183,40 @@
 					"trimmed": false,
 					"sourceSize": {
 						"w": 48,
-						"h": 48
+						"h": 39
 					},
 					"spriteSourceSize": {
 						"x": 0,
 						"y": 0,
 						"w": 48,
-						"h": 48
+						"h": 39
 					},
 					"frame": {
 						"x": 134,
 						"y": 135,
 						"w": 48,
-						"h": 48
+						"h": 39
+					}
+				},
+				{
+					"filename": "enemy_robot",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 44,
+						"h": 39
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 44,
+						"h": 39
+					},
+					"frame": {
+						"x": 134,
+						"y": 178,
+						"w": 44,
+						"h": 39
 					}
 				},
 				{
@@ -220,49 +241,28 @@
 					}
 				},
 				{
-					"filename": "decor_0",
+					"filename": "enemy_mech",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
-						"w": 64,
-						"h": 64
+						"w": 56,
+						"h": 56
 					},
 					"spriteSourceSize": {
 						"x": 0,
 						"y": 0,
-						"w": 64,
-						"h": 64
+						"w": 56,
+						"h": 56
 					},
 					"frame": {
 						"x": 74,
 						"y": 187,
-						"w": 64,
-						"h": 64
+						"w": 56,
+						"h": 56
 					}
 				},
 				{
-					"filename": "icon_coolingSystem",
-					"rotated": false,
-					"trimmed": false,
-					"sourceSize": {
-						"w": 40,
-						"h": 40
-					},
-					"spriteSourceSize": {
-						"x": 0,
-						"y": 0,
-						"w": 40,
-						"h": 40
-					},
-					"frame": {
-						"x": 142,
-						"y": 187,
-						"w": 40,
-						"h": 40
-					}
-				},
-				{
-					"filename": "decor_1",
+					"filename": "decor_0",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
@@ -283,7 +283,7 @@
 					}
 				},
 				{
-					"filename": "decor_2",
+					"filename": "decor_1",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
@@ -304,7 +304,7 @@
 					}
 				},
 				{
-					"filename": "decor_3",
+					"filename": "decor_2",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
@@ -325,7 +325,7 @@
 					}
 				},
 				{
-					"filename": "decor_4",
+					"filename": "decor_3",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
@@ -346,7 +346,7 @@
 					}
 				},
 				{
-					"filename": "decor_5",
+					"filename": "decor_4",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
@@ -367,7 +367,7 @@
 					}
 				},
 				{
-					"filename": "decor_6",
+					"filename": "decor_5",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
@@ -388,7 +388,7 @@
 					}
 				},
 				{
-					"filename": "decor_7",
+					"filename": "decor_6",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
@@ -409,45 +409,45 @@
 					}
 				},
 				{
-					"filename": "enemy_mech",
+					"filename": "decor_7",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
-						"w": 56,
-						"h": 56
+						"w": 64,
+						"h": 64
 					},
 					"spriteSourceSize": {
 						"x": 0,
 						"y": 0,
-						"w": 56,
-						"h": 56
+						"w": 64,
+						"h": 64
 					},
 					"frame": {
 						"x": 879,
 						"y": 2,
-						"w": 56,
-						"h": 56
+						"w": 64,
+						"h": 64
 					}
 				},
 				{
-					"filename": "enemy_robot",
+					"filename": "enemy_sentinel",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
-						"w": 44,
-						"h": 39
+						"w": 64,
+						"h": 64
 					},
 					"spriteSourceSize": {
 						"x": 0,
 						"y": 0,
-						"w": 44,
-						"h": 39
+						"w": 64,
+						"h": 64
 					},
 					"frame": {
-						"x": 939,
+						"x": 947,
 						"y": 2,
-						"w": 44,
-						"h": 39
+						"w": 64,
+						"h": 64
 					}
 				},
 				{
@@ -465,7 +465,7 @@
 						"h": 37
 					},
 					"frame": {
-						"x": 987,
+						"x": 1015,
 						"y": 2,
 						"w": 44,
 						"h": 37
@@ -486,7 +486,7 @@
 						"h": 18
 					},
 					"frame": {
-						"x": 1035,
+						"x": 1063,
 						"y": 2,
 						"w": 44,
 						"h": 18
@@ -507,10 +507,31 @@
 						"h": 42
 					},
 					"frame": {
-						"x": 1083,
+						"x": 1111,
 						"y": 2,
 						"w": 42,
 						"h": 42
+					}
+				},
+				{
+					"filename": "icon_coolingSystem",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 40,
+						"h": 40
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 40,
+						"h": 40
+					},
+					"frame": {
+						"x": 1063,
+						"y": 24,
+						"w": 40,
+						"h": 40
 					}
 				},
 				{
@@ -528,8 +549,8 @@
 						"h": 40
 					},
 					"frame": {
-						"x": 1035,
-						"y": 24,
+						"x": 1015,
+						"y": 43,
 						"w": 40,
 						"h": 40
 					}
@@ -549,8 +570,8 @@
 						"h": 40
 					},
 					"frame": {
-						"x": 987,
-						"y": 43,
+						"x": 471,
+						"y": 70,
 						"w": 40,
 						"h": 40
 					}
@@ -570,8 +591,8 @@
 						"h": 40
 					},
 					"frame": {
-						"x": 939,
-						"y": 48,
+						"x": 515,
+						"y": 70,
 						"w": 40,
 						"h": 40
 					}
@@ -591,31 +612,10 @@
 						"h": 39
 					},
 					"frame": {
-						"x": 879,
-						"y": 68,
+						"x": 559,
+						"y": 70,
 						"w": 40,
 						"h": 39
-					}
-				},
-				{
-					"filename": "icon_guidedLaser",
-					"rotated": false,
-					"trimmed": false,
-					"sourceSize": {
-						"w": 10,
-						"h": 40
-					},
-					"spriteSourceSize": {
-						"x": 0,
-						"y": 0,
-						"w": 10,
-						"h": 40
-					},
-					"frame": {
-						"x": 923,
-						"y": 68,
-						"w": 10,
-						"h": 40
 					}
 				},
 				{
@@ -633,7 +633,7 @@
 						"h": 39
 					},
 					"frame": {
-						"x": 471,
+						"x": 603,
 						"y": 70,
 						"w": 40,
 						"h": 39
@@ -654,7 +654,7 @@
 						"h": 38
 					},
 					"frame": {
-						"x": 515,
+						"x": 647,
 						"y": 70,
 						"w": 40,
 						"h": 38
@@ -675,7 +675,7 @@
 						"h": 5
 					},
 					"frame": {
-						"x": 559,
+						"x": 691,
 						"y": 70,
 						"w": 40,
 						"h": 5
@@ -696,7 +696,7 @@
 						"h": 5
 					},
 					"frame": {
-						"x": 603,
+						"x": 735,
 						"y": 70,
 						"w": 40,
 						"h": 5
@@ -717,7 +717,7 @@
 						"h": 36
 					},
 					"frame": {
-						"x": 647,
+						"x": 779,
 						"y": 70,
 						"w": 36,
 						"h": 36
@@ -738,7 +738,7 @@
 						"h": 25
 					},
 					"frame": {
-						"x": 559,
+						"x": 691,
 						"y": 79,
 						"w": 34,
 						"h": 25
@@ -759,7 +759,7 @@
 						"h": 40
 					},
 					"frame": {
-						"x": 597,
+						"x": 729,
 						"y": 79,
 						"w": 33,
 						"h": 40
@@ -780,8 +780,8 @@
 						"h": 42
 					},
 					"frame": {
-						"x": 559,
-						"y": 108,
+						"x": 691,
+						"y": 110,
 						"w": 32,
 						"h": 42
 					}
@@ -801,7 +801,7 @@
 						"h": 32
 					},
 					"frame": {
-						"x": 515,
+						"x": 647,
 						"y": 112,
 						"w": 32,
 						"h": 32
@@ -822,8 +822,8 @@
 						"h": 32
 					},
 					"frame": {
-						"x": 471,
-						"y": 123,
+						"x": 559,
+						"y": 113,
 						"w": 32,
 						"h": 32
 					}
@@ -843,14 +843,14 @@
 						"h": 32
 					},
 					"frame": {
-						"x": 507,
-						"y": 148,
+						"x": 595,
+						"y": 113,
 						"w": 32,
 						"h": 32
 					}
 				},
 				{
-					"filename": "icon_railgun",
+					"filename": "icon_guidedLaser",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
@@ -864,8 +864,8 @@
 						"h": 40
 					},
 					"frame": {
-						"x": 543,
-						"y": 148,
+						"x": 631,
+						"y": 113,
 						"w": 10,
 						"h": 40
 					}
@@ -885,8 +885,8 @@
 						"h": 32
 					},
 					"frame": {
-						"x": 318,
-						"y": 146,
+						"x": 645,
+						"y": 148,
 						"w": 32,
 						"h": 32
 					}
@@ -906,8 +906,8 @@
 						"h": 28
 					},
 					"frame": {
-						"x": 354,
-						"y": 146,
+						"x": 471,
+						"y": 114,
 						"w": 28,
 						"h": 28
 					}
@@ -927,9 +927,30 @@
 						"h": 28
 					},
 					"frame": {
-						"x": 386,
-						"y": 146,
+						"x": 503,
+						"y": 114,
 						"w": 28,
+						"h": 28
+					}
+				},
+				{
+					"filename": "pk_nuke",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 18,
+						"h": 28
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 18,
+						"h": 28
+					},
+					"frame": {
+						"x": 535,
+						"y": 114,
+						"w": 18,
 						"h": 28
 					}
 				},
@@ -948,31 +969,10 @@
 						"h": 27
 					},
 					"frame": {
-						"x": 418,
-						"y": 146,
+						"x": 819,
+						"y": 70,
 						"w": 28,
 						"h": 27
-					}
-				},
-				{
-					"filename": "gem_blue",
-					"rotated": false,
-					"trimmed": false,
-					"sourceSize": {
-						"w": 16,
-						"h": 16
-					},
-					"spriteSourceSize": {
-						"x": 0,
-						"y": 0,
-						"w": 16,
-						"h": 16
-					},
-					"frame": {
-						"x": 450,
-						"y": 146,
-						"w": 16,
-						"h": 16
 					}
 				},
 				{
@@ -990,31 +990,10 @@
 						"h": 12
 					},
 					"frame": {
-						"x": 470,
-						"y": 159,
+						"x": 851,
+						"y": 70,
 						"w": 28,
 						"h": 12
-					}
-				},
-				{
-					"filename": "gem_green",
-					"rotated": false,
-					"trimmed": false,
-					"sourceSize": {
-						"w": 16,
-						"h": 16
-					},
-					"spriteSourceSize": {
-						"x": 0,
-						"y": 0,
-						"w": 16,
-						"h": 16
-					},
-					"frame": {
-						"x": 450,
-						"y": 166,
-						"w": 16,
-						"h": 16
 					}
 				},
 				{
@@ -1032,8 +1011,8 @@
 						"h": 40
 					},
 					"frame": {
-						"x": 418,
-						"y": 177,
+						"x": 883,
+						"y": 70,
 						"w": 25,
 						"h": 40
 					}
@@ -1053,31 +1032,31 @@
 						"h": 23
 					},
 					"frame": {
-						"x": 470,
-						"y": 175,
+						"x": 851,
+						"y": 87,
 						"w": 24,
 						"h": 23
 					}
 				},
 				{
-					"filename": "pk_nuke",
+					"filename": "bolt_acid",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
-						"w": 18,
-						"h": 28
+						"w": 22,
+						"h": 22
 					},
 					"spriteSourceSize": {
 						"x": 0,
 						"y": 0,
-						"w": 18,
-						"h": 28
+						"w": 22,
+						"h": 22
 					},
 					"frame": {
-						"x": 447,
-						"y": 186,
-						"w": 18,
-						"h": 28
+						"x": 819,
+						"y": 101,
+						"w": 22,
+						"h": 22
 					}
 				},
 				{
@@ -1095,8 +1074,8 @@
 						"h": 28
 					},
 					"frame": {
-						"x": 447,
-						"y": 218,
+						"x": 766,
+						"y": 114,
 						"w": 18,
 						"h": 28
 					}
@@ -1116,31 +1095,73 @@
 						"h": 18
 					},
 					"frame": {
-						"x": 447,
-						"y": 250,
+						"x": 788,
+						"y": 114,
 						"w": 18,
 						"h": 18
 					}
 				},
 				{
-					"filename": "bolt_acid",
+					"filename": "gem_blue",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
-						"w": 22,
-						"h": 22
+						"w": 16,
+						"h": 16
 					},
 					"spriteSourceSize": {
 						"x": 0,
 						"y": 0,
-						"w": 22,
-						"h": 22
+						"w": 16,
+						"h": 16
 					},
 					"frame": {
-						"x": 498,
-						"y": 184,
-						"w": 22,
-						"h": 22
+						"x": 727,
+						"y": 123,
+						"w": 16,
+						"h": 16
+					}
+				},
+				{
+					"filename": "icon_railgun",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 10,
+						"h": 40
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 10,
+						"h": 40
+					},
+					"frame": {
+						"x": 747,
+						"y": 123,
+						"w": 10,
+						"h": 40
+					}
+				},
+				{
+					"filename": "gem_green",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 16,
+						"h": 16
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 16,
+						"h": 16
+					},
+					"frame": {
+						"x": 727,
+						"y": 146,
+						"w": 16,
+						"h": 16
 					}
 				}
 			]

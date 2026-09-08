@@ -156,6 +156,52 @@ function drawGem(size, rgb) {
   return img;
 }
 
+/**
+ * A supply chest. The Kenney sci-fi packs have no chest — the frame this replaces was a factory
+ * building, which reads as scenery rather than as the reward the whole run is now built around,
+ * both on the ground and floating over the elite that is carrying it.
+ */
+function drawChest(w = 48) {
+  const h = Math.round(w * 0.82);
+  const img = new Jimp({ width: w, height: h, color: 0x00000000 });
+  const put = (x, y, r, g, b, a = 255) => {
+    if (x < 0 || y < 0 || x >= w || y >= h) return;
+    img.setPixelColor(((r << 24) | (g << 16) | (b << 8) | a) >>> 0, x, y);
+  };
+  const lidH = Math.round(h * 0.42);
+  const inset = Math.round(w * 0.06);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (x < inset || x >= w - inset || y < 1 || y >= h - 1) continue;
+      const inLid = y < lidH;
+      // the lid is a shallow arc, so the silhouette is a chest and not a crate
+      if (inLid) {
+        const t = (x - w / 2) / (w / 2 - inset);
+        const top = Math.round(lidH * 0.32 * t * t) + 1;
+        if (y < top) continue;
+      }
+      const edge = x < inset + 2 || x >= w - inset - 2 || y === h - 2 || (inLid && y <= lidH * 0.34 + 2);
+      const band = Math.abs(x - w / 2) < w * 0.07;
+      const seam = !inLid && y < lidH + 3;
+      let r, g, b;
+      if (seam) [r, g, b] = [0x3a, 0x2a, 0x12];
+      else if (band) [r, g, b] = [0xf4, 0xd9, 0x7a];
+      else if (edge) [r, g, b] = [0x6b, 0x4c, 0x1c];
+      else if (inLid) [r, g, b] = [0xe0, 0xa8, 0x3c];
+      else [r, g, b] = [0xc2, 0x86, 0x2c];
+      // a highlight down the upper left so it does not read flat
+      const lit = Math.max(0, 1 - (x / w + y / h));
+      put(x, y, Math.min(255, Math.round(r + lit * 60)), Math.min(255, Math.round(g + lit * 60)), Math.min(255, Math.round(b + lit * 40)));
+    }
+  }
+  // the latch
+  const lx = Math.round(w / 2);
+  for (let y = lidH - 2; y < lidH + 5; y++) {
+    for (let x = lx - 3; x <= lx + 2; x++) put(x, y, 0xff, 0xf1, 0xb8);
+  }
+  return img;
+}
+
 function solid(w, h, rgba) {
   return new Jimp({ width: w, height: h, color: rgba >>> 0 });
 }
@@ -174,6 +220,7 @@ async function main() {
   }
   const procedural = [
     ['fx_slash', drawSlash()],
+    ['pk_chest', drawChest()],
     ['icon_plasmaBlade', drawIconBlade()],
     ['bar_bg', solid(40, 5, 0x101418ff)],
     ['bar_fill', solid(40, 5, 0x5ee06aff)],

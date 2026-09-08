@@ -10,6 +10,7 @@ import { VirtualJoystick } from '../input/touchControls';
 import { FloorView } from '../view/floorView';
 import { PlayerView } from '../view/playerView';
 import { EnemyView } from '../view/enemyView';
+import { CarriedView } from '../view/carriedView';
 import { ShadowView } from '../view/shadowView';
 import { GemView } from '../view/gemView';
 import { PickupView } from '../view/pickupView';
@@ -41,6 +42,7 @@ export class GameScene extends Phaser.Scene {
   private floorView!: FloorView;
   private playerView!: PlayerView;
   private enemyView!: EnemyView;
+  private carriedView!: CarriedView;
   private shadowView!: ShadowView;
   private gemView!: GemView;
   private pickupView!: PickupView;
@@ -94,6 +96,8 @@ export class GameScene extends Phaser.Scene {
     this.playerView = new PlayerView(this, this.sim.character, this.layers.player);
     this.shadowView = new ShadowView(this, this.layers.shadows);
     this.enemyView = new EnemyView(this, this.layers.enemies);
+    // above the bodies, below the numbers: the marker has to survive a crowded screen
+    this.carriedView = new CarriedView(this, this.layers.fx);
     this.gemView = new GemView(this, this.layers.gems);
     this.pickupView = new PickupView(this, this.layers.pickups);
     this.projectileView = new ProjectileView(this, this.layers.projectiles, this.layers.fx);
@@ -149,6 +153,7 @@ export class GameScene extends Phaser.Scene {
     this.floorView.destroy();
     this.playerView.destroy();
     this.enemyView.destroy();
+    this.carriedView.destroy();
     this.shadowView.destroy();
     this.gemView.destroy();
     this.pickupView.destroy();
@@ -312,6 +317,7 @@ export class GameScene extends Phaser.Scene {
     this.floorView.update(cam.midPoint.x, cam.midPoint.y, cam.scrollX, cam.scrollY, viewW, viewH);
     this.shadowView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH);
     this.enemyView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH);
+    this.carriedView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH, deltaMs);
     this.gemView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH);
     this.pickupView.sync(this.sim.world, this.sim.run.timeMs);
     this.projectileView.sync(this.sim.world, this.weaponIdBySlot(), cam.midPoint.x, cam.midPoint.y, viewW, viewH);

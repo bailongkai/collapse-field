@@ -30,7 +30,7 @@ export const ENEMIES = {
    * ignored: the decision it asks for is whether to stop and deal with it.
    */
   sentinel: {
-    id: 'sentinel', nameKey: 'enemy.sentinel.name', frame: 'enemy_mech', tint: 0xffd166, faceTarget: true,
+    id: 'sentinel', nameKey: 'enemy.sentinel.name', frame: 'enemy_sentinel', tint: 0xffd166, faceTarget: true,
     hp: 160, damage: 8, speed: 52, radius: 30, gemTier: 'red', gemCount: 6, knockbackResist: 0.95,
     behavior: 'chase', drops: [{ pickup: 'chest', chance: 1 }], deathFx: 'big',
   },
