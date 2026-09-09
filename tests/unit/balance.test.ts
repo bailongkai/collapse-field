@@ -59,6 +59,13 @@ describe('balance', () => {
     // Gates set from a sixteen-seed sweep of the current content: survival 167-695 s (mean 312),
     // level 2-13 (median 7), kills 7-702 (median 295), chests 0-6 (median 3).
     //
+    // Calibration against a person: the author clears the first three stages with the first two
+    // characters and ends at about level 60. The policy ends at a median of 7-11. So the policy
+    // under-reports a competent player's build by roughly six times, and its absolute levels and
+    // kills must never be read as what a player sees — only as a before/after comparison of the
+    // content. One wrong conclusion ("nobody reaches level 20, the curve is broken") already came
+    // from forgetting that.
+    //
     // Read that kill range before touching these numbers. The distribution is bimodal, and not
     // because of noise: three of sixteen seeds end with under thirty kills because the policy spends
     // the whole run kiting and never engages anything. It can, because the player moves at 200 px/s

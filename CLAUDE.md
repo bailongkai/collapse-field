@@ -132,6 +132,11 @@ is checked against `minTouchUnits`. Buttons are containers: Phaser normalises a
 container's hit test by its displayOrigin, so a hit rectangle for one that has
 had `setSize` called must be authored from the top-left, not centred.
 
+The autopilot is an instrument, not a player. It kites and rarely engages, so it
+ends runs at a median of level 7-11 where the author, on the first three stages
+with the first two characters, ends at about level 60 — a factor of six. Use its
+numbers to compare two versions of the content, never as what a person will see.
+
 Calibrating balance needs more seeds than feels necessary. Three seeds gave a
 confident but wrong answer about how view width affects difficulty; the spread
 between seeds was larger than the effect. Sixteen seeds settled it.
