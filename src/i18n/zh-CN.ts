@@ -184,7 +184,7 @@ export const zhCN = {
   'signature.engineer.name': '超频',
   'signature.engineer.desc': '开启补给箱后 10 秒内冷却时间减半',
   'signature.unit.name': '应急护盾',
-  'signature.unit.desc': '完全抵消下一次受到的伤害，60 秒充能一次',
+  'signature.unit.desc': '完全抵消下一次受到的伤害，75 秒充能一次',
   'signature.navigator.name': '应急推进',
   'signature.navigator.desc': '受伤后 2 秒内移动速度 +60%，每 8 秒一次',
   'hud.signature_ready': '就绪',

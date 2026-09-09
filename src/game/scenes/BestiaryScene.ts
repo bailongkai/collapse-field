@@ -5,7 +5,10 @@ import { UiButton } from '../ui/button';
 import { restartOnResize } from '../ui/responsive';
 import { fitPanel, isPortraitScene } from '../layout';
 import { app } from '../app';
-import { ENEMY_LIST } from '../../data/enemies';
+import { ENEMY_LIST as ALL_ENEMIES } from '../../data/enemies';
+
+/** scenery breaks, it is not met */
+const ENEMY_LIST = ALL_ENEMIES.filter((e) => e.behavior !== 'prop');
 
 /** Every enemy, lit once it has been met. The unmet ones are silhouettes with a question mark. */
 export class BestiaryScene extends Phaser.Scene {

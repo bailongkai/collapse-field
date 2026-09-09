@@ -58,10 +58,10 @@ export const CHARACTERS = {
     descKey: 'character.unit.desc',
     frame: 'player_unit',
     radius: 17,
-    baseStats: stats({ maxHealth: 120, armor: 1, recovery: 0.25, moveSpeed: 0.85, might: 0.9 }),
+    baseStats: stats({ maxHealth: 120, armor: 1, recovery: 0.2, moveSpeed: 0.85, might: 0.9 }),
     startingWeapon: 'empField',
     levelBonuses: [{ everyLevels: 12, stat: 'armor', amount: 1 }],
-    signature: { kind: 'shield', nameKey: 'signature.unit.name', descKey: 'signature.unit.desc', cooldownMs: 60_000 },
+    signature: { kind: 'shield', nameKey: 'signature.unit.name', descKey: 'signature.unit.desc', cooldownMs: 75_000 },
     cost: 1000,
   },
   // 领航员: growth and greed. Only a little faster — speed is the one stat that makes running

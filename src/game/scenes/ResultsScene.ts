@@ -131,8 +131,9 @@ export class ResultsScene extends Phaser.Scene {
         const frac = d.damage / total;
         this.add.rectangle(barX, y, barW, 14, 0x0d1420).setOrigin(0, 0.5);
         this.add.rectangle(barX, y, barW * frac, 14, def?.iconTint ?? 0x4fe0ff).setOrigin(0, 0.5).setAlpha(0.85);
-        this.add.text(barX + 6, y, def ? t(def.nameKey) : d.id, textStyle(12, { bold: true })).setOrigin(0, 0.5);
-        this.add.text(barX + barW - 6, y, `${Math.round(frac * 100)}%`, textStyle(12, { color: COLORS.dim })).setOrigin(1, 0.5);
+        // stroked, because a full bar puts the text on top of its own colour
+        this.add.text(barX + 6, y, def ? t(def.nameKey) : d.id, textStyle(12, { bold: true, stroke: true })).setOrigin(0, 0.5);
+        this.add.text(barX + barW - 6, y, `${Math.round(frac * 100)}%`, textStyle(12, { bold: true, stroke: true })).setOrigin(1, 0.5);
       });
     }
 

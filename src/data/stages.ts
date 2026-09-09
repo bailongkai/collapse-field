@@ -16,10 +16,10 @@ const WAVES: readonly WaveEntry[] = [
   { minute: 7, mix: mix(['drone', 0.15], ['robot', 0.3], ['mech', 0.25], ['spitter', 0.1], ['dasher', 0.1], ['medic', 0.05], ['bomber', 0.05]), minCount: 100, interval: 500, batch: 6, hpMult: 1.8, dmgMult: 1.15 },
   { minute: 8, mix: mix(['infected', 0.25], ['robot', 0.3], ['mech', 0.2], ['spitter', 0.1], ['dasher', 0.15]), minCount: 115, interval: 500, batch: 6, hpMult: 1.95, dmgMult: 1.2 },
   { minute: 9, mix: mix(['robot', 0.3], ['interceptor', 0.15], ['mech', 0.25], ['spitter', 0.1], ['dasher', 0.08], ['hound', 0.12]), minCount: 130, interval: 450, batch: 6, hpMult: 2.1, dmgMult: 1.2 },
-  { minute: 10, mix: mix(['robot', 0.25], ['mech', 0.3], ['interceptor', 0.1], ['spitter', 0.1], ['dasher', 0.1], ['medic', 0.08], ['bomber', 0.07]), minCount: 150, interval: 450, batch: 7, hpMult: 2.25, dmgMult: 1.25 },
+  { minute: 10, mix: mix(['robot', 0.22], ['mech', 0.3], ['interceptor', 0.05], ['spitter', 0.1], ['dasher', 0.08], ['medic', 0.07], ['bomber', 0.06], ['hound', 0.12]), minCount: 150, interval: 450, batch: 7, hpMult: 2.25, dmgMult: 1.25 },
   { minute: 11, mix: mix(['infected', 0.2], ['robot', 0.22], ['mech', 0.3], ['spitter', 0.1], ['dasher', 0.06], ['hound', 0.12]), minCount: 170, interval: 400, batch: 7, hpMult: 2.4, dmgMult: 1.25 },
-  { minute: 12, mix: mix(['drone', 0.2], ['robot', 0.25], ['mech', 0.3], ['spitter', 0.1], ['dasher', 0.15]), minCount: 190, interval: 400, batch: 8, hpMult: 2.5, dmgMult: 1.3 },
-  { minute: 13, mix: mix(['robot', 0.2], ['interceptor', 0.15], ['mech', 0.3], ['spitter', 0.1], ['dasher', 0.1], ['medic', 0.08], ['bomber', 0.07]), minCount: 220, interval: 350, batch: 8, hpMult: 2.5, dmgMult: 1.3 },
+  { minute: 12, mix: mix(['drone', 0.12], ['robot', 0.23], ['mech', 0.3], ['spitter', 0.1], ['dasher', 0.1], ['hound', 0.15]), minCount: 190, interval: 400, batch: 8, hpMult: 2.5, dmgMult: 1.3 },
+  { minute: 13, mix: mix(['robot', 0.18], ['interceptor', 0.07], ['mech', 0.3], ['spitter', 0.1], ['dasher', 0.08], ['medic', 0.07], ['bomber', 0.05], ['hound', 0.15]), minCount: 220, interval: 350, batch: 8, hpMult: 2.5, dmgMult: 1.3 },
   { minute: 14, mix: mix(['robot', 0.2], ['mech', 0.4], ['interceptor', 0.05], ['spitter', 0.1], ['dasher', 0.1], ['hound', 0.15]), minCount: 250, interval: 300, batch: 10, hpMult: 2.5, dmgMult: 1.3 },
 ];
 
@@ -48,6 +48,7 @@ const EVENTS: readonly WaveEvent[] = byTime([
   { at: 540, kind: 'encircle', enemy: 'interceptor', count: 16, gapEvery: 5 },
   { at: 600, kind: 'boss', enemy: 'mothership', hpMult: 5.5 }, // 2200 hp: about 13 s, on a build ten times stronger
   { at: 690, kind: 'ring', enemy: 'robot', count: 40, radius: 520 },
+  { at: 660, kind: 'encircle', enemy: 'robot', count: 16, gapEvery: 5 },
   { at: 700, kind: 'elite', enemy: 'sentinel', hpMult: 4.5 },
   { at: 750, kind: 'encircle', enemy: 'hound', count: 14, gapEvery: 4 },
   { at: 810, kind: 'swarm', enemy: 'interceptor', count: 50, pattern: 'hLine', speedMult: 1.2 },
@@ -68,11 +69,11 @@ const CARGO_WAVES: readonly WaveEntry[] = [
   { minute: 7, mix: mix(['robot', 0.35], ['dasher', 0.2], ['mech', 0.3], ['loader', 0.15]), minCount: 60, interval: 600, batch: 4, hpMult: 1.9, dmgMult: 1.15 },
   { minute: 8, mix: mix(['robot', 0.3], ['dasher', 0.2], ['mech', 0.3], ['loader', 0.2]), minCount: 66, interval: 600, batch: 5, hpMult: 2.05, dmgMult: 1.2 },
   { minute: 9, mix: mix(['robot', 0.22], ['dasher', 0.12], ['mech', 0.3], ['loader', 0.15], ['tractor', 0.07], ['repairDrone', 0.06], ['hound', 0.08]), minCount: 72, interval: 550, batch: 5, hpMult: 2.2, dmgMult: 1.2 },
-  { minute: 10, mix: mix(['robot', 0.25], ['dasher', 0.2], ['mech', 0.3], ['loader', 0.25]), minCount: 78, interval: 550, batch: 5, hpMult: 2.3, dmgMult: 1.25 },
-  { minute: 11, mix: mix(['robot', 0.2], ['dasher', 0.2], ['mech', 0.35], ['loader', 0.25]), minCount: 84, interval: 500, batch: 5, hpMult: 2.4, dmgMult: 1.25 },
+  { minute: 10, mix: mix(['robot', 0.2], ['dasher', 0.15], ['mech', 0.3], ['loader', 0.23], ['hound', 0.12]), minCount: 86, interval: 550, batch: 5, hpMult: 2.3, dmgMult: 1.25 },
+  { minute: 11, mix: mix(['robot', 0.15], ['dasher', 0.15], ['mech', 0.35], ['loader', 0.23], ['hound', 0.12]), minCount: 94, interval: 500, batch: 5, hpMult: 2.4, dmgMult: 1.25 },
   { minute: 12, mix: mix(['robot', 0.12], ['dasher', 0.12], ['mech', 0.3], ['loader', 0.25], ['tractor', 0.07], ['repairDrone', 0.06], ['hound', 0.08]), minCount: 92, interval: 500, batch: 6, hpMult: 2.5, dmgMult: 1.3 },
-  { minute: 13, mix: mix(['dasher', 0.25], ['mech', 0.35], ['loader', 0.4]), minCount: 100, interval: 450, batch: 6, hpMult: 2.5, dmgMult: 1.3 },
-  { minute: 14, mix: mix(['dasher', 0.2], ['mech', 0.35], ['loader', 0.45]), minCount: 110, interval: 450, batch: 6, hpMult: 2.5, dmgMult: 1.3 },
+  { minute: 13, mix: mix(['dasher', 0.18], ['mech', 0.35], ['loader', 0.33], ['hound', 0.14]), minCount: 112, interval: 450, batch: 6, hpMult: 2.5, dmgMult: 1.3 },
+  { minute: 14, mix: mix(['dasher', 0.15], ['mech', 0.35], ['loader', 0.35], ['hound', 0.15]), minCount: 124, interval: 450, batch: 6, hpMult: 2.5, dmgMult: 1.3 },
 ];
 const CARGO_EVENTS: readonly WaveEvent[] = byTime([
   { at: 90, kind: 'swarm', enemy: 'drone', count: 30, pattern: 'hLine' },
@@ -85,6 +86,7 @@ const CARGO_EVENTS: readonly WaveEvent[] = byTime([
   { at: 540, kind: 'encircle', enemy: 'robot', count: 12, gapEvery: 4 },
   { at: 570, kind: 'swarm', enemy: 'dasher', count: 24, pattern: 'diag' },
   { at: 600, kind: 'boss', enemy: 'hauler', hpMult: 4.5 },
+  { at: 660, kind: 'encircle', enemy: 'hound', count: 12, gapEvery: 4 },
   { at: 700, kind: 'elite', enemy: 'sentinel', hpMult: 5 },
   { at: 750, kind: 'ring', enemy: 'loader', count: 12, radius: 520 },
   { at: 780, kind: 'encircle', enemy: 'hound', count: 12, gapEvery: 4 },
