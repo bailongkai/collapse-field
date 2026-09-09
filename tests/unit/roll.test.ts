@@ -20,19 +20,18 @@ describe('rollLevelUp', () => {
     }
   });
 
-  it('never offers a maxed item', () => {
+  it('never offers a maxed item: a full build gets limit break cards instead', () => {
     const weapons: OwnedItem[] = Object.values(CONTENT.weapons).map((w) => ({ id: w.id, level: w.maxLevel }));
     const passives: OwnedItem[] = Object.values(CONTENT.passives).map((p) => ({ id: p.id, level: p.maxLevel }));
     for (let seed = 0; seed < 20; seed++) {
       const picks = rollLevelUp({ weapons, passives, luck: 1, rng: new Rng(seed), reg: CONTENT });
-      for (const p of picks) expect(['gold', 'heal']).toContain(p.kind);
+      expect(picks.length).toBeGreaterThan(0);
+      for (const p of picks) expect(p.kind).toBe('limit');
     }
   });
 
-  it('falls back to gold and heal when nothing can be offered', () => {
-    const weapons: OwnedItem[] = Object.values(CONTENT.weapons).map((w) => ({ id: w.id, level: w.maxLevel }));
-    const passives: OwnedItem[] = Object.values(CONTENT.passives).map((p) => ({ id: p.id, level: p.maxLevel }));
-    const picks = rollLevelUp({ weapons, passives, luck: 1, rng: new Rng(3), reg: CONTENT });
+  it('falls back to gold and heal only when there is not even a weapon to break the limit of', () => {
+    const picks = rollLevelUp({ weapons: [], passives: [], luck: 1, rng: new Rng(3), reg: CONTENT, excluded: new Set(Object.keys(CONTENT.weapons).concat(Object.keys(CONTENT.passives))) });
     expect(picks.map((p) => p.kind).sort()).toEqual(['gold', 'heal']);
   });
 

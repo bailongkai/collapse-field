@@ -1,6 +1,6 @@
 import { CONTENT } from './registry';
 import { hasKey } from '../../i18n';
-import { UPGRADES } from '../../data/upgrades';
+import { UPGRADES, type UpgradeDef } from '../../data/upgrades';
 import { STAT_KEYS } from '../../data/types';
 
 /**
@@ -97,11 +97,12 @@ export function validateContent(frames?: ReadonlySet<string>): string[] {
     check(s.events.some((e) => e.kind === 'reaper'), `stage ${key}: no reaper event`);
     for (const f of s.decorFrames) frameOk(f, `stage ${key} decor`);
   }
-  for (const [key, u] of Object.entries(UPGRADES)) {
+  for (const [key, u] of Object.entries(UPGRADES) as [string, UpgradeDef][]) {
     check(u.id === key, `upgrade ${key}: id mismatch`);
     check(hasKey(u.nameKey), `upgrade ${key}: missing i18n ${u.nameKey}`);
     check(hasKey(u.descKey), `upgrade ${key}: missing i18n ${u.descKey}`);
-    check(STAT_KEYS.includes(u.stat), `upgrade ${key}: unknown stat ${u.stat}`);
+    check((u.stat !== undefined) !== (u.charge !== undefined), `upgrade ${key}: exactly one of stat or charge`);
+    check(u.stat === undefined || STAT_KEYS.includes(u.stat), `upgrade ${key}: unknown stat ${u.stat}`);
     check(u.costs.length === u.maxLevel, `upgrade ${key}: ${u.costs.length} costs for ${u.maxLevel} levels`);
     frameOk(u.icon, `upgrade ${key} icon`);
   }

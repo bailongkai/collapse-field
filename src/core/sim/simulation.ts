@@ -44,6 +44,8 @@ export interface SimulationOptions {
   viewH?: number;
   /** permanent bonuses from the save's upgrades, applied like an extra passive */
   metaBonuses?: StatBlock;
+  /** rerolls, skips and banishes the save has bought, spent over the run */
+  charges?: { reroll: number; skip: number; banish: number };
 }
 
 export interface RunState {
@@ -64,6 +66,11 @@ export interface RunState {
   passives: OwnedItem[];
   pendingLevelUps: number;
   choices: LevelUpChoice[] | null;
+  /** level-up agency: rerolls, skips and banishes left this run, and what has been banished */
+  rerolls: number;
+  skips: number;
+  banishes: number;
+  banished: string[];
   /** chests opened and already applied, waiting for the view to play their reveal */
   chestQueue: ChestResult[];
   /** how many chests this run has opened, for the results screen */
@@ -121,6 +128,10 @@ export class Simulation {
       passives: [],
       pendingLevelUps: 0,
       choices: null,
+      rerolls: opts.charges?.reroll ?? 0,
+      skips: opts.charges?.skip ?? 0,
+      banishes: opts.charges?.banish ?? 0,
+      banished: [],
       chestQueue: [],
       chestsOpened: 0,
       reaperSpawned: false,
@@ -390,6 +401,57 @@ export class Simulation {
     }
   }
 
+  /** Rolls the current offer again, if a reroll is left. */
+  rerollChoices(): boolean {
+    const run = this.run;
+    if (run.phase !== 'levelup' || run.rerolls <= 0) return false;
+    run.rerolls--;
+    run.choices = rollLevelUp({
+      weapons: run.weapons,
+      passives: run.passives,
+      luck: this.cachedStats.luck,
+      rng: this.world.rng,
+      reg: this.reg,
+      excluded: new Set(run.banished),
+    });
+    return true;
+  }
+
+  /** Declines the whole offer, if a skip is left; the level is still gained. */
+  skipLevelUp(): boolean {
+    const run = this.run;
+    if (run.phase !== 'levelup' || run.skips <= 0) return false;
+    run.skips--;
+    run.pendingLevelUps = Math.max(0, run.pendingLevelUps - 1);
+    run.choices = null;
+    if (run.pendingLevelUps > 0) this.openLevelUp();
+    else run.phase = 'running';
+    return true;
+  }
+
+  /** Removes one card's item from every offer for the rest of the run, and rolls a replacement. */
+  banishChoice(index: number): boolean {
+    const run = this.run;
+    const choices = run.choices;
+    if (run.phase !== 'levelup' || run.banishes <= 0 || !choices) return false;
+    const choice = choices[index];
+    if (!choice || (choice.kind !== 'weapon' && choice.kind !== 'passive')) return false;
+    // an owned item cannot be banished: its levels are already part of the build
+    const owned = [...run.weapons, ...run.passives].some((o) => o.id === choice.id);
+    if (owned) return false;
+    run.banishes--;
+    run.banished.push(choice.id);
+    run.choices = rollLevelUp({
+      weapons: run.weapons,
+      passives: run.passives,
+      luck: this.cachedStats.luck,
+      rng: this.world.rng,
+      reg: this.reg,
+      excluded: new Set(run.banished),
+    });
+    return true;
+  }
+
   /** A weapon that can evolve right now: maxed, with its paired passive owned. */
   evolvableWeapon(): { id: string; into: string } | null {
     for (const w of this.run.weapons) {
@@ -558,6 +620,7 @@ export class Simulation {
       luck: this.cachedStats.luck,
       rng: this.world.rng,
       reg: this.reg,
+      excluded: new Set(run.banished),
     });
     run.phase = 'levelup';
     this.world.events.push('levelUpOpen', this.world.player.x, this.world.player.y, run.level);
@@ -576,6 +639,11 @@ export class Simulation {
       case 'weapon':
         this.giveWeapon(choice.id, choice.toLevel);
         break;
+      case 'limit': {
+        const inst = this.world.weaponInstances.find((i) => i.defId === choice.id);
+        if (inst) inst.limit[choice.stat] += choice.amount;
+        break;
+      }
       case 'passive':
         this.givePassive(choice.id, choice.toLevel);
         break;
@@ -662,6 +730,7 @@ export class Simulation {
         volleyLeft: 0,
         volleyTimer: 0,
         volleyFacing: 0,
+        limit: { damage: 0, area: 0, cooldown: 0, speed: 0 },
         activeCount: 0,
         lastHitTick: new Int32Array(ENEMY_CAP).fill(-1e9),
       };

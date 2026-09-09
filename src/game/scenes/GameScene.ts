@@ -23,7 +23,7 @@ import { rendererString } from '../../debug/hook';
 import { sfx } from '../audio/sfx';
 import { music } from '../audio/music';
 import { app } from '../app';
-import { metaBonuses } from '../../core/save/upgrades';
+import { metaBonuses, metaCharges } from '../../core/save/upgrades';
 import { t } from '../../i18n';
 import type { HudScene } from './HudScene';
 
@@ -79,6 +79,7 @@ export class GameScene extends Phaser.Scene {
       viewW: this.scale.width,
       viewH: this.scale.height,
       metaBonuses: metaBonuses(app().save),
+      charges: metaCharges(app().save),
     });
 
     this.cameras.main.setBackgroundColor('#05070c');
@@ -246,6 +247,26 @@ export class GameScene extends Phaser.Scene {
     if (!this.sim.applyChoice(index)) return false;
     this.scene.stop('LevelUp');
     if (this.sim.run.phase === 'levelup') this.openLevelUpOverlay();
+    return true;
+  }
+
+  /** Reroll, skip or banish from the overlay; the overlay rebuilds itself on success. */
+  rerollLevelUp(): boolean {
+    if (!this.sim.rerollChoices()) return false;
+    this.scene.get('LevelUp').scene.restart();
+    return true;
+  }
+
+  skipLevelUp(): boolean {
+    if (!this.sim.skipLevelUp()) return false;
+    this.scene.stop('LevelUp');
+    if (this.sim.run.phase === 'levelup') this.openLevelUpOverlay();
+    return true;
+  }
+
+  banishLevelUp(index: number): boolean {
+    if (!this.sim.banishChoice(index)) return false;
+    this.scene.get('LevelUp').scene.restart();
     return true;
   }
 
@@ -525,6 +546,7 @@ export class GameScene extends Phaser.Scene {
       kills: run.kills,
       gold: run.gold,
       chestsOpened: run.chestsOpened,
+      charges: { reroll: run.rerolls, skip: run.skips, banish: run.banishes, banished: [...run.banished] },
       signature: {
         kind: sim.character.signature.kind,
         ready: sim.signature.cooldownMs === 0 && sim.signature.activeMs === 0,
@@ -658,6 +680,9 @@ export class GameScene extends Phaser.Scene {
       },
       getChoices: () => this.sim.run.choices,
       pickChoice: (i: number) => this.applyLevelUpChoice(i),
+      reroll: () => this.rerollLevelUp(),
+      skip: () => this.skipLevelUp(),
+      banish: (i: number) => this.banishLevelUp(i),
       godMode: (on: boolean) => {
         this.sim.run.god = on;
       },

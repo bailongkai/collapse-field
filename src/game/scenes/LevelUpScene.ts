@@ -4,6 +4,7 @@ import { fitPanel, minTouchUnits } from '../layout';
 import { t } from '../../i18n';
 import { COLORS, textStyle } from '../ui/textStyles';
 import { registerButton } from '../ui/buttonRegistry';
+import { UiButton } from '../ui/button';
 import { sfx } from '../audio/sfx';
 import { weaponParams } from '../../core/stats/weaponParams';
 import { CONTENT } from '../../core/content/registry';
@@ -49,13 +50,16 @@ export class LevelUpScene extends Phaser.Scene {
     const choices = game.sim.run.choices ?? [];
 
     this.scaleUi = 1;
-    const wanted = fitPanel(this, 560, 140 + choices.length * (CARD_H + CARD_GAP));
+    const run = game.sim.run;
+    const anyCharge = run.rerolls + run.skips + run.banishes > 0;
+    const footer = anyCharge ? 58 : 0;
+    const wanted = fitPanel(this, 560, 140 + footer + choices.length * (CARD_H + CARD_GAP));
     this.cardW = Math.min(CARD_W, wanted.w - 80);
-    this.cardH = Math.min(CARD_H, Math.max(72, (wanted.h - 140) / Math.max(1, choices.length) - CARD_GAP));
+    this.cardH = Math.min(CARD_H, Math.max(72, (wanted.h - 140 - footer) / Math.max(1, choices.length) - CARD_GAP));
     const gap = CARD_GAP;
 
     this.add.rectangle(this.scale.width / 2, this.scale.height / 2, this.scale.width, this.scale.height, 0x05070c, 0.6);
-    const panelH = 140 + choices.length * (this.cardH + gap);
+    const panelH = 140 + footer + choices.length * (this.cardH + gap);
     const panelW = this.cardW + 80;
     this.add.nineslice(this.scale.width / 2, this.scale.height / 2, 'ui', 'panel_glass', panelW, panelH, 24, 24, 24, 24).setAlpha(0.96).setTint(PANEL_TINT);
     this.add
@@ -70,7 +74,23 @@ export class LevelUpScene extends Phaser.Scene {
 
     this.setSelected(0);
 
+    // reroll / skip / banish, when the save has bought any. Shown with their counts, greyed at zero.
+    if (anyCharge) {
+      const y = this.scale.height / 2 + panelH / 2 - 34;
+      const bw = Math.min(150, (panelW - 60) / 3);
+      const mk = (id: string, x: number, label: string, left: number, onPress: () => void): void => {
+        const btn = new UiButton(this, x, y, { id, label: `${label} ×${left}`, width: bw, height: 40, fontSize: 15, onPress });
+        if (left <= 0) btn.setEnabled(false);
+      };
+      mk('levelup.reroll', this.scale.width / 2 - bw - 8, t('levelup.reroll'), run.rerolls, () => this.reroll());
+      mk('levelup.skip', this.scale.width / 2, t('levelup.skip'), run.skips, () => this.skip());
+      mk('levelup.banish', this.scale.width / 2 + bw + 8, t('levelup.banish'), run.banishes, () => this.banish());
+    }
+
     const kb = this.input.keyboard;
+    kb?.on('keydown-R', () => this.reroll());
+    kb?.on('keydown-X', () => this.skip());
+    kb?.on('keydown-B', () => this.banish());
     kb?.on('keydown-UP', () => this.move(-1));
     kb?.on('keydown-W', () => this.move(-1));
     kb?.on('keydown-DOWN', () => this.move(1));
@@ -156,6 +176,21 @@ export class LevelUpScene extends Phaser.Scene {
     const game = this.scene.get('Game') as GameScene;
     sfx.play('levelup');
     game.applyLevelUpChoice(index);
+  }
+
+  private reroll(): void {
+    const game = this.scene.get('Game') as GameScene;
+    sfx.play(game.rerollLevelUp() ? 'levelup' : 'click');
+  }
+
+  private skip(): void {
+    const game = this.scene.get('Game') as GameScene;
+    sfx.play(game.skipLevelUp() ? 'levelup' : 'click');
+  }
+
+  private banish(): void {
+    const game = this.scene.get('Game') as GameScene;
+    sfx.play(game.banishLevelUp(this.selected) ? 'levelup' : 'click');
   }
 
   /** Weapon params are shown on the pause screen; exposed here so both agree on the source. */

@@ -11,7 +11,16 @@ import type { EffectiveWeapon, WeaponContext, WeaponInstance } from '../../weapo
 export function stepWeapons(instances: WeaponInstance[], ctx: WeaponContext, dtMs: number): void {
   for (const inst of instances) {
     const def = weaponDef(inst.defId);
-    const eff: EffectiveWeapon = effectiveWeapon(weaponParams(def, inst.level), ctx.stats);
+    const params = weaponParams(def, inst.level);
+    // limit break sits between the levels and the player's stats, so it stacks with both
+    const l = inst.limit;
+    if (l.damage || l.area || l.cooldown || l.speed) {
+      params.damage *= 1 + l.damage;
+      params.area *= 1 + l.area;
+      params.speed *= 1 + l.speed;
+      if (params.cooldown !== Infinity) params.cooldown *= Math.max(0.2, 1 - l.cooldown);
+    }
+    const eff: EffectiveWeapon = effectiveWeapon(params, ctx.stats);
     const behavior = behaviorFor(def.behavior);
 
     behavior.onTick?.(ctx, inst, eff, dtMs / 1000);

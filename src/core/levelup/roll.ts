@@ -1,7 +1,11 @@
 import { PASSIVE_SLOTS, WEAPON_SLOTS } from '../../config';
 import type { ContentRegistry } from '../content/registry';
 import type { Rng } from '../rng';
-import type { LevelUpChoice, OwnedItem } from '../sim/runState';
+import type { LevelUpChoice, LimitStat, OwnedItem } from '../sim/runState';
+
+/** What one limit break pick is worth. Cooldown is a reduction, the others are increases. */
+export const LIMIT_AMOUNT: Record<LimitStat, number> = { damage: 0.1, area: 0.08, cooldown: 0.06, speed: 0.1 };
+const LIMIT_STATS: readonly LimitStat[] = ['damage', 'area', 'cooldown', 'speed'];
 
 export interface RollInput {
   weapons: readonly OwnedItem[];
@@ -56,6 +60,26 @@ export function rollLevelUp(input: RollInput): LevelUpChoice[] {
   const count = 3 + (wantFourth ? 1 : 0);
   const picked = sampleWithoutReplacement(candidates, count, rng);
 
+  // A build with nothing left to level keeps growing. Sixty-six picks max every slot, and a player
+  // who is any good gets there by minute twelve; without this every level-up after that was a
+  // choice between a handful of gold and a medkit, which is no choice at all.
+  if (picked.length === 0) return rollLimitBreak(weapons, reg, count, rng);
+  return picked;
+}
+
+/** Three distinct (weapon, stat) cards from the weapons the player owns. */
+export function rollLimitBreak(weapons: readonly OwnedItem[], reg: ContentRegistry, count: number, rng: Rng): LevelUpChoice[] {
+  const pool: Candidate[] = [];
+  for (const w of weapons) {
+    const def = reg.weapons[w.id];
+    if (!def) continue;
+    for (const stat of LIMIT_STATS) {
+      // an aura never fires, so a cooldown card on it would do nothing
+      if (stat === 'cooldown' && def.base.cooldown === Infinity) continue;
+      pool.push({ choice: { kind: 'limit', id: w.id, stat, amount: LIMIT_AMOUNT[stat] }, weight: 1 });
+    }
+  }
+  const picked = sampleWithoutReplacement(pool, count, rng);
   if (picked.length === 0) return [{ kind: 'gold', amount: 25 }, { kind: 'heal', amount: 30 }];
   return picked;
 }

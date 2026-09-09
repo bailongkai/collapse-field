@@ -50,6 +50,18 @@ export function describeChoice(choice: LevelUpChoice): { title: string; tag: str
       icon: def.icon,
     };
   }
+  if (choice.kind === 'limit') {
+    const def = CONTENT.weapons[choice.id];
+    const pct = Math.round(choice.amount * 100);
+    const statName = t(`limit.${choice.stat}` as Parameters<typeof t>[0]);
+    return {
+      title: def ? t(def.nameKey) : choice.id,
+      tag: t('levelup.limit_break'),
+      body: `${statName} ${choice.stat === 'cooldown' ? '−' : '+'}${pct}%`,
+      icon: def?.icon ?? 'pk_coin',
+      iconTint: def?.iconTint,
+    };
+  }
   if (choice.kind === 'gold') {
     return { title: t('levelup.gold', { n: choice.amount }), tag: '', body: t('levelup.gold_desc', { n: choice.amount }), icon: 'pk_coin' };
   }

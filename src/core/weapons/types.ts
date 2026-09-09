@@ -27,6 +27,8 @@ export interface WeaponInstance {
   volleyFacing: number;
   /** projectiles this weapon currently owns (orbit) */
   activeCount: number;
+  /** limit break: fractions added on top of the levelled params, with no ceiling */
+  limit: { damage: number; area: number; cooldown: number; speed: number };
   /** tick of the last hit per enemy slot; -1e9 means "never" (reset when a slot is reused) */
   lastHitTick: Int32Array;
 }

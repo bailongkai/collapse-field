@@ -16,10 +16,21 @@ export function upgradeLevel(save: SaveData, id: string): number {
 /** The permanent stat bonuses a save grants, in the same fractional/flat form as a passive. */
 export function metaBonuses(save: SaveData): StatBlock {
   const out: Partial<Record<StatKey, number>> = {};
-  for (const def of Object.values(UPGRADES)) {
+  for (const def of Object.values(UPGRADES) as UpgradeDef[]) {
     const level = upgradeLevel(save, def.id);
-    if (level <= 0) continue;
+    if (level <= 0 || !def.stat) continue;
     out[def.stat] = (out[def.stat] ?? 0) + def.perLevel * level;
+  }
+  return out;
+}
+
+/** The rerolls, skips and banishes a save grants each run. */
+export function metaCharges(save: SaveData): { reroll: number; skip: number; banish: number } {
+  const out = { reroll: 0, skip: 0, banish: 0 };
+  for (const def of Object.values(UPGRADES) as UpgradeDef[]) {
+    const level = upgradeLevel(save, def.id);
+    if (level <= 0 || !def.charge) continue;
+    out[def.charge] += def.perLevel * level;
   }
   return out;
 }

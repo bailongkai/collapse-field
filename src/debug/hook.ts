@@ -41,6 +41,7 @@ export interface HookRunState {
   kills: number;
   gold: number;
   chestsOpened: number;
+  charges: { reroll: number; skip: number; banish: number; banished: string[] };
   /** the character's signature ability, as the HUD shows it */
   signature: { kind: string; ready: boolean; activeMs: number; cooldownMs: number; fired: number };
   player: { x: number; y: number; facing: number };
@@ -87,6 +88,9 @@ export interface RunHandlers {
   triggerLevelUp(): void;
   getChoices(): LevelUpChoice[] | null;
   pickChoice(i: number): void;
+  reroll(): boolean;
+  skip(): boolean;
+  banish(i: number): boolean;
   godMode(on: boolean): void;
   setStat(k: StatKey, v: number): void;
   heal(): void;
@@ -258,6 +262,9 @@ export function installHook(game: Phaser.Game, contentProvider: () => GameDebugA
     triggerLevelUp: () => requireRun().triggerLevelUp(),
     getChoices: () => requireRun().getChoices(),
     pickChoice: (i) => requireRun().pickChoice(i),
+    reroll: () => requireRun().reroll(),
+    skip: () => requireRun().skip(),
+    banish: (i) => requireRun().banish(i),
     godMode: (on) => requireRun().godMode(on),
     setStat: (k, v) => requireRun().setStat(k, v),
     heal: () => requireRun().heal(),
