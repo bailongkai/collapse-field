@@ -20,5 +20,5 @@ export function tractorStep(e: Enemy, player: Player, dt: number): void {
   const strength = cfg.pull * (1 - dist / cfg.range) * e.speedMult;
   player.x -= (dx / dist) * strength * dt;
   player.y -= (dy / dist) * strength * dt;
-  e.flashMs = 30;
+  // no hit-flash here: set every tick it rendered the body as a solid white block
 }
