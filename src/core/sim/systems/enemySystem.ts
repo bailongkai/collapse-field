@@ -3,6 +3,12 @@ import { chaseStep } from '../../enemies/behaviors/chase';
 import { rangedStep } from '../../enemies/behaviors/ranged';
 import { dasherStep } from '../../enemies/behaviors/dasher';
 import { bossStep } from '../../enemies/behaviors/boss';
+import { bomberStep } from '../../enemies/behaviors/bomber';
+import { healerStep } from '../../enemies/behaviors/healer';
+import { tractorStep } from '../../enemies/behaviors/tractor';
+import { nestStep } from '../../enemies/behaviors/nest';
+import { blinkStep } from '../../enemies/behaviors/blink';
+import { layerStep } from '../../enemies/behaviors/layer';
 import type { Enemy } from '../entities/enemy';
 import type { Player } from '../entities/player';
 import type { World } from '../world';
@@ -11,9 +17,32 @@ import type { World } from '../world';
  * Moves every enemy according to its per-instance behavior and integrates knockback as a decaying
  * velocity, so a hit shoves an enemy back without ever teleporting it.
  */
-export function stepEnemies(world: World, player: Player, dt: number, playerSpeed: number): void {
+/**
+ * Moves every enemy, and reports the bombers whose fuse ran out this step so the simulation, which
+ * owns player damage and enemy death, can resolve the blasts.
+ */
+export function stepEnemies(world: World, player: Player, dt: number, playerSpeed: number, detonated: Enemy[]): void {
+  detonated.length = 0;
   world.enemies.forEach((e) => {
     switch (e.behavior) {
+      case 'bomber':
+        if (bomberStep(e, player, dt)) detonated.push(e);
+        break;
+      case 'healer':
+        healerStep(world, e, player, dt);
+        break;
+      case 'tractor':
+        tractorStep(e, player, dt);
+        break;
+      case 'nest':
+        nestStep(world, e, dt);
+        break;
+      case 'blink':
+        blinkStep(world, e, player, dt);
+        break;
+      case 'layer':
+        layerStep(world, e, player, dt);
+        break;
       case 'line':
         e.x += e.dirX * e.lineSpeed * dt;
         e.y += e.dirY * e.lineSpeed * dt;

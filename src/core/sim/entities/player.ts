@@ -15,8 +15,10 @@ export interface Player {
   iframesMs: number;
   /** fractional HP carried between steps so `recovery` below 1 HP/s still works */
   healFraction: number;
+  /** hits the signature shield will still negate outright */
+  shieldCharges: number;
 }
 
 export function createPlayer(): Player {
-  return { x: 0, y: 0, hp: 100, facing: 0, inputX: 0, inputY: 0, iframesMs: 0, healFraction: 0 };
+  return { x: 0, y: 0, hp: 100, facing: 0, inputX: 0, inputY: 0, iframesMs: 0, healFraction: 0, shieldCharges: 0 };
 }

@@ -666,6 +666,69 @@
       "frame": "enemy_flagship",
       "size": 170,
       "atlas": "game"
+    },
+    {
+      "pack": "space-shooter-remastered",
+      "file": "PNG/ufoRed.png",
+      "frame": "enemy_bomber",
+      "size": 30,
+      "atlas": "game"
+    },
+    {
+      "pack": "top-down-shooter",
+      "file": "PNG/Robot 1/robot1_hold.png",
+      "frame": "enemy_medic",
+      "size": 40,
+      "atlas": "game"
+    },
+    {
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_10.png",
+      "frame": "enemy_tractor",
+      "size": 56,
+      "atlas": "game"
+    },
+    {
+      "pack": "space-shooter-remastered",
+      "file": "PNG/ufoYellow.png",
+      "frame": "enemy_repairDrone",
+      "size": 28,
+      "atlas": "game"
+    },
+    {
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Environment/scifiEnvironment_14.png",
+      "frame": "enemy_splitter",
+      "size": 40,
+      "atlas": "game"
+    },
+    {
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_12.png",
+      "frame": "enemy_hatchery",
+      "size": 64,
+      "atlas": "game"
+    },
+    {
+      "pack": "space-shooter-remastered",
+      "file": "PNG/ufoGreen.png",
+      "frame": "enemy_minelayer",
+      "size": 36,
+      "atlas": "game"
+    },
+    {
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Power-ups/things_bronze.png",
+      "frame": "enemy_mine",
+      "size": 26,
+      "atlas": "game"
+    },
+    {
+      "pack": "alien-ufo-pack",
+      "file": "PNG/shipPink.png",
+      "frame": "enemy_phaser",
+      "size": 34,
+      "atlas": "game"
     }
   ],
   "font": {

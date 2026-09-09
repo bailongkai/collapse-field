@@ -7,7 +7,7 @@ import { World } from './world';
 import { setPlayerInput, stepPlayer } from './systems/playerSystem';
 import { applyKnockback, stepEnemies } from './systems/enemySystem';
 import { stepSeparation } from './systems/separationSystem';
-import { Spawner, spawnEnemy, spawnRingRadius, type SpawnOptions } from './systems/spawnSystem';
+import { Spawner, spawnEnemy, spawnRing, spawnRingRadius, type SpawnOptions } from './systems/spawnSystem';
 import { applyPlayerDamage, stepContact } from './systems/collisionSystem';
 import { dropForEnemy } from './systems/dropSystem';
 import { stepWeapons } from './systems/weaponSystem';
@@ -19,6 +19,8 @@ import { rollLevelUp } from '../levelup/roll';
 import { rollChestRewards, type ChestGrade } from '../levelup/chest';
 import { CHEST_CONSOLATION_GOLD } from '../../config';
 import { driveAutopilot } from './autopilot';
+import { inBlast } from '../enemies/behaviors/bomber';
+import { createSignature, signatureBonus, signatureStep, onSignatureChest, onSignatureHurt, onSignatureKill, type SignatureState } from './signature';
 import { auraRadius } from '../weapons/behaviors/aura';
 import { weaponParams } from '../stats/weaponParams';
 import { spawnGem } from './systems/dropSystem';
@@ -90,7 +92,10 @@ export class Simulation {
   private viewH: number;
   private metaBonuses: StatBlock;
   private collected: PickupCollected[] = [];
+  private detonated: Enemy[] = [];
   private weaponCtx: WeaponContext;
+  /** the character's signature ability: timers and charges */
+  readonly signature: SignatureState;
 
   constructor(opts: SimulationOptions) {
     this.viewW = opts.viewW ?? REF_W;
@@ -121,8 +126,10 @@ export class Simulation {
       reaperSpawned: false,
       god: false,
     };
+    this.signature = createSignature(ch.signature);
     this.cachedStats = this.computeStats();
     this.world.player.hp = this.cachedStats.maxHealth;
+    this.world.player.shieldCharges = this.signature.shieldReady ? 1 : 0;
     this.weaponCtx = {
       rng: this.world.rng,
       tick: 0,
@@ -159,7 +166,10 @@ export class Simulation {
   }
 
   private computeStats(): PlayerStats {
-    const stats = composeStats(this.character, this.run.passives, this.reg, this.run.level, this.metaBonuses);
+    const bonus = signatureBonus(this.signature, this.character.signature);
+    const extra: StatBlock = bonus ? { ...this.metaBonuses } : this.metaBonuses;
+    if (bonus) for (const k of Object.keys(bonus) as StatKey[]) (extra as Record<StatKey, number>)[k] = ((extra as Record<StatKey, number>)[k] ?? 0) + (bonus[k] ?? 0);
+    const stats = composeStats(this.character, this.run.passives, this.reg, this.run.level, extra);
     const forced = this.forcedStats;
     if (Object.keys(forced).length === 0) return stats;
     const out = { ...stats } as Record<StatKey, number>;
@@ -225,7 +235,8 @@ export class Simulation {
     stepPlayer(world.player, stats, dt);
     this.spawner.step(world, stage, run.timeMs, stats.curse, dt, this.viewW, this.viewH);
     if (this.events.step(world, stage, run.timeMs, this.viewW, this.viewH)) run.reaperSpawned = true;
-    stepEnemies(world, world.player, dt, PLAYER_BASE_SPEED * stats.moveSpeed);
+    stepEnemies(world, world.player, dt, PLAYER_BASE_SPEED * stats.moveSpeed, this.detonated);
+    for (const b of this.detonated) this.detonate(b);
     world.rebuildGrid();
     stepSeparation(world, world.rng, this.viewW, this.viewH);
 
@@ -243,7 +254,14 @@ export class Simulation {
     );
 
     const contact = stepContact(world, stats, run.god);
+    if (contact.enemyId >= 0) {
+      const toucher = world.enemies.items[contact.enemyId];
+      // a mine or bomber that is touched goes off at once; the fuse was for the ones that chase
+      if (toucher.active && toucher.behavior === 'bomber') this.detonate(toucher);
+    }
     if (contact.damage > 0 || contact.fatal) this.onPlayerHurt(contact.fatal);
+
+    if (signatureStep(this.signature, this.character.signature, world.player, stats, FIXED_DT_MS)) this.refreshStats();
 
     if (run.phase === 'running') {
       const harvest = stepGems(world, stats, dt, spawnRingRadius(stage, this.viewW, this.viewH) * stage.despawnFactor);
@@ -266,6 +284,10 @@ export class Simulation {
    */
   private onPlayerHurt(fatal: boolean): void {
     const { run, world } = this;
+    if (!fatal && onSignatureHurt(this.signature, this.character.signature, world.player, this.cachedStats)) {
+      this.refreshStats();
+      world.events.push('signature', world.player.x, world.player.y, 0, run.characterId, true);
+    }
     if (world.player.hp > 0) return;
     if (!fatal && this.cachedStats.revival > run.revivalsUsed) {
       run.revivalsUsed++;
@@ -295,14 +317,36 @@ export class Simulation {
     if (e.hp <= 0) this.killEnemy(e);
   }
 
+  /** Resolves a bomber's blast: damage to the player if inside it, and the bomber is spent. */
+  private detonate(e: Enemy): void {
+    if (!e.active || !e.def?.explode) return;
+    const cfg = e.def.explode;
+    this.world.events.push('explode', e.x, e.y, cfg.radius, e.defId, true);
+    if (inBlast(e, this.world)) {
+      if (applyPlayerDamage(this.world, this.cachedStats, this.run.god, cfg.damage * e.dmgMult, e.defId) > 0) this.onPlayerHurt(false);
+    }
+    // it does not count as a kill and drops nothing: the player did not earn it
+    this.world.enemies.free(e);
+  }
+
   killEnemy(e: Enemy): void {
     if (!e.active || !e.def) return;
     const isBoss = e.behavior === 'boss';
     this.run.kills++;
+    if (onSignatureKill(this.signature, this.character.signature, this.run.kills)) {
+      this.refreshStats();
+      this.world.events.push('signature', this.world.player.x, this.world.player.y, 0, this.run.characterId, true);
+    }
+    const split = e.def.split;
+    const sx = e.x;
+    const sy = e.y;
     this.world.events.push('death', e.x, e.y, 0, e.defId, e.def.deathFx === 'big');
     dropForEnemy(this.world, e, this.stage.gemCap);
     rollDrops(this.world, e, this.world.rng, this.cachedStats.luck, this.reg.pickupList, this.run.timeMs);
     if (isBoss) this.world.events.push('bossKilled', e.x, e.y, 0, e.defId, true);
+    // the children are spawned before the parent's slot is freed, so a handle to the parent goes
+    // dead instead of quietly becoming one of its own spores
+    if (split) spawnRing(this.world, split.enemy, split.count, 18, { x: sx, y: sy, hpMult: 1, dmgMult: e.dmgMult, speedMult: e.speedMult });
     this.world.enemies.free(e);
   }
 
@@ -434,6 +478,10 @@ export class Simulation {
       this.world.events.push('pickup', x, y, gold, 'coin');
     }
 
+    if (onSignatureChest(this.signature, this.character.signature)) {
+      this.refreshStats();
+      this.world.events.push('signature', x, y, 0, run.characterId, true);
+    }
     const result: ChestResult = { grade, x, y, rewards, evolved, gold };
     run.chestQueue.push(result);
     run.chestsOpened++;

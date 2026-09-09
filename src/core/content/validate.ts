@@ -44,6 +44,15 @@ export function validateContent(frames?: ReadonlySet<string>): string[] {
     frameOk(d.frame, `enemy ${key}`);
     check(d.behavior !== 'ranged' || d.ranged, `enemy ${key}: ranged behavior needs a ranged config`);
     check(d.behavior !== 'dasher' || d.dash, `enemy ${key}: dasher behavior needs a dash config`);
+    check(d.behavior !== 'bomber' || d.explode, `enemy ${key}: bomber behavior needs an explode config`);
+    check(d.behavior !== 'healer' || d.heal, `enemy ${key}: healer behavior needs a heal config`);
+    check(d.behavior !== 'tractor' || d.tractor, `enemy ${key}: tractor behavior needs a tractor config`);
+    check(d.behavior !== 'nest' || d.nest, `enemy ${key}: nest behavior needs a nest config`);
+    check(d.behavior !== 'blink' || d.blink, `enemy ${key}: blink behavior needs a blink config`);
+    check(d.behavior !== 'layer' || d.layer, `enemy ${key}: layer behavior needs a layer config`);
+    if (d.nest) check(CONTENT.enemies[d.nest.summon], `enemy ${key}: nest hatches unknown enemy "${d.nest.summon}"`);
+    if (d.layer) check(CONTENT.enemies[d.layer.mine]?.behavior === 'bomber', `enemy ${key}: layer must lay a bomber, got "${d.layer.mine}"`);
+    if (d.split) check(CONTENT.enemies[d.split.enemy] && !CONTENT.enemies[d.split.enemy]?.split, `enemy ${key}: split spawns "${d.split.enemy}", which must exist and not itself split`);
     if (d.boss) check(CONTENT.enemies[d.boss.summon], `enemy ${key}: boss summons unknown enemy "${d.boss.summon}"`);
     for (const drop of d.drops ?? []) check(CONTENT.pickups[drop.pickup], `enemy ${key}: unknown drop "${drop.pickup}"`);
   }
@@ -58,6 +67,8 @@ export function validateContent(frames?: ReadonlySet<string>): string[] {
     check(hasKey(d.descKey), `character ${key}: missing i18n ${d.descKey}`);
     check(CONTENT.weapons[d.startingWeapon], `character ${key}: unknown starting weapon "${d.startingWeapon}"`);
     check(d.cost === undefined || d.cost > 0, `character ${key}: cost must be positive when present`);
+    check(hasKey(d.signature.nameKey), `character ${key}: missing i18n ${d.signature.nameKey}`);
+    check(hasKey(d.signature.descKey), `character ${key}: missing i18n ${d.signature.descKey}`);
     frameOk(d.frame, `character ${key}`);
   }
   const orders = Object.values(CONTENT.stages).map((s) => s.order).sort((a, b) => a - b);

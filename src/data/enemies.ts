@@ -63,7 +63,37 @@ export const ENEMIES = {
     behavior: 'boss', bossBar: true, drops: [{ pickup: 'bossChest', chance: 1 }], deathFx: 'big',
     boss: { chargeEveryMs: 6000, telegraphMs: 900, chargeMs: 700, chargeSpeedMult: 4.5, summon: 'drone', summonCount: 6, summonEveryMs: 9000 },
   },
+  /** 自爆无人机: a drone that arms inside arm's reach and detonates after a fuse. Run, or kill it first. */
+  bomber: {
+    id: 'bomber', nameKey: 'enemy.bomber.name', frame: 'enemy_bomber', tint: 0xff6b5a, faceTarget: false,
+    hp: 6, damage: 0, speed: 95, radius: 14, gemTier: 'blue', knockbackResist: 0.2,
+    behavior: 'bomber', deathFx: 'big',
+    // the fuse is what makes it fair: from arming range a player who runs at once clears the
+    // blast with room to spare, and one who ignores the flash for most of a second does not
+    explode: { triggerRange: 70, fuseMs: 900, radius: 90, damage: 18 },
+  },
+  /** 维修工兵: hangs back and repairs the bodies around it. Kill it first or fight a crowd that heals. */
+  medic: {
+    id: 'medic', nameKey: 'enemy.medic.name', frame: 'enemy_medic', tint: 0x7fe07f, faceTarget: true,
+    hp: 24, damage: 4, speed: 65, radius: 16, gemTier: 'green', knockbackResist: 0.3,
+    behavior: 'healer', deathFx: 'small',
+    heal: { range: 150, intervalMs: 2000, amount: 8, keepDistance: 220 },
+  },
   // ---- 货运甲板 ----
+  /** 牵引车: holds its distance and drags the player towards the heavy bodies. Does nothing else, needs nothing else. */
+  tractor: {
+    id: 'tractor', nameKey: 'enemy.tractor.name', frame: 'enemy_tractor', tint: 0x9fd2ff, faceTarget: true,
+    hp: 60, damage: 8, speed: 50, radius: 24, gemTier: 'green', knockbackResist: 0.7,
+    behavior: 'tractor', deathFx: 'big',
+    tractor: { range: 260, pull: 130, keepDistance: 200 },
+  },
+  /** 维修无人机: the cargo deck's healer, tuned for the mechs it flies with. */
+  repairDrone: {
+    id: 'repairDrone', nameKey: 'enemy.repairDrone.name', frame: 'enemy_repairDrone', tint: 0xffe08a, faceTarget: false,
+    hp: 20, damage: 3, speed: 80, radius: 13, gemTier: 'green', knockbackResist: 0.1,
+    behavior: 'healer', deathFx: 'small',
+    heal: { range: 170, intervalMs: 1800, amount: 20, keepDistance: 240 },
+  },
   /** 装卸机甲: slow, wide and heavily armoured; the cargo deck's whole point is that the bodies are big. */
   loader: {
     id: 'loader', nameKey: 'enemy.loader.name', frame: 'enemy_loader', tint: 0xff9a4a, faceTarget: true,
@@ -83,6 +113,20 @@ export const ENEMIES = {
     id: 'spore', nameKey: 'enemy.spore.name', frame: 'enemy_spore', tint: 0xc07cff, faceTarget: false,
     hp: 2, damage: 2, speed: 85, radius: 11, gemTier: 'blue', knockbackResist: 0,
     behavior: 'chase', deathFx: 'small',
+  },
+  /** 分裂体: an infected that comes apart into spores when it dies. Killing it near you is the mistake. */
+  splitter: {
+    id: 'splitter', nameKey: 'enemy.splitter.name', frame: 'enemy_splitter', tint: 0xd08cff, faceTarget: true,
+    hp: 28, damage: 7, speed: 70, radius: 18, gemTier: 'green', knockbackResist: 0.2,
+    behavior: 'chase', deathFx: 'small',
+    split: { enemy: 'spore', count: 3 },
+  },
+  /** 孵化囊: stands where it was planted and hatches spores until someone comes over and stops it. */
+  hatchery: {
+    id: 'hatchery', nameKey: 'enemy.hatchery.name', frame: 'enemy_hatchery', tint: 0xc07cff, faceTarget: false,
+    hp: 140, damage: 5, speed: 0, radius: 30, gemTier: 'red', gemCount: 3, knockbackResist: 1,
+    behavior: 'nest', deathFx: 'big',
+    nest: { summon: 'spore', count: 4, intervalMs: 3500 },
   },
   /** 母巢: the lab boss. It does not charge at all; it sits and pours spores out, which is the fight. */
   broodmother: {
@@ -104,6 +148,27 @@ export const ENEMIES = {
     hp: 26, damage: 6, speed: 95, radius: 18, gemTier: 'green', knockbackResist: 0.4,
     behavior: 'ranged', deathFx: 'small',
     ranged: { range: 300, intervalMs: 2000, boltSpeed: 300, boltDamage: 9 },
+  },
+  /** 布雷艇: circles at a distance and seeds the field with mines. */
+  minelayer: {
+    id: 'minelayer', nameKey: 'enemy.minelayer.name', frame: 'enemy_minelayer', faceTarget: false,
+    hp: 40, damage: 6, speed: 110, radius: 17, gemTier: 'green', knockbackResist: 0.4,
+    behavior: 'layer', deathFx: 'small',
+    layer: { mine: 'mine', intervalMs: 2600, keepDistance: 300, maxMines: 12 },
+  },
+  /** 感应雷: a bomber that cannot move. It waits. */
+  mine: {
+    id: 'mine', nameKey: 'enemy.mine.name', frame: 'enemy_mine', tint: 0xff8866, faceTarget: false,
+    hp: 4, damage: 0, speed: 0, radius: 12, gemTier: 'none', knockbackResist: 1,
+    behavior: 'bomber', deathFx: 'big',
+    explode: { triggerRange: 44, fuseMs: 350, radius: 100, damage: 16 },
+  },
+  /** 相位艇: reappears a short way from the player, in a direction of its own choosing. */
+  phaser: {
+    id: 'phaser', nameKey: 'enemy.phaser.name', frame: 'enemy_phaser', tint: 0x8ff0ff, faceTarget: false,
+    hp: 30, damage: 9, speed: 90, radius: 16, gemTier: 'green', knockbackResist: 0.3,
+    behavior: 'blink', deathFx: 'small',
+    blink: { everyMs: 5000, distance: 150, telegraphMs: 500 },
   },
   /** 旗舰: the orbit boss. Two quick charges, and raiders as reinforcements. */
   flagship: {

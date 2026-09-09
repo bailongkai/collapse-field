@@ -22,6 +22,8 @@ export class HudScene extends Phaser.Scene {
   private toastMs = 0;
   private bossBarW = 400;
   private weaponRow!: IconRow;
+  private signatureText!: Phaser.GameObjects.Text;
+  private lastSignature = '';
   private passiveRow!: IconRow;
   private last = { time: -1, level: -1, kills: -1, xp: -1, build: '' };
   private pauseButton: UiButton | null = null;
@@ -35,12 +37,14 @@ export class HudScene extends Phaser.Scene {
   create(): void {
     // reset per-run caches: the scene instance is reused between runs
     this.last = { time: -1, level: -1, kills: -1, xp: -1, build: '' };
+    this.lastSignature = '';
 
     this.xpBarBg = this.add.rectangle(this.scale.width / 2, 10, this.scale.width, 20, 0x0d1420).setOrigin(0.5);
     this.xpBarFill = this.add.rectangle(0, 10, 0, 20, 0x4fe0ff).setOrigin(0, 0.5);
     this.levelText = this.add.text(this.scale.width - 12, 10, '', textStyle(14, { bold: true })).setOrigin(1, 0.5);
     this.timer = this.add.bitmapText(this.scale.width / 2, 30, DIGIT_FONT_KEY, '00:00', 32).setOrigin(0.5, 0);
     this.killsText = this.add.text(this.scale.width - 12, 76, '', textStyle(16, { color: COLORS.dim, align: 'right' })).setOrigin(1, 0);
+    this.signatureText = this.add.text(this.scale.width - 12, 98, '', textStyle(14, { color: COLORS.accent, align: 'right' })).setOrigin(1, 0);
     this.bossBarW = Math.min(400, this.scale.width - 80);
     this.bossBarBg = this.add.rectangle(this.scale.width / 2, this.scale.height - 40, this.bossBarW, 12, 0x2a0f14).setOrigin(0.5).setVisible(false);
     this.bossBarFill = this.add
@@ -132,6 +136,16 @@ export class HudScene extends Phaser.Scene {
       this.last.kills = run.kills;
       this.killsText.setText(`${t('hud.kills')} ${run.kills}`);
     }
+    // the signature ability: its name, and whether it is ready, running, or how long until it is
+    const sig = game.sim.signature;
+    const sigDef = game.sim.character.signature;
+    const sigState = sig.activeMs > 0 ? t('hud.signature_active') : sig.cooldownMs > 0 ? t('hud.signature_cooldown', { s: Math.ceil(sig.cooldownMs / 1000) }) : t('hud.signature_ready');
+    const sigLine = `${t(sigDef.nameKey)} · ${sigState}`;
+    if (sigLine !== this.lastSignature) {
+      this.lastSignature = sigLine;
+      this.signatureText.setText(sigLine).setColor(sig.activeMs > 0 ? '#ffd166' : sig.cooldownMs > 0 ? '#8a94a6' : '#4fe0ff');
+    }
+
     const build = run.weapons.map((w) => `${w.id}${w.level}`).join(',') + '|' + run.passives.map((p) => `${p.id}${p.level}`).join(',');
     if (build !== this.last.build) {
       this.last.build = build;

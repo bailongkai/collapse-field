@@ -65,7 +65,7 @@ export interface PassiveDef {
   readonly perLevel: StatBlock;
 }
 
-export type EnemyBehaviorId = 'chase' | 'line' | 'boss' | 'reaper' | 'ranged' | 'dasher';
+export type EnemyBehaviorId = 'chase' | 'line' | 'boss' | 'reaper' | 'ranged' | 'dasher' | 'bomber' | 'healer' | 'tractor' | 'nest' | 'blink' | 'layer';
 export type GemTier = 'blue' | 'green' | 'red' | 'none';
 export interface EnemyDef {
   readonly id: string;
@@ -91,6 +91,20 @@ export interface EnemyDef {
   readonly ranged?: { readonly range: number; readonly intervalMs: number; readonly boltSpeed: number; readonly boltDamage: number };
   /** dasher behavior: telegraph, then lunge at a multiple of base speed */
   readonly dash?: { readonly triggerRange: number; readonly telegraphMs: number; readonly durationMs: number; readonly speedMult: number; readonly cooldownMs: number };
+  /** bomber behavior: close in, arm for `fuseMs` while flashing, then detonate; a speed of 0 makes a mine */
+  readonly explode?: { readonly triggerRange: number; readonly fuseMs: number; readonly radius: number; readonly damage: number };
+  /** healer behavior: keeps its distance and heals every enemy within `range` on an interval */
+  readonly heal?: { readonly range: number; readonly intervalMs: number; readonly amount: number; readonly keepDistance: number };
+  /** tractor behavior: holds `keepDistance` and drags the player towards itself at `pull` px/s inside `range` */
+  readonly tractor?: { readonly range: number; readonly pull: number; readonly keepDistance: number };
+  /** nest behavior: never moves; hatches `count` of `summon` every `intervalMs` */
+  readonly nest?: { readonly summon: string; readonly count: number; readonly intervalMs: number };
+  /** blink behavior: every `everyMs`, reappears `distance` from the player in a random direction */
+  readonly blink?: { readonly everyMs: number; readonly distance: number; readonly telegraphMs: number };
+  /** layer behavior: circles the player at `keepDistance`, leaving a `mine` behind every `intervalMs` */
+  readonly layer?: { readonly mine: string; readonly intervalMs: number; readonly keepDistance: number; readonly maxMines: number };
+  /** on death, this many of that enemy appear where it fell */
+  readonly split?: { readonly enemy: string; readonly count: number };
   /** boss behavior: periodic charge plus reinforcements */
   readonly boss?: { readonly chargeEveryMs: number; readonly telegraphMs: number; readonly chargeMs: number; readonly chargeSpeedMult: number; readonly summon: string; readonly summonCount: number; readonly summonEveryMs: number };
 }
@@ -190,4 +204,22 @@ export interface CharacterDef {
   readonly levelBonuses?: readonly { everyLevels: number; stat: StatKey; amount: number }[];
   /** gold to unlock in the shop; absent means available from the start */
   readonly cost?: number;
+  /** the character's one signature ability, triggered by play rather than by a button */
+  readonly signature: SignatureDef;
 }
+
+/**
+ * Signature abilities fire on their own — there is no button for one on a phone with a stick and
+ * a pause control — so each is a rule about when something happens, with a cooldown.
+ */
+export type SignatureDef =
+  /** below `threshold` of max health: heal `healFraction` and become invulnerable for `invulnMs` */
+  | { readonly kind: 'secondWind'; readonly nameKey: I18nKey; readonly descKey: I18nKey; readonly threshold: number; readonly healFraction: number; readonly invulnMs: number; readonly cooldownMs: number }
+  /** every `kills` kills: `bonus` is added to stats for `durationMs` */
+  | { readonly kind: 'killStreak'; readonly nameKey: I18nKey; readonly descKey: I18nKey; readonly kills: number; readonly bonus: StatBlock; readonly durationMs: number }
+  /** opening a chest adds `bonus` to stats for `durationMs` */
+  | { readonly kind: 'chestSurge'; readonly nameKey: I18nKey; readonly descKey: I18nKey; readonly bonus: StatBlock; readonly durationMs: number }
+  /** a charge that negates the next hit outright, then takes `cooldownMs` to come back */
+  | { readonly kind: 'shield'; readonly nameKey: I18nKey; readonly descKey: I18nKey; readonly cooldownMs: number }
+  /** taking a hit adds `bonus` to stats for `durationMs` */
+  | { readonly kind: 'onHurt'; readonly nameKey: I18nKey; readonly descKey: I18nKey; readonly bonus: StatBlock; readonly durationMs: number; readonly cooldownMs: number };

@@ -23,6 +23,7 @@ export const CHARACTERS = {
     baseStats: BASE_STATS,
     startingWeapon: 'plasmaBlade',
     levelBonuses: [{ everyLevels: 10, stat: 'might', amount: 0.1 }],
+    signature: { kind: 'secondWind', nameKey: 'signature.survivor.name', descKey: 'signature.survivor.desc', threshold: 0.3, healFraction: 0.3, invulnMs: 2000, cooldownMs: 60_000 },
   },
   // 陆战队员: firepower. Slightly slower, and the only character whose growth is more shots.
   marine: {
@@ -34,6 +35,7 @@ export const CHARACTERS = {
     baseStats: stats({ might: 1.15, maxHealth: 110, moveSpeed: 0.95 }),
     startingWeapon: 'railgun',
     levelBonuses: [{ everyLevels: 15, stat: 'amount', amount: 1 }],
+    signature: { kind: 'killStreak', nameKey: 'signature.marine.name', descKey: 'signature.marine.desc', kills: 25, bonus: { amount: 2 }, durationMs: 5000 },
     cost: 600,
   },
   // 系统工程师: a glass cannon that builds fast. Cooldown, luck and magnet, on 85 health.
@@ -46,6 +48,7 @@ export const CHARACTERS = {
     baseStats: stats({ cooldown: 0.95, luck: 1.15, magnet: 1.3, maxHealth: 85, might: 0.9 }),
     startingWeapon: 'guidedLaser',
     levelBonuses: [{ everyLevels: 12, stat: 'cooldown', amount: -0.03 }],
+    signature: { kind: 'chestSurge', nameKey: 'signature.engineer.name', descKey: 'signature.engineer.desc', bonus: { cooldown: -0.5 }, durationMs: 10_000 },
     cost: 800,
   },
   // 维护单元 M-7: the tank. Wades in behind an aura; slow, armoured, and it regenerates.
@@ -58,6 +61,7 @@ export const CHARACTERS = {
     baseStats: stats({ maxHealth: 130, armor: 1, recovery: 0.25, moveSpeed: 0.85, might: 0.9 }),
     startingWeapon: 'empField',
     levelBonuses: [{ everyLevels: 12, stat: 'armor', amount: 1 }],
+    signature: { kind: 'shield', nameKey: 'signature.unit.name', descKey: 'signature.unit.desc', cooldownMs: 45_000 },
     cost: 1000,
   },
   // 领航员: growth and greed. Only a little faster — speed is the one stat that makes running
@@ -71,6 +75,7 @@ export const CHARACTERS = {
     baseStats: stats({ moveSpeed: 1.05, growth: 1.15, greed: 1.25, maxHealth: 90 }),
     startingWeapon: 'orbitalDrones',
     levelBonuses: [{ everyLevels: 10, stat: 'growth', amount: 0.05 }],
+    signature: { kind: 'onHurt', nameKey: 'signature.navigator.name', descKey: 'signature.navigator.desc', bonus: { moveSpeed: 0.6 }, durationMs: 2000, cooldownMs: 8000 },
     cost: 1200,
   },
 } as const satisfies Record<string, CharacterDef>;

@@ -41,6 +41,8 @@ export interface HookRunState {
   kills: number;
   gold: number;
   chestsOpened: number;
+  /** the character's signature ability, as the HUD shows it */
+  signature: { kind: string; ready: boolean; activeMs: number; cooldownMs: number; fired: number };
   player: { x: number; y: number; facing: number };
   counts: { enemies: number; projectiles: number; gems: number; pickups: number; dmgNumbers: number };
   pickups: { id: number; defId: string; x: number; y: number }[];

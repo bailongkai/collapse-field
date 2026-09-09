@@ -5,6 +5,8 @@ import type { World } from '../world';
 export interface ContactResult {
   /** damage actually dealt to the player this step */
   damage: number;
+  /** the enemy that made contact, hit or not; -1 when nothing touched */
+  enemyId: number;
   /** true when the contact was the reaper, which ignores armor, i-frames and god mode */
   fatal: boolean;
 }
@@ -27,6 +29,13 @@ const CONTACT_SLACK = 14;
 export function applyPlayerDamage(world: World, stats: PlayerStats, god: boolean, raw: number, sourceId: string): number {
   const p = world.player;
   if (p.iframesMs > 0 || god) return 0;
+  // a signature shield eats the whole hit, i-frames included, so it is worth exactly one hit
+  if (p.shieldCharges > 0) {
+    p.shieldCharges--;
+    p.iframesMs = IFRAME_MS;
+    world.events.push('shield', p.x, p.y, 0, sourceId, true);
+    return 0;
+  }
   const dmg = Math.max(1, Math.round(raw - stats.armor));
   p.hp -= dmg;
   p.iframesMs = IFRAME_MS;
@@ -36,7 +45,7 @@ export function applyPlayerDamage(world: World, stats: PlayerStats, god: boolean
 
 export function stepContact(world: World, stats: PlayerStats, god: boolean): ContactResult {
   const p = world.player;
-  const out: ContactResult = { damage: 0, fatal: false };
+  const out: ContactResult = { damage: 0, enemyId: -1, fatal: false };
   const reach = 96;
   const n = world.grid.queryInto(p.x - reach, p.y - reach, p.x + reach, p.y + reach, world.queryBuf);
   const playerRadius = 16;
@@ -54,7 +63,9 @@ export function stepContact(world: World, stats: PlayerStats, god: boolean): Con
       reaperHit = true;
       break;
     }
-    if (hitEnemyIndex < 0) hitEnemyIndex = e.id;
+    // a bomber that is touched takes priority over a body that merely bites: standing on a mine
+    // while a drone chews on you is still standing on a mine
+    if (hitEnemyIndex < 0 || (e.behavior === 'bomber' && world.enemies.items[hitEnemyIndex].behavior !== 'bomber')) hitEnemyIndex = e.id;
   }
 
   if (reaperHit) {
@@ -67,6 +78,9 @@ export function stepContact(world: World, stats: PlayerStats, god: boolean): Con
 
   if (hitEnemyIndex < 0) return out;
   const e = world.enemies.items[hitEnemyIndex];
+  out.enemyId = e.id;
+  // a bomber's touch is its detonation, not a bite: the behaviour handles it
+  if (e.behavior === 'bomber') return out;
   out.damage = applyPlayerDamage(world, stats, god, e.def!.damage * e.dmgMult, e.defId);
   return out;
 }

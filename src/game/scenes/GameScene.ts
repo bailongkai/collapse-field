@@ -449,6 +449,21 @@ export class GameScene extends Phaser.Scene {
           this.slowMotion(650);
           sfx.play('explode');
           break;
+        case 'explode':
+          this.fxView.death(e.x, e.y, true);
+          this.cameras.main.shake(180, 0.006);
+          sfx.play('explode');
+          break;
+        case 'shield':
+          this.toast(t('toast.shield'), 1400);
+          sfx.play('emp');
+          break;
+        case 'signature': {
+          const def = this.sim.character.signature;
+          this.toast(t('toast.signature', { name: t(def.nameKey) }), 1600);
+          sfx.play('levelup');
+          break;
+        }
         case 'telegraph':
           this.cameras.main.shake(200, 0.003);
           sfx.play('boss');
@@ -487,7 +502,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private emptyBehaviorCounts(): Record<EnemyBehaviorId, number> {
-    return { chase: 0, line: 0, boss: 0, reaper: 0, ranged: 0, dasher: 0 };
+    return { chase: 0, line: 0, boss: 0, reaper: 0, ranged: 0, dasher: 0, bomber: 0, healer: 0, tractor: 0, nest: 0, blink: 0, layer: 0 };
   }
 
   private getState(): HookRunState {
@@ -510,6 +525,13 @@ export class GameScene extends Phaser.Scene {
       kills: run.kills,
       gold: run.gold,
       chestsOpened: run.chestsOpened,
+      signature: {
+        kind: sim.character.signature.kind,
+        ready: sim.signature.cooldownMs === 0 && sim.signature.activeMs === 0,
+        activeMs: sim.signature.activeMs,
+        cooldownMs: sim.signature.cooldownMs,
+        fired: sim.signature.fired,
+      },
       player: { x: w.player.x, y: w.player.y, facing: w.player.facing },
       counts: {
         enemies: w.enemies.count,
