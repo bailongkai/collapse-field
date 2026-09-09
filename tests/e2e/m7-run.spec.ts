@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openGame, snap, startRun, state, stepResolving, events, waitScene, expectScenes, press } from './helpers';
+import { openGame, snap, startRun, state, stepResolving, events, waitScene, expectScenes, press, realWait } from './helpers';
 
 test('M7: the boss arrives, drops a chest and the chest upgrades a weapon', async ({ page }) => {
   const errors = await openGame(page, '?test=1&seed=31');
@@ -32,11 +32,14 @@ test('M7: the boss arrives, drops a chest and the chest upgrades a weapon', asyn
   expect(await events(page)).toContain('pickup:chest');
   expect(levels(await state(page)), 'the boss chest paid out nothing').toBeGreaterThan(before);
 
-  // the reveal is up over the frozen field; dismiss it and the run carries on
+  // the reveal is up over the frozen field; press on until the clock comes back. Counting presses
+  // is a race: scene.stop is queued to a frame boundary, and a second chest can follow the first.
   await waitScene(page, 'chest');
-  await press(page, 'chest.continue');
-  await press(page, 'chest.continue');
-  await waitScene(page, 'game');
+  for (let i = 0; i < 12 && (await state(page)).phase !== 'running'; i++) {
+    await press(page, 'chest.continue');
+    await realWait(60);
+  }
+  expect((await state(page)).phase).toBe('running');
 
   expect(errors, errors.join('\n')).toEqual([]);
 });

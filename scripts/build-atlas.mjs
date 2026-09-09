@@ -215,6 +215,27 @@ function drawArrow(size = 32) {
   return img;
 }
 
+/**
+ * A shipping container seen from above: a ribbed slab with a darker rim. Tiled over the cargo
+ * deck's walls; the small Kenney structures tiled into a row of little towers instead of a wall.
+ */
+function drawContainer(size, [r, g, b]) {
+  const img = new Jimp({ width: size, height: size, color: 0x00000000 });
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const rim = x < 3 || y < 3 || x >= size - 3 || y >= size - 3;
+    const rib = !rim && (x % 12 === 6 || x % 12 === 7);
+    const lit = Math.max(0, 1 - (x / size + y / size) * 0.5);
+    let cr = r, cg = g, cb = b;
+    if (rim) { cr *= 0.45; cg *= 0.45; cb *= 0.45; }
+    else if (rib) { cr *= 0.72; cg *= 0.72; cb *= 0.72; }
+    cr = Math.min(255, Math.round(cr + lit * 40));
+    cg = Math.min(255, Math.round(cg + lit * 40));
+    cb = Math.min(255, Math.round(cb + lit * 30));
+    img.setPixelColor(((cr << 24) | (cg << 16) | (cb << 8) | 0xff) >>> 0, x, y);
+  }
+  return img;
+}
+
 function solid(w, h, rgba) {
   return new Jimp({ width: w, height: h, color: rgba >>> 0 });
 }
@@ -235,6 +256,8 @@ async function main() {
     ['fx_slash', drawSlash()],
     ['pk_chest', drawChest()],
     ['ui_arrow', drawArrow()],
+    ['wall_orange', drawContainer(64, [0xd8, 0x74, 0x3a])],
+    ['wall_grey', drawContainer(64, [0x8a, 0x94, 0xa0])],
     ['icon_plasmaBlade', drawIconBlade()],
     ['bar_bg', solid(40, 5, 0x101418ff)],
     ['bar_fill', solid(40, 5, 0x5ee06aff)],

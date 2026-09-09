@@ -214,18 +214,20 @@ export const STAGES = {
     // Stacked containers in two rings of lanes around the start. Wide enough to run between,
     // long enough that a crowd on the far side has to come round.
     obstacles: [
-      { x: -560, y: -420, w: 380, h: 70, frame: 'decor_cargo_1' },
-      { x: 180, y: -420, w: 380, h: 70, frame: 'decor_cargo_2' },
-      { x: -560, y: 350, w: 380, h: 70, frame: 'decor_cargo_2' },
-      { x: 180, y: 350, w: 380, h: 70, frame: 'decor_cargo_1' },
-      { x: -760, y: -220, w: 70, h: 440, frame: 'decor_cargo_1' },
-      { x: 690, y: -220, w: 70, h: 440, frame: 'decor_cargo_2' },
-      { x: -1500, y: -900, w: 520, h: 70, frame: 'decor_cargo_2' },
-      { x: 980, y: -900, w: 520, h: 70, frame: 'decor_cargo_1' },
-      { x: -1500, y: 830, w: 520, h: 70, frame: 'decor_cargo_1' },
-      { x: 980, y: 830, w: 520, h: 70, frame: 'decor_cargo_2' },
-      { x: -1700, y: -300, w: 70, h: 600, frame: 'decor_cargo_2' },
-      { x: 1630, y: -300, w: 70, h: 600, frame: 'decor_cargo_1' },
+      // the inner yard is in view from the first frame: the lanes are the deck's first impression
+      { x: -520, y: -330, w: 360, h: 70, frame: 'wall_orange' },
+      { x: 160, y: -330, w: 360, h: 70, frame: 'wall_grey' },
+      { x: -520, y: 260, w: 360, h: 70, frame: 'wall_grey' },
+      { x: 160, y: 260, w: 360, h: 70, frame: 'wall_orange' },
+      { x: -600, y: -150, w: 70, h: 300, frame: 'wall_orange' },
+      { x: 530, y: -150, w: 70, h: 300, frame: 'wall_grey' },
+      // and an outer ring a screen away, so there is always a wall to put between you and a crowd
+      { x: -1500, y: -900, w: 520, h: 70, frame: 'wall_grey' },
+      { x: 980, y: -900, w: 520, h: 70, frame: 'wall_orange' },
+      { x: -1500, y: 830, w: 520, h: 70, frame: 'wall_orange' },
+      { x: 980, y: 830, w: 520, h: 70, frame: 'wall_grey' },
+      { x: -1700, y: -300, w: 70, h: 600, frame: 'wall_grey' },
+      { x: 1630, y: -300, w: 70, h: 600, frame: 'wall_orange' },
     ],
     relics: [
       { pickup: 'relicNuke', x: -1500, y: -1200 },
