@@ -23,7 +23,9 @@ test('AFK: a hands-off run plays out in the browser and ends in results', async 
   await page.evaluate(() => window.__game.fastForward(120, { levelUpPolicy: 'first', budgetMs: 120_000 }));
   const midRun = await state(page);
   expect(midRun.time).toBeGreaterThan(100);
-  expect(midRun.kills).toBeGreaterThan(30);
+  // a loose floor on purpose: this is one seed of a kiting policy, and the point is that the run is
+  // really playing out, not how well. The headless harness is where kill counts are gated.
+  expect(midRun.kills).toBeGreaterThan(10);
   expect(midRun.level).toBeGreaterThan(2);
   await page.evaluate(() => window.__game.setTimeScale(1));
   await page.waitForTimeout(800);

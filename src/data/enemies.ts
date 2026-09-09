@@ -79,6 +79,16 @@ export const ENEMIES = {
     behavior: 'healer', deathFx: 'small',
     heal: { range: 150, intervalMs: 2000, amount: 8, keepDistance: 220 },
   },
+  /**
+   * 猎犬无人机: the one ordinary enemy faster than the player. It exists because the player moves
+   * at 200 px/s and nothing else in the table does, so a straight line was never caught before the
+   * reaper; from the ninth minute this is what catches it.
+   */
+  hound: {
+    id: 'hound', nameKey: 'enemy.hound.name', frame: 'enemy_interceptor', tint: 0xff5577, faceTarget: false,
+    hp: 14, damage: 7, speed: 215, radius: 13, gemTier: 'blue', knockbackResist: 0.3,
+    behavior: 'chase', deathFx: 'small',
+  },
   // ---- 货运甲板 ----
   /** 牵引车: holds its distance and drags the player towards the heavy bodies. Does nothing else, needs nothing else. */
   tractor: {

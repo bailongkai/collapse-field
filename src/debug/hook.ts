@@ -42,6 +42,8 @@ export interface HookRunState {
   gold: number;
   chestsOpened: number;
   charges: { reroll: number; skip: number; banish: number; banished: string[] };
+  /** the challenge fraction the run was started with */
+  curse: number;
   /** the character's signature ability, as the HUD shows it */
   signature: { kind: string; ready: boolean; activeMs: number; cooldownMs: number; fired: number };
   player: { x: number; y: number; facing: number };
@@ -111,7 +113,7 @@ export interface GameDebugApi extends Omit<RunHandlers, 'profileStart' | 'profil
   scene(): SceneName;
   activeScenes(): string[];
   goto(scene: 'menu' | 'game' | 'results', data?: unknown): Promise<void>;
-  startRun(o?: { seed?: number; characterId?: string; stageId?: string }): Promise<void>;
+  startRun(o?: { seed?: number; characterId?: string; stageId?: string; curse?: number }): Promise<void>;
   getEvents(): string[];
   ui: { buttons(): { id: string; x: number; y: number; hitW: number; hitH: number; enabled: boolean }[]; press(id: string): boolean };
   profile: { start(): void; stop(): FrameStats };
@@ -176,7 +178,7 @@ export function installHook(game: Phaser.Game, contentProvider: () => GameDebugA
         if (s.scene.key !== 'Boot' && s.scene.key !== 'Preload') s.scene.stop();
       }
       await nextFrame(game);
-      game.scene.start('Game', { seed, characterId: o.characterId, stageId: o.stageId });
+      game.scene.start('Game', { seed, characterId: o.characterId, stageId: o.stageId, curse: o.curse });
       await waitFor(() => run !== null && api.scene() === 'game');
       await nextFrame(game); // let GameScene.create finish launching the HUD
     },

@@ -31,6 +31,7 @@ export interface GameSceneData {
   seed?: number;
   characterId?: string;
   stageId?: string;
+  curse?: number;
 }
 
 /** Owns the Simulation, drives it with a fixed-step accumulator and mirrors it into pooled views. */
@@ -80,6 +81,7 @@ export class GameScene extends Phaser.Scene {
       viewH: this.scale.height,
       metaBonuses: metaBonuses(app().save),
       charges: metaCharges(app().save),
+      curse: data.curse ?? 0,
     });
 
     this.cameras.main.setBackgroundColor('#05070c');
@@ -330,6 +332,7 @@ export class GameScene extends Phaser.Scene {
       seed: run.seed,
       characterId: run.characterId,
       stageId: run.stageId,
+      curse: run.curse,
     });
   }
 
@@ -547,6 +550,7 @@ export class GameScene extends Phaser.Scene {
       gold: run.gold,
       chestsOpened: run.chestsOpened,
       charges: { reroll: run.rerolls, skip: run.skips, banish: run.banishes, banished: [...run.banished] },
+      curse: run.curse,
       signature: {
         kind: sim.character.signature.kind,
         ready: sim.signature.cooldownMs === 0 && sim.signature.activeMs === 0,

@@ -65,6 +65,16 @@ export class EventScheduler {
         if (boss) world.events.push('bossSpawned', boss.x, boss.y, boss.maxHp, event.enemy, true);
         break;
       }
+      case 'encircle': {
+        // one line from each of the four sides, with gaps: running is not an answer, reading is
+        const spec = { kind: 'swarm' as const, at: event.at, enemy: event.enemy, count: event.count, pattern: 'hLine' as const, speedMult: event.speedMult };
+        this.swarm(world, spec, ring, viewW, viewH, 'left', event.gapEvery);
+        this.swarm(world, spec, ring, viewW, viewH, 'right', event.gapEvery);
+        this.swarm(world, { ...spec, pattern: 'vLine' }, ring, viewW, viewH, 'top', event.gapEvery);
+        this.swarm(world, { ...spec, pattern: 'vLine' }, ring, viewW, viewH, 'bottom', event.gapEvery);
+        world.events.push('rush', world.player.x, world.player.y, event.count * 4, event.enemy, true);
+        break;
+      }
       case 'elite': {
         // walks in from the ring like anything else, but on its own and carrying a chest
         const elite = spawnEnemy(world, event.enemy, {
@@ -92,7 +102,15 @@ export class EventScheduler {
    * A line of fast enemies that crosses the screen. They travel at constant velocity, ignore the
    * player and are exempt from the spawner's relocation, so the wave really does sweep past.
    */
-  private swarm(world: World, event: Extract<WaveEvent, { kind: 'swarm' }>, ring: number, viewW: number, viewH: number): void {
+  private swarm(
+    world: World,
+    event: Extract<WaveEvent, { kind: 'swarm' }>,
+    ring: number,
+    viewW: number,
+    viewH: number,
+    side?: 'left' | 'right' | 'top' | 'bottom',
+    gapEvery = 0,
+  ): void {
     const p = world.player;
     const speedMult = event.speedMult ?? 1;
     // a wider screen needs a longer line, or the rush no longer spans it
@@ -106,13 +124,13 @@ export class EventScheduler {
     const spacing = 40;
 
     if (event.pattern === 'hLine') {
-      const fromLeft = world.rng.next() < 0.5;
+      const fromLeft = side ? side === 'left' : world.rng.next() < 0.5;
       dirX = fromLeft ? 1 : -1;
       startX = p.x + (fromLeft ? -1 : 1) * (viewW / 2 + 80);
       startY = p.y - ((count - 1) * spacing) / 2;
       stepY = spacing;
     } else if (event.pattern === 'vLine') {
-      const fromTop = world.rng.next() < 0.5;
+      const fromTop = side ? side === 'top' : world.rng.next() < 0.5;
       dirY = fromTop ? 1 : -1;
       startY = p.y + (fromTop ? -1 : 1) * (viewH / 2 + 80);
       startX = p.x - ((count - 1) * spacing) / 2;
@@ -133,6 +151,7 @@ export class EventScheduler {
 
     let spawned = 0;
     for (let i = 0; i < count; i++) {
+      if (gapEvery > 0 && i % gapEvery === gapEvery - 1) continue; // the gap the player is meant to find
       const e = spawnEnemy(world, event.enemy, {
         x: startX + stepX * i,
         y: startY + stepY * i,

@@ -14,7 +14,7 @@ export const STAT_KEYS: readonly StatKey[] = [
 export const STAT_KIND = {
   maxHealth: 'mult', recovery: 'flat', armor: 'flat', moveSpeed: 'mult', might: 'mult',
   area: 'mult', projectileSpeed: 'mult', duration: 'mult', amount: 'flat', cooldown: 'mult',
-  luck: 'mult', growth: 'mult', greed: 'mult', magnet: 'mult', revival: 'flat', curse: 'mult',
+  luck: 'mult', growth: 'mult', greed: 'mult', magnet: 'mult', revival: 'flat', curse: 'flat',
 } as const satisfies Record<StatKey, 'mult' | 'flat'>;
 
 export interface WeaponParams {
@@ -132,6 +132,11 @@ export type WaveEvent = { readonly at: number } & (
   | { readonly kind: 'reaper'; readonly enemy: string }
   /** One tough enemy carrying a reward, on its own: the run's punctuation between boss fights. */
   | { readonly kind: 'elite'; readonly enemy: string; readonly hpMult: number }
+  /**
+   * Four rushes at once, one from each side, each line with a gap every `gapEvery` bodies. The
+   * answer to a rush from one side is to step aside; the answer to this is to find the gap.
+   */
+  | { readonly kind: 'encircle'; readonly enemy: string; readonly count: number; readonly gapEvery: number; readonly speedMult?: number }
 );
 export interface StageDef {
   readonly id: string;

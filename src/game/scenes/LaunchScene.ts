@@ -31,6 +31,8 @@ const CARD_TINT_LOCKED = 0x1c2430;
 export class LaunchScene extends Phaser.Scene {
   private characterId = 'survivor';
   private stageId = 'station';
+  private curse = 0;
+  private curseBtns: UiButton[] = [];
   private cardBgs = new Map<string, Phaser.GameObjects.NineSlice>();
   private startBtn!: UiButton;
   private cleanups: (() => void)[] = [];
@@ -45,6 +47,8 @@ export class LaunchScene extends Phaser.Scene {
     this.cardBgs = new Map();
     this.cleanups = [];
     const save = app().save;
+    this.curse = save.lastCurse;
+    this.curseBtns = [];
     this.characterId = isCharacterUnlocked(save, save.lastCharacterId) ? save.lastCharacterId : 'survivor';
     this.stageId = isStageUnlocked(save, save.lastStageId) ? save.lastStageId : 'station';
 
@@ -59,7 +63,7 @@ export class LaunchScene extends Phaser.Scene {
     const gap = 8;
     const colCount = portrait ? 1 : 2;
     const listH = (n: number): number => 40 + n * (cardH + gap);
-    const wantH = portrait ? 150 + listH(chars.length) + listH(stages.length) : 170 + Math.max(listH(chars.length), listH(stages.length));
+    const wantH = portrait ? 200 + listH(chars.length) + listH(stages.length) : 220 + Math.max(listH(chars.length), listH(stages.length));
     const panel = fitPanel(this, portrait ? 520 : 900, wantH);
     const k = Math.min(1, panel.h / wantH);
     const rowH = cardH * k;
@@ -82,6 +86,18 @@ export class LaunchScene extends Phaser.Scene {
     this.add.text(stageX, stageTop, t('launch.stage'), textStyle(Math.round(17 * k), { bold: true, color: COLORS.dim })).setOrigin(0, 0.5);
     stages.forEach((s, i) => this.stageCard(s, stageX, stageTop + 30 * k + rowH / 2 + i * (rowH + rowGap), colW, rowH, k));
 
+    // the challenge toggle: curse for more experience and gold. It is what a player who has
+    // cleared a stage comes back for, and it is the only thing here that makes a stage harder.
+    const curseY = cy + panel.h / 2 - 92 * k;
+    this.add.text(cx - panel.w / 2 + 24, curseY, t('launch.challenge'), textStyle(Math.round(15 * k), { bold: true, color: COLORS.dim })).setOrigin(0, 0.5);
+    const levels: [number, string][] = [[0, t('launch.challenge_off')], [0.2, '+20%'], [0.4, '+40%'], [0.6, '+60%']];
+    const cw = Math.min(96, (panel.w - 200) / levels.length);
+    levels.forEach(([value, label], i) => {
+      const bx = cx - panel.w / 2 + 24 + 90 * k + i * (cw + 6) + cw / 2;
+      const btn = new UiButton(this, bx, curseY, { id: `launch.curse.${Math.round(value * 100)}`, label, width: cw, height: Math.round(34 * k), fontSize: 13, onPress: () => this.setCurse(value) });
+      btn.setData('curse', value);
+      this.curseBtns.push(btn);
+    });
     const btnY = cy + panel.h / 2 - 40 * k;
     const btnW = Math.min(220, panel.w / 2 - 30);
     new UiButton(this, cx - btnW / 2 - 10, btnY, { id: 'launch.back', label: t('common.back'), width: btnW, height: Math.round(48 * k), onPress: () => this.close() });
@@ -171,8 +187,15 @@ export class LaunchScene extends Phaser.Scene {
     );
   }
 
+  private setCurse(value: number): void {
+    this.curse = value;
+    sfx.play('click');
+    this.refresh();
+  }
+
   /** Repaints the selection; the cards themselves are static. */
   private refresh(): void {
+    for (const b of this.curseBtns) b.setEnabled((b.getData('curse') as number) !== this.curse);
     for (const [id, bg] of this.cardBgs) {
       const selected = id === `launch.char.${this.characterId}` || id === `launch.stage.${this.stageId}`;
       const locked = id.startsWith('launch.char.') ? !isCharacterUnlocked(app().save, id.slice('launch.char.'.length)) : !isStageUnlocked(app().save, id.slice('launch.stage.'.length));
@@ -183,7 +206,7 @@ export class LaunchScene extends Phaser.Scene {
   private start(): void {
     const ctx = app();
     if (!isCharacterUnlocked(ctx.save, this.characterId) || !isStageUnlocked(ctx.save, this.stageId)) return;
-    ctx.save = { ...ctx.save, lastCharacterId: this.characterId, lastStageId: this.stageId };
+    ctx.save = { ...ctx.save, lastCharacterId: this.characterId, lastStageId: this.stageId, lastCurse: this.curse };
     writeSave(ctx.storage, ctx.save);
     // this press is the user gesture browsers require before audio may start; audio must never be
     // able to stop a run from starting
@@ -194,7 +217,7 @@ export class LaunchScene extends Phaser.Scene {
       console.warn('music failed to start', error);
     }
     const seed = ctx.seed ?? (Date.now() >>> 0);
-    const selection = { seed, characterId: this.characterId, stageId: this.stageId };
+    const selection = { seed, characterId: this.characterId, stageId: this.stageId, curse: this.curse };
     // the menu owns the transition: starting Game from here would leave the menu underneath it
     this.scene.stop();
     this.scene.get('Menu').scene.start('Game', selection);

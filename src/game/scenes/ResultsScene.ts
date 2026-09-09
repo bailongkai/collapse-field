@@ -22,6 +22,7 @@ export interface ResultsData {
   seed: number;
   characterId: string;
   stageId: string;
+  curse: number;
 }
 
 /** End-of-run summary. Commits the run into the save on entry, then offers a retry or the menu. */
@@ -61,7 +62,7 @@ export class ResultsScene extends Phaser.Scene {
 
     const stage = data.stageId ? CONTENT.stages[data.stageId] : undefined;
     const rows: [string, string][] = [
-      [t('results.stage'), stage ? t(stage.nameKey) : '—'],
+      [t('results.stage'), (stage ? t(stage.nameKey) : '—') + (data.curse > 0 ? ` · ${t('results.challenge', { n: Math.round(data.curse * 100) })}` : '')],
       [t('results.time'), formatTime(data.timeSec ?? 0)],
       [t('results.level'), String(data.level ?? 1)],
       [t('results.kills'), String(data.kills ?? 0)],

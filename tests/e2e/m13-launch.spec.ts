@@ -97,3 +97,19 @@ test('launch: every stage boots, draws its own floor and reaches its first boss'
   }
   expect(errors, errors.join('\n')).toEqual([]);
 });
+
+test('launch: the challenge toggle is remembered and shows on the results', async ({ page }) => {
+  const errors = await openGame(page, '?test=1&seed=17');
+  expect(await page.evaluate(() => window.__game.ui.press('menu.start'))).toBe(true);
+  await page.waitForFunction(() => window.__game.ui.buttons().some((b) => b.id === 'launch.curse.40'));
+  expect(await page.evaluate(() => window.__game.ui.press('launch.curse.40'))).toBe(true);
+  await snap(page, 'launch-challenge');
+  expect(await page.evaluate(() => window.__game.ui.press('launch.start'))).toBe(true);
+  await waitScene(page, 'game');
+  expect((await state(page)).curse).toBeCloseTo(0.4, 6);
+  expect((await page.evaluate(() => window.__game.save.get())).lastCurse).toBeCloseTo(0.4, 6);
+  await page.evaluate(() => window.__game.endRun('died'));
+  await waitScene(page, 'results');
+  await snap(page, 'results-challenge');
+  expect(errors, errors.join('\n')).toEqual([]);
+});

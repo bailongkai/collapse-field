@@ -24,11 +24,11 @@ describe('content', () => {
     expect(validateContent(frames)).toEqual([]);
   });
 
-  it('has five base weapons, five evolutions and five passives', () => {
+  it('has five base weapons, five evolutions and eight passives', () => {
     const weapons = Object.values(CONTENT.weapons);
     expect(weapons.filter((w) => !w.evolvedOnly)).toHaveLength(5);
     expect(weapons.filter((w) => w.evolvedOnly)).toHaveLength(5);
-    expect(Object.keys(CONTENT.passives)).toHaveLength(5);
+    expect(Object.keys(CONTENT.passives)).toHaveLength(8);
   });
 
   it('every weapon behavior is one of the five archetypes', () => {

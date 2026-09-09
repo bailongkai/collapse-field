@@ -46,12 +46,19 @@ export interface SimulationOptions {
   metaBonuses?: StatBlock;
   /** rerolls, skips and banishes the save has bought, spent over the run */
   charges?: { reroll: number; skip: number; banish: number };
+  /**
+   * A challenge the player opted into on the launch screen: the fraction added to curse, and to
+   * experience and gold in return. More bodies, tougher and sooner, for a bigger payout.
+   */
+  curse?: number;
 }
 
 export interface RunState {
   seed: number;
   characterId: string;
   stageId: string;
+  /** the challenge fraction the run was started with, for the results screen */
+  curse: number;
   timeMs: number;
   tick: number;
   phase: RunPhase;
@@ -107,13 +114,21 @@ export class Simulation {
   constructor(opts: SimulationOptions) {
     this.viewW = opts.viewW ?? REF_W;
     this.viewH = opts.viewH ?? REF_H;
-    this.metaBonuses = opts.metaBonuses ?? {};
+    const curse = opts.curse ?? 0;
+    this.metaBonuses = { ...(opts.metaBonuses ?? {}) };
+    if (curse > 0) {
+      const mb = this.metaBonuses as Record<string, number>;
+      mb.curse = (mb.curse ?? 0) + curse;
+      mb.growth = (mb.growth ?? 0) + curse;
+      mb.greed = (mb.greed ?? 0) + curse;
+    }
     this.world = new World(opts.seed);
     const ch = characterDef(opts.characterId);
     this.run = {
       seed: opts.seed,
       characterId: opts.characterId,
       stageId: opts.stageId,
+      curse: opts.curse ?? 0,
       timeMs: 0,
       tick: 0,
       phase: 'running',

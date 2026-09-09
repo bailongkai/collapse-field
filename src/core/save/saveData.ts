@@ -14,6 +14,8 @@ export interface SaveData {
   /** what the launch screen last had selected */
   lastCharacterId: string;
   lastStageId: string;
+  /** the challenge fraction last chosen on the launch screen */
+  lastCurse: number;
 }
 
 export const DEFAULT_SAVE: SaveData = {
@@ -28,6 +30,7 @@ export const DEFAULT_SAVE: SaveData = {
   stageBest: {},
   lastCharacterId: 'survivor',
   lastStageId: 'station',
+  lastCurse: 0,
 };
 
 export interface SaveStorage {
@@ -73,6 +76,7 @@ export function loadSave(st: SaveStorage): SaveData {
     }
     if (typeof parsed.lastCharacterId === 'string') d.lastCharacterId = parsed.lastCharacterId;
     if (typeof parsed.lastStageId === 'string') d.lastStageId = parsed.lastStageId;
+    if (typeof parsed.lastCurse === 'number' && parsed.lastCurse >= 0) d.lastCurse = Math.min(1, parsed.lastCurse);
     if (parsed.settings && typeof parsed.settings === 'object') {
       if (parsed.settings.locale === 'en' || parsed.settings.locale === 'zh-CN') d.settings.locale = parsed.settings.locale;
       if (typeof parsed.settings.sfxVolume === 'number') d.settings.sfxVolume = Math.min(1, Math.max(0, parsed.settings.sfxVolume));
