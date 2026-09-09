@@ -27,6 +27,8 @@ export class World {
   readonly events = new EventBuffer();
   rng: Rng;
   /** scratch query buffers; systems reuse these to avoid per-step allocation */
+  /** every enemy definition that has appeared this run, for the bestiary */
+  readonly seen = new Set<string>();
   /** run-clock time each rate-limited pickup last dropped, keyed by pickup id */
   readonly lastDropMs: Record<string, number> = {};
   readonly queryBuf = new Int32Array(ENEMY_CAP);

@@ -127,13 +127,25 @@ test('achievements: the screen lists them, and a qualifying run earns one on the
   await page.evaluate(() => {
     window.__game.setTimeScale(0);
     window.__game.godMode(true);
-    window.__game.setTime(305);
   });
+  // meet the first wave before jumping the clock: setTime spawns nothing on its own
+  await page.evaluate(() => window.__game.step(120));
+  await page.evaluate(() => window.__game.setTime(305));
   await page.evaluate(() => window.__game.step(2));
   await page.evaluate(() => window.__game.endRun('died'));
   await waitScene(page, 'results');
   const save = await page.evaluate(() => window.__game.save.get());
   expect(save.achievements).toContain('fiveMinutes');
+  expect(save.seen.length, 'a five minute run met something').toBeGreaterThan(0);
   await snap(page, 'results-achievement');
+
+  // the bestiary sits behind the achievements screen and lights what has been met
+  expect(await page.evaluate(() => window.__game.ui.press('results.menu'))).toBe(true);
+  await waitScene(page, 'menu');
+  expect(await page.evaluate(() => window.__game.ui.press('menu.achievements'))).toBe(true);
+  await page.waitForFunction(() => window.__game.ui.buttons().some((b) => b.id === 'achievements.bestiary'));
+  expect(await page.evaluate(() => window.__game.ui.press('achievements.bestiary'))).toBe(true);
+  await page.waitForFunction(() => window.__game.ui.buttons().some((b) => b.id === 'bestiary.back'));
+  await snap(page, 'bestiary');
   expect(errors, errors.join('\n')).toEqual([]);
 });

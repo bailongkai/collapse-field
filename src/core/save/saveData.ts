@@ -12,6 +12,8 @@ export interface SaveData {
   unlocks: { characters: string[]; stages: string[]; items: string[] };
   /** achievement ids earned */
   achievements: string[];
+  /** enemy ids ever encountered, for the bestiary */
+  seen: string[];
   totalKills: number;
   /** best survival time per stage id, seconds */
   stageBest: Record<string, number>;
@@ -32,6 +34,7 @@ export const DEFAULT_SAVE: SaveData = {
   upgrades: {},
   unlocks: { characters: [], stages: [], items: [] },
   achievements: [],
+  seen: [],
   totalKills: 0,
   stageBest: {},
   lastCharacterId: 'survivor',
@@ -46,7 +49,7 @@ export interface SaveStorage {
 }
 
 function cloneDefault(): SaveData {
-  return { ...DEFAULT_SAVE, settings: { ...DEFAULT_SAVE.settings }, upgrades: {}, unlocks: { characters: [], stages: [], items: [] }, achievements: [], stageBest: {} };
+  return { ...DEFAULT_SAVE, settings: { ...DEFAULT_SAVE.settings }, upgrades: {}, unlocks: { characters: [], stages: [], items: [] }, achievements: [], seen: [], stageBest: {} };
 }
 
 const isStringList = (v: unknown): v is string[] => Array.isArray(v) && v.every((x) => typeof x === 'string');
@@ -77,6 +80,7 @@ export function loadSave(st: SaveStorage): SaveData {
       if (isStringList(parsed.unlocks.items)) d.unlocks.items = [...new Set(parsed.unlocks.items)];
     }
     if (isStringList(parsed.achievements)) d.achievements = [...new Set(parsed.achievements)];
+    if (isStringList(parsed.seen)) d.seen = [...new Set(parsed.seen)];
     if (typeof parsed.totalKills === 'number' && parsed.totalKills >= 0) d.totalKills = Math.floor(parsed.totalKills);
     if (parsed.stageBest && typeof parsed.stageBest === 'object') {
       for (const [k, v] of Object.entries(parsed.stageBest)) {
@@ -115,6 +119,7 @@ export interface RunSummary {
   bossKills?: number;
   items?: readonly { id: string; level: number }[];
   evolved?: readonly string[];
+  seen?: readonly string[];
 }
 
 /** Fold a finished run into the save and persist it. Returns the new save object. */
@@ -129,6 +134,7 @@ export function commitRun(st: SaveStorage, save: SaveData, run: RunSummary): Sav
     upgrades: { ...save.upgrades },
     unlocks: { characters: [...save.unlocks.characters], stages, items: [...save.unlocks.items] },
     achievements: [...save.achievements],
+    seen: [...new Set([...save.seen, ...(run.seen ?? [])])],
     totalKills: save.totalKills + Math.max(0, run.kills),
     stageBest,
     gold: save.gold + Math.max(0, Math.floor(run.gold)),
@@ -176,6 +182,7 @@ export function awardAchievements(st: SaveStorage, save: SaveData, run: RunSumma
     stageBest: { ...save.stageBest },
     unlocks: { ...save.unlocks, characters: [...save.unlocks.characters], stages: [...save.unlocks.stages], items },
     achievements: [...save.achievements, ...earned],
+    seen: [...save.seen],
     gold: save.gold + gold,
   };
   writeSave(st, next);

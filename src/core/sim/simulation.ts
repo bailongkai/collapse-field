@@ -83,6 +83,8 @@ export interface RunState {
   /** items the save has not earned yet; treated like banished for the offer */
   locked: string[];
   bossKills: number;
+  /** damage dealt per weapon slot, for the results breakdown */
+  damageBySlot: number[];
   /** chests opened and already applied, waiting for the view to play their reveal */
   chestQueue: ChestResult[];
   /** how many chests this run has opened, for the results screen */
@@ -154,6 +156,7 @@ export class Simulation {
       banished: [],
       locked: [...(opts.lockedItems ?? [])],
       bossKills: 0,
+      damageBySlot: [],
       chestQueue: [],
       chestsOpened: 0,
       reaperSpawned: false,
@@ -182,7 +185,7 @@ export class Simulation {
           if (p.weaponSlot === slot) fn(p);
         }
       },
-      hitEnemy: (e, dmg, dirX, dirY, kb) => this.damageEnemy(e, dmg, dirX, dirY, kb),
+      hitEnemy: (e, dmg, dirX, dirY, kb, src) => this.damageEnemy(e, dmg, dirX, dirY, kb, src.slot),
     };
     this.giveWeapon(ch.startingWeapon, 1);
   }
@@ -281,7 +284,7 @@ export class Simulation {
     stepProjectiles(
       world,
       FIXED_DT_MS,
-      (e, dmg, dx, dy, kb) => this.damageEnemy(e, dmg, dx, dy, kb),
+      (e, dmg, dx, dy, kb, slot) => this.damageEnemy(e, dmg, dx, dy, kb, slot),
       (raw, source) => {
         if (applyPlayerDamage(world, stats, run.god, raw, source) > 0) this.onPlayerHurt(false);
       },
@@ -340,11 +343,14 @@ export class Simulation {
   }
 
   /** Damage entry point shared by every weapon; handles knockback, flash, death and drops. */
-  damageEnemy(e: Enemy, dmg: number, dirX: number, dirY: number, knockback: number): void {
+  damageEnemy(e: Enemy, dmg: number, dirX: number, dirY: number, knockback: number, slot = -1): void {
     const def = e.def;
     if (!def || def.invulnerable) return;
     const rounded = Math.max(1, Math.round(dmg));
     e.hp -= rounded;
+    // credited to the weapon slot that landed it, for the results screen; overkill counts, the
+    // way it does in the reference game, so the tally is what was dealt and not what was needed
+    if (slot >= 0) this.run.damageBySlot[slot] = (this.run.damageBySlot[slot] ?? 0) + rounded;
     e.flashMs = 80;
     if (knockback > 0) applyKnockback(e, dirX, dirY, knockback * 240);
     this.world.events.push('hit', e.x, e.y, rounded, e.defId, rounded >= e.maxHp * 0.5);

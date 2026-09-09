@@ -62,8 +62,16 @@ export class AchievementsScene extends Phaser.Scene {
         .setOrigin(1, 0.5);
     });
 
-    new UiButton(this, cx, cy + panel.h / 2 - 36, { id: 'achievements.back', label: t('common.back'), width: Math.min(200, panel.w - 48), height: 48, onPress: () => this.close() });
+    const bw = Math.min(200, panel.w / 2 - 36);
+    new UiButton(this, cx - bw / 2 - 10, cy + panel.h / 2 - 36, { id: 'achievements.bestiary', label: t('bestiary.title'), width: bw, height: 48, onPress: () => this.openBestiary() });
+    new UiButton(this, cx + bw / 2 + 10, cy + panel.h / 2 - 36, { id: 'achievements.back', label: t('common.back'), width: bw, height: 48, onPress: () => this.close() });
     this.input.keyboard?.on('keydown-ESC', () => this.close());
+  }
+
+  private openBestiary(): void {
+    this.scene.stop();
+    this.scene.launch('Bestiary');
+    this.scene.bringToTop('Bestiary');
   }
 
   private close(): void {

@@ -75,6 +75,7 @@ export function spawnEnemy(world: World, defId: string, o: SpawnOptions = {}): E
   e.aiTimer = 0;
   e.aiTimer2 = 0;
   world.onEnemySpawn(e.id);
+  world.seen.add(defId);
   world.events.push('spawn', e.x, e.y, 0, defId);
   return e;
 }

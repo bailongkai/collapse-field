@@ -4,7 +4,7 @@ import type { World } from '../world';
 import type { Enemy } from '../entities/enemy';
 import type { Projectile } from '../entities/projectile';
 
-export type DamageFn = (e: Enemy, dmg: number, dirX: number, dirY: number, knockback: number) => void;
+export type DamageFn = (e: Enemy, dmg: number, dirX: number, dirY: number, knockback: number, slot?: number) => void;
 export type HurtPlayerFn = (raw: number, sourceId: string) => void;
 
 const PLAYER_RADIUS = 16;
@@ -61,7 +61,7 @@ function resolveSlash(world: World, p: Projectile, damage: DamageFn): void {
     // length did not, so a large enemy could straddle the tip of the blade untouched
     if (!pointInOrientedRect(e.x, e.y, p.x, p.y, p.angle, p.rectLen + e.radius, p.rectWidth + e.radius * 2)) continue;
     p.hitSerials.push(e.serial);
-    damage(e, p.damage, dirX, dirY, p.knockback);
+    damage(e, p.damage, dirX, dirY, p.knockback, p.weaponSlot);
     hits++;
   }
   // mark the sweep as resolved even when it hit nothing
@@ -82,7 +82,7 @@ function resolveBolt(world: World, p: Projectile, damage: DamageFn): void {
     if (dx * dx + dy * dy > rr * rr) continue;
     p.hitSerials.push(e.serial);
     const len = Math.hypot(p.vx, p.vy) || 1;
-    damage(e, p.damage, p.vx / len, p.vy / len, p.knockback);
+    damage(e, p.damage, p.vx / len, p.vy / len, p.knockback, p.weaponSlot);
     p.pierce -= 1;
     if (p.pierce < 0) return;
   }

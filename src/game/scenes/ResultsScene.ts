@@ -26,6 +26,8 @@ export interface ResultsData {
   curse: number;
   chestsOpened: number;
   bossKills: number;
+  damageByWeapon: { id: string; damage: number }[];
+  seen: string[];
 }
 
 /** End-of-run summary. Commits the run into the save on entry, then offers a retry or the menu. */
@@ -59,6 +61,7 @@ export class ResultsScene extends Phaser.Scene {
         bossKills: data.bossKills,
         items: [...(data.weapons ?? []), ...(data.passives ?? [])],
         evolved: (data.weapons ?? []).filter((w) => CONTENT.weapons[w.id]?.evolvedOnly).map((w) => w.id),
+        seen: data.seen ?? [],
       };
       ctx.save = commitRun(ctx.storage, ctx.save, summary);
       // judged after the run is folded in, so cumulative conditions see this run too
@@ -69,7 +72,7 @@ export class ResultsScene extends Phaser.Scene {
     restartOnResize(this, { ...data, committed: true, unlockedStage, earned });
 
     const cy = this.scale.height / 2;
-    const panel = fitPanel(this, 720, 520);
+    const panel = fitPanel(this, 720, 640);
     this.add.rectangle(cx, cy, this.scale.width, this.scale.height, 0x05070c, 0.93);
     this.add.nineslice(cx, cy, 'ui', 'panel_glass', panel.w, panel.h, 24, 24, 24, 24).setAlpha(0.97).setTint(0x16243a);
     this.add
@@ -112,6 +115,26 @@ export class ResultsScene extends Phaser.Scene {
     weapons.setItems(data.weapons ?? [], 'weapon');
     const passives = new IconRow(this, cx - 130, iconsTop + 42, 6, 32);
     passives.setItems(data.passives ?? [], 'passive');
+
+    // which weapon did the work: the same bars the reference game ends on, and the only honest
+    // answer to "was that pick worth it"
+    const dealt = (data.damageByWeapon ?? []).filter((d) => d.damage > 0).sort((a, b) => b.damage - a.damage);
+    const total = dealt.reduce((n, d) => n + d.damage, 0);
+    if (total > 0) {
+      const barW = Math.min(300, panel.w - 80);
+      const barX = cx - barW / 2;
+      const barTop = iconsTop + 90;
+      this.add.text(cx, barTop - 20, t('results.damage'), textStyle(14, { color: COLORS.dim })).setOrigin(0.5);
+      dealt.slice(0, 4).forEach((d, i) => {
+        const y = barTop + i * 22;
+        const def = CONTENT.weapons[d.id];
+        const frac = d.damage / total;
+        this.add.rectangle(barX, y, barW, 14, 0x0d1420).setOrigin(0, 0.5);
+        this.add.rectangle(barX, y, barW * frac, 14, def?.iconTint ?? 0x4fe0ff).setOrigin(0, 0.5).setAlpha(0.85);
+        this.add.text(barX + 6, y, def ? t(def.nameKey) : d.id, textStyle(12, { bold: true })).setOrigin(0, 0.5);
+        this.add.text(barX + barW - 6, y, `${Math.round(frac * 100)}%`, textStyle(12, { color: COLORS.dim })).setOrigin(1, 0.5);
+      });
+    }
 
     const btnW = Math.min(220, panel.w / 2 - 24);
     const btnY = cy + panel.h / 2 - 48;

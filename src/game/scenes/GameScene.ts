@@ -337,6 +337,8 @@ export class GameScene extends Phaser.Scene {
       curse: run.curse,
       chestsOpened: run.chestsOpened,
       bossKills: run.bossKills,
+      damageByWeapon: run.weapons.map((w, i) => ({ id: w.id, damage: run.damageBySlot[i] ?? 0 })),
+      seen: [...this.sim.world.seen],
     });
   }
 

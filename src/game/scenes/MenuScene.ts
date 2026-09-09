@@ -93,7 +93,7 @@ export class MenuScene extends Phaser.Scene {
     }
     // the shop and settings are overlays on top of this scene, which still has the keyboard: Enter
     // would otherwise start a run underneath an open panel
-    if (this.scene.isActive('Shop') || this.scene.isActive('Settings') || this.scene.isActive('Launch') || this.scene.isActive('Achievements')) return;
+    if (this.scene.isActive('Shop') || this.scene.isActive('Settings') || this.scene.isActive('Launch') || this.scene.isActive('Achievements') || this.scene.isActive('Bestiary')) return;
     this.scene.launch('Launch');
     this.scene.bringToTop('Launch');
   }
