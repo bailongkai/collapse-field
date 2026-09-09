@@ -54,7 +54,7 @@ export function stepContact(world: World, stats: PlayerStats, god: boolean): Con
   let reaperHit = false;
   for (let i = 0; i < n; i++) {
     const e = world.enemies.items[world.queryBuf[i]];
-    if (!e.active || !e.def) continue;
+    if (!e.active || !e.def || e.def.behavior === 'prop') continue; // scenery does not bite
     const rr = e.radius + playerRadius + CONTACT_SLACK;
     const dx = e.x - p.x;
     const dy = e.y - p.y;

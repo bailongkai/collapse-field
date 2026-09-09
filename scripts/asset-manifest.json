@@ -729,6 +729,13 @@
       "frame": "enemy_phaser",
       "size": 34,
       "atlas": "game"
+    },
+    {
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Meteors/meteorGrey_med2.png",
+      "frame": "prop_asteroid",
+      "size": 40,
+      "atlas": "game"
     }
   ],
   "font": {
@@ -743,7 +750,7 @@
     },
     "rail": {
       "pack": "sci-fi-sounds",
-      "file": "Audio/laserSmall_003.ogg"
+      "file": "Audio/laserLarge_000.ogg"
     },
     "emp": {
       "pack": "sci-fi-sounds",
@@ -784,6 +791,22 @@
     "click": {
       "pack": "interface-sounds",
       "file": "Audio/click_001.ogg"
+    },
+    "slash": {
+      "pack": "sci-fi-sounds",
+      "file": "Audio/impactMetal_002.ogg"
+    },
+    "laser": {
+      "pack": "sci-fi-sounds",
+      "file": "Audio/laserRetro_000.ogg"
+    },
+    "whoosh": {
+      "pack": "sci-fi-sounds",
+      "file": "Audio/thrusterFire_000.ogg"
+    },
+    "crate": {
+      "pack": "impact-sounds",
+      "file": "Audio/impactPlate_heavy_000.ogg"
     }
   },
   "floors": {

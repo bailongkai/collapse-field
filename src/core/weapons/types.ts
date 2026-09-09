@@ -1,3 +1,4 @@
+import type { EventBuffer } from '../events';
 import type { PlayerStats, WeaponBehaviorId } from '../../data/types';
 import type { EffectiveWeapon } from '../stats/weaponParams';
 import type { Enemy } from '../sim/entities/enemy';
@@ -45,6 +46,8 @@ export interface WeaponContext {
   player: Player;
   stats: PlayerStats;
   spawnProjectile(): Projectile | null;
+  /** the simulation's event ring, so a behaviour can say a volley began */
+  events: EventBuffer;
   nearestEnemy(x: number, y: number, maxDist: number): Enemy | null;
   /** The target for shot `index` of a volley: the index-th nearest, wrapping round when short. */
   volleyTarget(x: number, y: number, maxDist: number, index: number): Enemy | null;

@@ -61,7 +61,9 @@ test('M3: waves fill the field on their own and enemies arrive from off screen',
   await stepResolving(page, 60 * 30);
   const s = await state(page);
   expect(s.counts.enemies).toBeGreaterThan(8);
-  expect(s.enemies.byBehavior.chase).toBe(s.counts.enemies);
+  // the first half minute is chasers, plus the breakable crates the stage scatters on its own
+  expect(s.enemies.byBehavior.chase + s.enemies.byBehavior.prop).toBe(s.counts.enemies);
+  expect(s.enemies.byBehavior.chase).toBeGreaterThan(8);
 
   const kills = await page.evaluate(() => {
     window.__game.killAll();

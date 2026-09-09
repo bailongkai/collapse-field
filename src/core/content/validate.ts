@@ -51,6 +51,7 @@ export function validateContent(frames?: ReadonlySet<string>): string[] {
     check(d.behavior !== 'nest' || d.nest, `enemy ${key}: nest behavior needs a nest config`);
     check(d.behavior !== 'blink' || d.blink, `enemy ${key}: blink behavior needs a blink config`);
     check(d.behavior !== 'layer' || d.layer, `enemy ${key}: layer behavior needs a layer config`);
+    check(d.behavior !== 'prop' || d.damage === 0, `enemy ${key}: scenery must not bite`);
     if (d.nest) check(CONTENT.enemies[d.nest.summon], `enemy ${key}: nest hatches unknown enemy "${d.nest.summon}"`);
     if (d.layer) check(CONTENT.enemies[d.layer.mine]?.behavior === 'bomber', `enemy ${key}: layer must lay a bomber, got "${d.layer.mine}"`);
     if (d.split) check(CONTENT.enemies[d.split.enemy] && !CONTENT.enemies[d.split.enemy]?.split, `enemy ${key}: split spawns "${d.split.enemy}", which must exist and not itself split`);
@@ -96,6 +97,7 @@ export function validateContent(frames?: ReadonlySet<string>): string[] {
       check(CONTENT.enemies[e.enemy], `stage ${key}: event ${i} references unknown enemy "${e.enemy}"`);
     });
     check(s.events.some((e) => e.kind === 'reaper'), `stage ${key}: no reaper event`);
+    if (s.props) check(CONTENT.enemies[s.props.enemy]?.behavior === 'prop', `stage ${key}: props must be a prop enemy, got "${s.props.enemy}"`);
     for (const f of s.decorFrames) frameOk(f, `stage ${key} decor`);
   }
   for (const [key, a] of Object.entries(ACHIEVEMENTS as Record<string, AchievementDef>)) {

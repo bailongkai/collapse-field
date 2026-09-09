@@ -1,6 +1,8 @@
 import type { StageDef, WaveEntry, WaveEvent } from './types';
 
 const mix = (...pairs: [string, number][]) => pairs.map(([enemy, weight]) => ({ enemy, weight }));
+/** Events are authored by theme and sorted here, so inserting one never depends on where it is typed. */
+const byTime = (events: readonly WaveEvent[]): readonly WaveEvent[] => events.slice().sort((a, b) => a.at - b.at);
 
 /** One row per minute; the spawner tops the field up to minCount in batches of `batch` every `interval` ms. */
 const WAVES: readonly WaveEntry[] = [
@@ -35,7 +37,7 @@ const WAVES: readonly WaveEntry[] = [
  * a hands-off run is at roughly 30 damage per second at 3:00 and 180 by 14:00, and each of these
  * is meant to be a five-to-ten second detour at the time it appears.
  */
-const EVENTS: readonly WaveEvent[] = [
+const EVENTS: readonly WaveEvent[] = byTime([
   { at: 90, kind: 'swarm', enemy: 'interceptor', count: 25, pattern: 'hLine' },
   { at: 150, kind: 'elite', enemy: 'sentinel', hpMult: 1 },
   { at: 210, kind: 'swarm', enemy: 'drone', count: 40, pattern: 'vLine' },
@@ -52,7 +54,7 @@ const EVENTS: readonly WaveEvent[] = [
   { at: 850, kind: 'elite', enemy: 'sentinel', hpMult: 5.5 },
   { at: 870, kind: 'encircle', enemy: 'hound', count: 18, gapEvery: 5 },
   { at: 900, kind: 'reaper', enemy: 'annihilator' },
-];
+]);
 
 /** 货运甲板: fewer, harder bodies. The density is low so every hit lands on something that matters. */
 const CARGO_WAVES: readonly WaveEntry[] = [
@@ -72,7 +74,7 @@ const CARGO_WAVES: readonly WaveEntry[] = [
   { minute: 13, mix: mix(['dasher', 0.25], ['mech', 0.35], ['loader', 0.4]), minCount: 100, interval: 450, batch: 6, hpMult: 2.5, dmgMult: 1.3 },
   { minute: 14, mix: mix(['dasher', 0.2], ['mech', 0.35], ['loader', 0.45]), minCount: 110, interval: 450, batch: 6, hpMult: 2.5, dmgMult: 1.3 },
 ];
-const CARGO_EVENTS: readonly WaveEvent[] = [
+const CARGO_EVENTS: readonly WaveEvent[] = byTime([
   { at: 90, kind: 'swarm', enemy: 'drone', count: 30, pattern: 'hLine' },
   { at: 150, kind: 'elite', enemy: 'sentinel', hpMult: 1.4 },
   { at: 240, kind: 'swarm', enemy: 'dasher', count: 16, pattern: 'hLine' },
@@ -88,7 +90,7 @@ const CARGO_EVENTS: readonly WaveEvent[] = [
   { at: 780, kind: 'encircle', enemy: 'hound', count: 12, gapEvery: 4 },
   { at: 850, kind: 'elite', enemy: 'sentinel', hpMult: 6 },
   { at: 900, kind: 'reaper', enemy: 'annihilator' },
-];
+]);
 
 /** 生物实验舱: numbers. Weak bodies in great quantity, with the swarm events doubled. */
 const LAB_WAVES: readonly WaveEntry[] = [
@@ -108,7 +110,7 @@ const LAB_WAVES: readonly WaveEntry[] = [
   { minute: 13, mix: mix(['spore', 0.25], ['infected', 0.3], ['spitter', 0.3], ['dasher', 0.15]), minCount: 280, interval: 240, batch: 14, hpMult: 2.5, dmgMult: 1.3 },
   { minute: 14, mix: mix(['spore', 0.2], ['infected', 0.3], ['spitter', 0.3], ['dasher', 0.2]), minCount: 300, interval: 220, batch: 15, hpMult: 2.5, dmgMult: 1.3 },
 ];
-const LAB_EVENTS: readonly WaveEvent[] = [
+const LAB_EVENTS: readonly WaveEvent[] = byTime([
   { at: 60, kind: 'swarm', enemy: 'spore', count: 50, pattern: 'hLine' },
   { at: 150, kind: 'elite', enemy: 'sentinel', hpMult: 1 },
   { at: 180, kind: 'swarm', enemy: 'infected', count: 40, pattern: 'vLine' },
@@ -119,17 +121,19 @@ const LAB_EVENTS: readonly WaveEvent[] = [
   { at: 390, kind: 'swarm', enemy: 'spore', count: 100, pattern: 'hLine' },
   { at: 450, kind: 'ring', enemy: 'infected', count: 60, radius: 500 },
   { at: 480, kind: 'ring', enemy: 'hatchery', count: 4, radius: 420 },
+  { at: 560, kind: 'hatchAll', enemy: 'spore', count: 10 },
   { at: 510, kind: 'elite', enemy: 'sentinel', hpMult: 3.2 },
   { at: 540, kind: 'encircle', enemy: 'infected', count: 18, gapEvery: 6, speedMult: 1.1 },
   { at: 600, kind: 'boss', enemy: 'broodmother', hpMult: 4 },
   { at: 690, kind: 'swarm', enemy: 'infected', count: 70, pattern: 'diag' },
   { at: 700, kind: 'elite', enemy: 'sentinel', hpMult: 4.5 },
   { at: 720, kind: 'ring', enemy: 'hatchery', count: 5, radius: 440 },
+  { at: 800, kind: 'hatchAll', enemy: 'spore', count: 14 },
   { at: 780, kind: 'ring', enemy: 'spitter', count: 40, radius: 520 },
   { at: 810, kind: 'encircle', enemy: 'hound', count: 12, gapEvery: 4 },
   { at: 850, kind: 'elite', enemy: 'sentinel', hpMult: 5.5 },
   { at: 900, kind: 'reaper', enemy: 'annihilator' },
-];
+]);
 
 /**
  * 外层轨道: speed. Everything here moves faster than it does anywhere else, and from minute six
@@ -152,22 +156,24 @@ const ORBIT_WAVES: readonly WaveEntry[] = [
   { minute: 13, mix: mix(['raider', 0.3], ['interceptor', 0.3], ['escort', 0.25], ['dasher', 0.15]), minCount: 200, interval: 350, batch: 8, hpMult: 2.5, dmgMult: 1.3, speedMult: 1.4 },
   { minute: 14, mix: mix(['raider', 0.35], ['interceptor', 0.3], ['escort', 0.2], ['mech', 0.15]), minCount: 230, interval: 300, batch: 10, hpMult: 2.5, dmgMult: 1.3, speedMult: 1.45 },
 ];
-const ORBIT_EVENTS: readonly WaveEvent[] = [
+const ORBIT_EVENTS: readonly WaveEvent[] = byTime([
   { at: 90, kind: 'swarm', enemy: 'drone', count: 25, pattern: 'hLine', speedMult: 1.2 },
   { at: 150, kind: 'elite', enemy: 'sentinel', hpMult: 1 },
   { at: 210, kind: 'swarm', enemy: 'interceptor', count: 40, pattern: 'vLine', speedMult: 1.2 },
   { at: 300, kind: 'boss', enemy: 'flagship', hpMult: 1 },
   { at: 330, kind: 'elite', enemy: 'sentinel', hpMult: 2 },
   { at: 390, kind: 'swarm', enemy: 'raider', count: 35, pattern: 'diag', speedMult: 1.3 },
+  { at: 420, kind: 'swarm', enemy: 'asteroid', count: 22, pattern: 'hLine', speedMult: 1.6 },
   { at: 510, kind: 'elite', enemy: 'sentinel', hpMult: 3.2 },
   { at: 540, kind: 'ring', enemy: 'escort', count: 24, radius: 520 },
   { at: 600, kind: 'boss', enemy: 'flagship', hpMult: 4 },
   { at: 690, kind: 'ring', enemy: 'raider', count: 50, radius: 520 },
+  { at: 740, kind: 'swarm', enemy: 'asteroid', count: 28, pattern: 'diag', speedMult: 1.8 },
   { at: 700, kind: 'elite', enemy: 'sentinel', hpMult: 4.5 },
   { at: 810, kind: 'swarm', enemy: 'interceptor', count: 60, pattern: 'hLine', speedMult: 1.4 },
   { at: 850, kind: 'elite', enemy: 'sentinel', hpMult: 5.5 },
   { at: 900, kind: 'reaper', enemy: 'annihilator' },
-];
+]);
 
 export const STAGES = {
   station: {
@@ -181,6 +187,7 @@ export const STAGES = {
     decorFrames: ['decor_0', 'decor_1', 'decor_2', 'decor_3', 'decor_4', 'decor_5', 'decor_6', 'decor_7'],
     waves: WAVES,
     events: EVENTS,
+    props: { enemy: 'crate', everyMs: 9000, max: 6 },
     gemCap: 300,
     spawnMargin: 96,
     despawnFactor: 1.6,
@@ -196,6 +203,7 @@ export const STAGES = {
     decorFrames: ['decor_cargo_0', 'decor_cargo_1', 'decor_cargo_2', 'decor_cargo_3', 'decor_cargo_4'],
     waves: CARGO_WAVES,
     events: CARGO_EVENTS,
+    props: { enemy: 'crate', everyMs: 6000, max: 10 },
     gemCap: 300,
     spawnMargin: 96,
     despawnFactor: 1.6,
@@ -211,6 +219,7 @@ export const STAGES = {
     decorFrames: ['decor_lab_0', 'decor_lab_1', 'decor_lab_2', 'decor_lab_3', 'decor_lab_4', 'decor_lab_5', 'decor_lab_6'],
     waves: LAB_WAVES,
     events: LAB_EVENTS,
+    props: { enemy: 'canister', everyMs: 8000, max: 6 },
     // more bodies means more gems; the cap goes up so late experience is not folded away
     gemCap: 400,
     spawnMargin: 96,
@@ -227,6 +236,7 @@ export const STAGES = {
     decorFrames: ['decor_orbit_0', 'decor_orbit_1', 'decor_orbit_2', 'decor_orbit_3', 'decor_orbit_4', 'decor_orbit_5'],
     waves: ORBIT_WAVES,
     events: ORBIT_EVENTS,
+    props: { enemy: 'asteroid', everyMs: 7000, max: 8 },
     gemCap: 300,
     spawnMargin: 120,
     despawnFactor: 1.6,

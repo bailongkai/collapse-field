@@ -19,7 +19,7 @@ export const WEAPONS = {
     // that backing away from a horde points the only starting weapon at nothing.
     base: { damage: 10, cooldown: 1350, amount: 2, area: 1, speed: 1, duration: 150, pierce: Infinity, knockback: 1, interval: 100, hitCooldown: 0 },
     levels: [{ damage: 4 }, { damage: 5 }, { area: 0.1 }, { damage: 8 }, { area: 0.1 }, { damage: 8 }, { damage: 8 }],
-    visual: { frame: 'fx_slash', blend: 'add', tint: 0x4fe0ff, sfx: 'fire' },
+    visual: { frame: 'fx_slash', blend: 'add', tint: 0x4fe0ff, sfx: 'slash' },
     evolution: { requires: 'reactorCore', into: 'annihilationBlade' },
   },
   guidedLaser: {
@@ -32,7 +32,7 @@ export const WEAPONS = {
     behavior: 'aimed',
     base: { damage: 10, cooldown: 1200, amount: 1, area: 1, speed: 1, duration: 1500, pierce: 1, knockback: 0.5, interval: 100, hitCooldown: 0 },
     levels: [{ amount: 1 }, { cooldown: -200 }, { amount: 1 }, { damage: 10 }, { amount: 1 }, { damage: 10 }, { amount: 1 }],
-    visual: { frame: 'bolt_laser', sfx: 'fire' },
+    visual: { frame: 'bolt_laser', sfx: 'laser' },
     evolution: { requires: 'coolingSystem', into: 'fusionLance' },
   },
   railgun: {
@@ -58,7 +58,7 @@ export const WEAPONS = {
     behavior: 'orbit',
     base: { damage: 10, cooldown: 3000, amount: 1, area: 1, speed: 1, duration: 3000, pierce: Infinity, knockback: 0.4, interval: 0, hitCooldown: 500 },
     levels: [{ amount: 1 }, { speed: 0.3, area: 0.1 }, { duration: 500, damage: 10 }, { amount: 1 }, { speed: 0.3, area: 0.1 }, { duration: 500, damage: 10 }, { amount: 1 }],
-    visual: { frame: 'orbit_drone', sfx: 'fire' },
+    visual: { frame: 'orbit_drone', sfx: 'whoosh' },
     evolution: { requires: 'fieldAmp', into: 'satelliteArray' },
   },
   empField: {
@@ -88,14 +88,14 @@ export const WEAPONS = {
     icon: 'icon_plasmaBlade', iconTint: 0xff66aa, rarity: 0, maxLevel: 8, behavior: 'slash', evolvedOnly: true,
     base: { damage: 60, cooldown: 900, amount: 3, area: 1.5, speed: 1, duration: 220, pierce: Infinity, knockback: 1.5, interval: 90, hitCooldown: 0 },
     levels: [{}, {}, {}, {}, {}, {}, {}],
-    visual: { frame: 'fx_slash', blend: 'add', tint: 0xff66aa, sfx: 'fire' },
+    visual: { frame: 'fx_slash', blend: 'add', tint: 0xff66aa, sfx: 'slash' },
   },
   fusionLance: {
     id: 'fusionLance', nameKey: 'weapon.fusionLance.name', descKey: 'weapon.fusionLance.desc',
     icon: 'icon_guidedLaser', iconTint: 0xffd166, rarity: 0, maxLevel: 8, behavior: 'aimed', evolvedOnly: true,
     base: { damage: 45, cooldown: 600, amount: 5, area: 1.3, speed: 1.4, duration: 1500, pierce: 4, knockback: 0.6, interval: 70, hitCooldown: 0 },
     levels: [{}, {}, {}, {}, {}, {}, {}],
-    visual: { frame: 'bolt_laser', tint: 0xffd166, sfx: 'fire' },
+    visual: { frame: 'bolt_laser', tint: 0xffd166, sfx: 'laser' },
   },
   shredderRail: {
     id: 'shredderRail', nameKey: 'weapon.shredderRail.name', descKey: 'weapon.shredderRail.desc',
@@ -109,7 +109,7 @@ export const WEAPONS = {
     icon: 'icon_orbitalDrones', iconTint: 0x9fe6ff, rarity: 0, maxLevel: 8, behavior: 'orbit', evolvedOnly: true,
     base: { damage: 40, cooldown: 400, amount: 5, area: 1.4, speed: 1.3, duration: 9000, pierce: Infinity, knockback: 0.6, interval: 0, hitCooldown: 400 },
     levels: [{}, {}, {}, {}, {}, {}, {}],
-    visual: { frame: 'orbit_drone', tint: 0x9fe6ff, sfx: 'fire' },
+    visual: { frame: 'orbit_drone', tint: 0x9fe6ff, sfx: 'whoosh' },
   },
   singularityField: {
     id: 'singularityField', nameKey: 'weapon.singularityField.name', descKey: 'weapon.singularityField.desc',

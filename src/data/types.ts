@@ -65,7 +65,7 @@ export interface PassiveDef {
   readonly perLevel: StatBlock;
 }
 
-export type EnemyBehaviorId = 'chase' | 'line' | 'boss' | 'reaper' | 'ranged' | 'dasher' | 'bomber' | 'healer' | 'tractor' | 'nest' | 'blink' | 'layer';
+export type EnemyBehaviorId = 'chase' | 'line' | 'boss' | 'reaper' | 'ranged' | 'dasher' | 'bomber' | 'healer' | 'tractor' | 'nest' | 'blink' | 'layer' | 'prop';
 export type GemTier = 'blue' | 'green' | 'red' | 'none';
 export interface EnemyDef {
   readonly id: string;
@@ -137,6 +137,8 @@ export type WaveEvent = { readonly at: number } & (
    * answer to a rush from one side is to step aside; the answer to this is to find the gap.
    */
   | { readonly kind: 'encircle'; readonly enemy: string; readonly count: number; readonly gapEvery: number; readonly speedMult?: number }
+  /** every nest alive hatches at once, `count` each: the lab's own set piece */
+  | { readonly kind: 'hatchAll'; readonly enemy: string; readonly count: number }
 );
 export interface StageDef {
   readonly id: string;
@@ -152,6 +154,11 @@ export interface StageDef {
   readonly waves: readonly WaveEntry[];
   /** sorted by at */
   readonly events: readonly WaveEvent[];
+  /**
+   * Breakable scenery: a prop enemy placed on the spawn ring every `everyMs`, at most `max` alive.
+   * It does not chase, bite or count as a kill; it breaks, and it drops something.
+   */
+  readonly props?: { readonly enemy: string; readonly everyMs: number; readonly max: number };
   readonly gemCap: number;
   readonly spawnMargin: number;
   readonly despawnFactor: number;

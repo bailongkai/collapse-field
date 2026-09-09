@@ -169,6 +169,7 @@ export class Simulation {
       player: this.world.player,
       stats: this.cachedStats,
       spawnProjectile: () => this.world.projectiles.spawn(),
+      events: this.world.events,
       nearestEnemy: (x, y, maxDist) => this.world.nearestEnemy(x, y, maxDist),
       volleyTarget: (x, y, maxDist, index) => this.world.volleyTarget(x, y, maxDist, index),
       queryEnemies: (x0, y0, x1, y1, out) => this.world.grid.queryInto(x0, y0, x1, y1, out),
@@ -365,8 +366,9 @@ export class Simulation {
   killEnemy(e: Enemy): void {
     if (!e.active || !e.def) return;
     const isBoss = e.behavior === 'boss';
-    this.run.kills++;
-    if (onSignatureKill(this.signature, this.character.signature, this.run.kills)) {
+    const scenery = e.def.behavior === 'prop';
+    if (!scenery) this.run.kills++;
+    if (!scenery && onSignatureKill(this.signature, this.character.signature, this.run.kills)) {
       this.refreshStats();
       this.world.events.push('signature', this.world.player.x, this.world.player.y, 0, this.run.characterId, true);
     }

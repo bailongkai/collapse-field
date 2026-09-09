@@ -43,6 +43,8 @@ export function stepEnemies(world: World, player: Player, dt: number, playerSpee
       case 'layer':
         layerStep(world, e, player, dt);
         break;
+      case 'prop':
+        break;
       case 'line':
         e.x += e.dirX * e.lineSpeed * dt;
         e.y += e.dirY * e.lineSpeed * dt;

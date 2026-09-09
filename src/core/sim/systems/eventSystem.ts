@@ -75,6 +75,19 @@ export class EventScheduler {
         world.events.push('rush', world.player.x, world.player.y, event.count * 4, event.enemy, true);
         break;
       }
+      case 'hatchAll': {
+        // every nest on the field opens at once. The lab's own set piece: the answer is to have
+        // been killing nests all along, and a player who has not is about to learn why.
+        const alive = world.enemies.aliveList();
+        const nests: { x: number; y: number; r: number; dmg: number; sp: number }[] = [];
+        for (let i = 0; i < world.enemies.count; i++) {
+          const e = world.enemies.items[alive[i]];
+          if (e.behavior === 'nest') nests.push({ x: e.x, y: e.y, r: e.radius, dmg: e.dmgMult, sp: e.speedMult });
+        }
+        for (const n of nests) spawnRing(world, event.enemy, event.count, n.r + 24, { x: n.x, y: n.y, hpMult: 1, dmgMult: n.dmg, speedMult: n.sp });
+        if (nests.length > 0) world.events.push('rush', world.player.x, world.player.y, nests.length * event.count, event.enemy, true);
+        break;
+      }
       case 'elite': {
         // walks in from the ring like anything else, but on its own and carrying a chest
         const elite = spawnEnemy(world, event.enemy, {

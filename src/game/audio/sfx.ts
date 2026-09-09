@@ -1,6 +1,6 @@
 import type Phaser from 'phaser';
 
-export const SFX_KEYS = ['fire', 'rail', 'emp', 'boss', 'explode', 'hit', 'death', 'hurt', 'gem', 'levelup', 'pickup', 'click'] as const;
+export const SFX_KEYS = ['fire', 'rail', 'emp', 'boss', 'explode', 'hit', 'death', 'hurt', 'gem', 'levelup', 'pickup', 'click', 'slash', 'laser', 'whoosh', 'crate'] as const;
 export type SfxKey = (typeof SFX_KEYS)[number];
 
 const PER_KEY_CAP = 4;

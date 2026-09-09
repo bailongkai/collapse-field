@@ -187,6 +187,22 @@ export const ENEMIES = {
     behavior: 'boss', bossBar: true, drops: [{ pickup: 'bossChest', chance: 1 }], deathFx: 'big',
     boss: { chargeEveryMs: 3200, telegraphMs: 600, chargeMs: 500, chargeSpeedMult: 5, summon: 'raider', summonCount: 5, summonEveryMs: 8000 },
   },
+  // ---- breakable scenery: not enemies, but the pool and the weapons already know how to hit them ----
+  crate: {
+    id: 'crate', nameKey: 'enemy.crate.name', frame: 'decor_cargo_1', faceTarget: false,
+    hp: 30, damage: 0, speed: 0, radius: 22, gemTier: 'none', knockbackResist: 1,
+    behavior: 'prop', deathFx: 'small', drops: [{ pickup: 'coin', chance: 0.6 }, { pickup: 'heal', chance: 0.12 }],
+  },
+  canister: {
+    id: 'canister', nameKey: 'enemy.canister.name', frame: 'decor_lab_5', tint: 0xc8ffd8, faceTarget: false,
+    hp: 24, damage: 0, speed: 0, radius: 20, gemTier: 'none', knockbackResist: 1,
+    behavior: 'prop', deathFx: 'small', drops: [{ pickup: 'coin', chance: 0.5 }, { pickup: 'heal', chance: 0.2 }],
+  },
+  asteroid: {
+    id: 'asteroid', nameKey: 'enemy.asteroid.name', frame: 'prop_asteroid', faceTarget: false,
+    hp: 40, damage: 0, speed: 60, radius: 20, gemTier: 'none', knockbackResist: 1,
+    behavior: 'prop', deathFx: 'big', drops: [{ pickup: 'coin', chance: 0.7 }, { pickup: 'vacuum', chance: 0.03 }],
+  },
   annihilator: {
     id: 'annihilator', nameKey: 'enemy.annihilator.name', frame: 'enemy_annihilator', tint: 0x883355, faceTarget: false,
     hp: 1e9, damage: 9999, speed: 220, radius: 50, gemTier: 'none', knockbackResist: 1,

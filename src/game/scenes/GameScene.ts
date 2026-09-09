@@ -437,8 +437,14 @@ export class GameScene extends Phaser.Scene {
           break;
         case 'death':
           this.fxView.death(e.x, e.y, e.big);
-          sfx.play(e.big ? 'explode' : 'death');
+          sfx.play(this.sim.reg.enemies[e.id]?.behavior === 'prop' ? 'crate' : e.big ? 'explode' : 'death');
           break;
+        case 'shot': {
+          // every weapon has its own voice; the bus rate-limits per key so a burst is one sound
+          const key = this.sim.reg.weapons[e.id]?.visual.sfx as Parameters<typeof sfx.play>[0] | undefined;
+          if (key) sfx.play(key, { volume: 0.45 });
+          break;
+        }
         case 'hit':
           this.damageNumbers.spawn(e.x, e.y - 12, e.n, e.big);
           if (e.big) this.cameras.main.shake(120, 0.004);
@@ -530,7 +536,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private emptyBehaviorCounts(): Record<EnemyBehaviorId, number> {
-    return { chase: 0, line: 0, boss: 0, reaper: 0, ranged: 0, dasher: 0, bomber: 0, healer: 0, tractor: 0, nest: 0, blink: 0, layer: 0 };
+    return { chase: 0, line: 0, boss: 0, reaper: 0, ranged: 0, dasher: 0, bomber: 0, healer: 0, tractor: 0, nest: 0, blink: 0, layer: 0, prop: 0 };
   }
 
   private getState(): HookRunState {

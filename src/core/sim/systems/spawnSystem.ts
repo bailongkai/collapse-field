@@ -108,6 +108,21 @@ export class Spawner {
 
   reset(): void {
     this.timerMs = 0;
+    this.propMs = 0;
+  }
+
+  /** Breakable scenery arrives on the ring at its own pace, up to a cap, and never counts as a body. */
+  private stepProps(world: World, stage: StageDef, dt: number, viewW: number, viewH: number): void {
+    const cfg = stage.props;
+    if (!cfg) return;
+    this.propMs += dt * 1000;
+    if (this.propMs < cfg.everyMs) return;
+    this.propMs = 0;
+    let alive = 0;
+    const list = world.enemies.aliveList();
+    for (let i = 0; i < world.enemies.count; i++) if (world.enemies.items[list[i]].defId === cfg.enemy) alive++;
+    if (alive >= cfg.max) return;
+    spawnOnRing(world, cfg.enemy, spawnRingRadius(stage, viewW, viewH) * 0.75, { isEvent: true });
   }
 
   /**
@@ -115,7 +130,10 @@ export class Spawner {
    * behind the player back onto the ring. Line, boss and reaper enemies are exempt from that
    * relocation: a swarm must be allowed to cross the screen and a boss must never teleport.
    */
+  private propMs = 0;
+
   step(world: World, stage: StageDef, timeMs: number, curse: number, dt: number, viewW: number, viewH: number): void {
+    this.stepProps(world, stage, dt, viewW, viewH);
     const row = waveRow(stage, timeMs);
     const ring = spawnRingRadius(stage, viewW, viewH);
     const density = densityScale(viewW, viewH);
