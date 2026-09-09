@@ -3,6 +3,9 @@ import type { EnemyDef, StageDef, WaveEntry } from '../../../data/types';
 import { enemyDef } from '../../content/registry';
 import type { Enemy } from '../entities/enemy';
 import type { World } from '../world';
+import { resolveCircle } from '../obstacles';
+
+const scratch = { x: 0, y: 0 };
 
 /** Radius of the ring just outside the view where enemies appear. */
 export function spawnRingRadius(stage: StageDef, viewW: number, viewH: number): number {
@@ -74,6 +77,11 @@ export function spawnEnemy(world: World, defId: string, o: SpawnOptions = {}): E
   e.aiState = 0;
   e.aiTimer = 0;
   e.aiTimer2 = 0;
+  // a body that lands inside a wall is nudged out, so a wall is never a spawn cage
+  if (world.obstacles.length > 0 && resolveCircle(world.obstacles, e.x, e.y, e.radius, scratch)) {
+    e.x = scratch.x;
+    e.y = scratch.y;
+  }
   world.onEnemySpawn(e.id);
   world.seen.add(defId);
   world.events.push('spawn', e.x, e.y, 0, defId);

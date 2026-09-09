@@ -87,6 +87,23 @@ its wave table and its events. `WaveEntry.speedMult` exists because the player
 moves at 200 px/s and the fastest ordinary enemy at 150, so nothing short of it
 can make running in a straight line stop working; only the orbit uses it.
 
+## The between-run loop
+
+Achievements (`src/data/achievements.ts`) are judged in `awardAchievements`
+after a run is folded into the save, so cumulative conditions see the run that
+just ended. Three passives are locked until earned; `lockedItems(save)` feeds
+`Simulation.lockedItems`, which the offer treats like a banish. Reroll, skip
+and banish are shop charges (`metaCharges`). A full build gets limit break
+cards instead of gold; the bonus lives on `WeaponInstance.limit` and is applied
+between the levelled params and the player's stats.
+
+Stages can carry `props` (breakable scenery: prop enemies that do not bite and
+do not count as kills), `relics` (persistent, non-magnetic pickups at fixed
+coordinates, pointed at by `RelicView`) and `obstacles` (solid rectangles;
+`resolveCircle` keeps the player and ground bodies out, rushes and scenery
+pass over). Curse is a flat stat set by the launch screen's challenge toggle
+and paid back in growth and greed.
+
 ## Adding content
 
 A weapon of an existing archetype is a data change in `src/data/weapons.ts` plus

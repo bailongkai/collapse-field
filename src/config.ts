@@ -94,6 +94,8 @@ export const HIT_FLASH_MS = 80;
  * overlap it. A content test keeps this in step with the data.
  */
 export const MAX_ENEMY_RADIUS = 72;
+/** the player's body, for walls; contact uses its own slack */
+export const PLAYER_RADIUS = 16;
 
 export const WEAPON_SLOTS = 6;
 export const PASSIVE_SLOTS = 6;

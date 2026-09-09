@@ -19,6 +19,7 @@ import { rollLevelUp } from '../levelup/roll';
 import { rollChestRewards, type ChestGrade } from '../levelup/chest';
 import { CHEST_CONSOLATION_GOLD } from '../../config';
 import { driveAutopilot } from './autopilot';
+import { resolveCircle } from './obstacles';
 import { inBlast } from '../enemies/behaviors/bomber';
 import { createSignature, signatureBonus, signatureStep, onSignatureChest, onSignatureHurt, onSignatureKill, type SignatureState } from './signature';
 import { auraRadius } from '../weapons/behaviors/aura';
@@ -28,7 +29,7 @@ import type { GemTier } from '../../data/types';
 import type { WeaponContext, WeaponInstance } from '../weapons/types';
 import { ENEMY_CAP, WEAPON_SLOTS, PASSIVE_SLOTS } from '../../config';
 import type { Enemy } from './entities/enemy';
-import { PLAYER_BASE_SPEED } from '../../config';
+import { PLAYER_BASE_SPEED, PLAYER_RADIUS } from '../../config';
 import type { ChestResult, LevelUpChoice, OwnedItem, RunEnd, RunPhase } from './runState';
 
 export interface SimulationOptions {
@@ -167,6 +168,7 @@ export class Simulation {
     };
     this.signature = createSignature(ch.signature);
     for (const r of this.stage.relics ?? []) spawnPickup(this.world, r.pickup, r.x, r.y);
+    this.world.obstacles = (this.stage.obstacles ?? []).map((o) => ({ x: o.x, y: o.y, w: o.w, h: o.h }));
     this.cachedStats = this.computeStats();
     this.world.player.hp = this.cachedStats.maxHealth;
     this.world.player.shieldCharges = this.signature.shieldReady ? 1 : 0;
@@ -275,12 +277,17 @@ export class Simulation {
 
     if (this.autopilot) driveAutopilot(this.world, run.tick);
     stepPlayer(world.player, stats, dt);
+    if (world.obstacles.length > 0 && resolveCircle(world.obstacles, world.player.x, world.player.y, PLAYER_RADIUS, this.scratch)) {
+      world.player.x = this.scratch.x;
+      world.player.y = this.scratch.y;
+    }
     this.spawner.step(world, stage, run.timeMs, stats.curse, dt, this.viewW, this.viewH);
     if (this.events.step(world, stage, run.timeMs, this.viewW, this.viewH)) run.reaperSpawned = true;
     stepEnemies(world, world.player, dt, PLAYER_BASE_SPEED * stats.moveSpeed, this.detonated);
     for (const b of this.detonated) this.detonate(b);
     world.rebuildGrid();
     stepSeparation(world, world.rng, this.viewW, this.viewH);
+    if (world.obstacles.length > 0) this.keepEnemiesOutOfWalls();
 
     this.weaponCtx.tick = run.tick;
     this.weaponCtx.stats = stats;
@@ -363,6 +370,22 @@ export class Simulation {
     if (knockback > 0) applyKnockback(e, dirX, dirY, knockback * 240);
     this.world.events.push('hit', e.x, e.y, rounded, e.defId, rounded >= e.maxHp * 0.5);
     if (e.hp <= 0) this.killEnemy(e);
+  }
+
+  private scratch = { x: 0, y: 0 };
+
+  /** Ground bodies slide around walls; rushes cross over, scenery sits where it is, the reaper cares about nothing. */
+  private keepEnemiesOutOfWalls(): void {
+    const world = this.world;
+    const alive = world.enemies.aliveList();
+    for (let i = 0; i < world.enemies.count; i++) {
+      const e = world.enemies.items[alive[i]];
+      if (e.behavior === 'line' || e.behavior === 'reaper' || e.behavior === 'prop') continue;
+      if (resolveCircle(world.obstacles, e.x, e.y, e.radius, this.scratch)) {
+        e.x = this.scratch.x;
+        e.y = this.scratch.y;
+      }
+    }
   }
 
   /** Resolves a bomber's blast: damage to the player if inside it, and the bomber is spent. */

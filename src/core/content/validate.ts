@@ -98,6 +98,11 @@ export function validateContent(frames?: ReadonlySet<string>): string[] {
     });
     check(s.events.some((e) => e.kind === 'reaper'), `stage ${key}: no reaper event`);
     if (s.props) check(CONTENT.enemies[s.props.enemy]?.behavior === 'prop', `stage ${key}: props must be a prop enemy, got "${s.props.enemy}"`);
+    for (const o of s.obstacles ?? []) {
+      check(o.w > 0 && o.h > 0, `stage ${key}: obstacle with a non-positive size`);
+      check(!(0 > o.x - 40 && 0 < o.x + o.w + 40 && 0 > o.y - 40 && 0 < o.y + o.h + 40), `stage ${key}: an obstacle covers the start`);
+      frameOk(o.frame, `stage ${key} obstacle`);
+    }
     for (const r of s.relics ?? []) {
       check(CONTENT.pickups[r.pickup]?.persistent && !CONTENT.pickups[r.pickup]?.magnetic, `stage ${key}: relic "${r.pickup}" must be a persistent, non-magnetic pickup`);
       check(Math.hypot(r.x, r.y) >= 900, `stage ${key}: relic "${r.pickup}" is too close to the start to be a detour`);

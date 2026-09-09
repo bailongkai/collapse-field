@@ -165,6 +165,13 @@ export interface StageDef {
    * is the decision — a detour across a field that is not empty.
    */
   readonly relics?: readonly { readonly pickup: string; readonly x: number; readonly y: number }[];
+  /**
+   * Solid rectangles in world space, relative to the start. The player and ground enemies slide
+   * around them; rushes, projectiles and scenery pass over. A map with walls asks where to stand
+   * in a way an open floor never can, and a wall between the player and a crowd is the one thing
+   * here that a kiting policy cannot outrun.
+   */
+  readonly obstacles?: readonly { readonly x: number; readonly y: number; readonly w: number; readonly h: number; readonly frame: string }[];
   readonly gemCap: number;
   readonly spawnMargin: number;
   readonly despawnFactor: number;

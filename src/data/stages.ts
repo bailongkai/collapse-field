@@ -211,6 +211,22 @@ export const STAGES = {
     waves: CARGO_WAVES,
     events: CARGO_EVENTS,
     props: { enemy: 'crate', everyMs: 6000, max: 10 },
+    // Stacked containers in two rings of lanes around the start. Wide enough to run between,
+    // long enough that a crowd on the far side has to come round.
+    obstacles: [
+      { x: -560, y: -420, w: 380, h: 70, frame: 'decor_cargo_1' },
+      { x: 180, y: -420, w: 380, h: 70, frame: 'decor_cargo_2' },
+      { x: -560, y: 350, w: 380, h: 70, frame: 'decor_cargo_2' },
+      { x: 180, y: 350, w: 380, h: 70, frame: 'decor_cargo_1' },
+      { x: -760, y: -220, w: 70, h: 440, frame: 'decor_cargo_1' },
+      { x: 690, y: -220, w: 70, h: 440, frame: 'decor_cargo_2' },
+      { x: -1500, y: -900, w: 520, h: 70, frame: 'decor_cargo_2' },
+      { x: 980, y: -900, w: 520, h: 70, frame: 'decor_cargo_1' },
+      { x: -1500, y: 830, w: 520, h: 70, frame: 'decor_cargo_1' },
+      { x: 980, y: 830, w: 520, h: 70, frame: 'decor_cargo_2' },
+      { x: -1700, y: -300, w: 70, h: 600, frame: 'decor_cargo_2' },
+      { x: 1630, y: -300, w: 70, h: 600, frame: 'decor_cargo_1' },
+    ],
     relics: [
       { pickup: 'relicNuke', x: -1500, y: -1200 },
       { pickup: 'relicVacuum', x: 1800, y: 600 },

@@ -12,6 +12,7 @@ import { PlayerView } from '../view/playerView';
 import { EnemyView } from '../view/enemyView';
 import { CarriedView } from '../view/carriedView';
 import { RelicView } from '../view/relicView';
+import { ObstacleView } from '../view/obstacleView';
 import { ShadowView } from '../view/shadowView';
 import { GemView } from '../view/gemView';
 import { PickupView } from '../view/pickupView';
@@ -47,6 +48,7 @@ export class GameScene extends Phaser.Scene {
   private enemyView!: EnemyView;
   private carriedView!: CarriedView;
   private relicView!: RelicView;
+  private obstacleView!: ObstacleView;
   private shadowView!: ShadowView;
   private gemView!: GemView;
   private pickupView!: PickupView;
@@ -106,6 +108,7 @@ export class GameScene extends Phaser.Scene {
     // above the bodies, below the numbers: the marker has to survive a crowded screen
     this.carriedView = new CarriedView(this, this.layers.fx);
     this.relicView = new RelicView(this, this.layers.numbers);
+    this.obstacleView = new ObstacleView(this, this.sim.stage, this.layers.pickups);
     this.gemView = new GemView(this, this.layers.gems);
     this.pickupView = new PickupView(this, this.layers.pickups);
     this.projectileView = new ProjectileView(this, this.layers.projectiles, this.layers.fx);
@@ -163,6 +166,7 @@ export class GameScene extends Phaser.Scene {
     this.enemyView.destroy();
     this.carriedView.destroy();
     this.relicView.destroy();
+    this.obstacleView.destroy();
     this.shadowView.destroy();
     this.gemView.destroy();
     this.pickupView.destroy();

@@ -128,3 +128,16 @@ Hands-off balance over sixteen seeds (survivor, mean survival): station 312 s,
 cargo 519 s, lab 395 s, orbit 220 s. The orbit is the hardest on purpose: its
 wave rows carry a speed multiplier and its raiders outrun the player, so running
 in a straight line stops working there and nowhere else.
+
+## Between runs
+
+Twenty achievements, most paying gold and three opening the later passives.
+Reroll, skip and banish are bought in the shop as charges per run. Once a build
+is full, level-ups offer limit break cards — one weapon, one stat, no cap. The
+launch screen has a challenge toggle (curse +20/40/60%, paid back in experience
+and gold), and the results screen ends on which weapon did the work. A bestiary
+behind the achievements screen lights every enemy a run has met.
+
+Every stage scatters breakable scenery, places three relics at fixed
+coordinates with a guide arrow at the edge of the view, and the cargo deck has
+solid containers to fight around.

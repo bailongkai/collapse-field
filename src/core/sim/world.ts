@@ -9,6 +9,7 @@ import { createGem, type Gem } from './entities/gem';
 import { createPickup, type Pickup } from './entities/pickup';
 import { createPlayer, type Player } from './entities/player';
 import type { WeaponInstance } from '../weapons/types';
+import type { ObstacleRect } from './obstacles';
 
 /** Entity storage plus the broadphase and scratch buffers shared by every system. */
 /** How many distinct targets a single volley can be spread over. */
@@ -27,6 +28,8 @@ export class World {
   readonly events = new EventBuffer();
   rng: Rng;
   /** scratch query buffers; systems reuse these to avoid per-step allocation */
+  /** solid rectangles of the stage, in world space; empty on an open floor */
+  obstacles: ObstacleRect[] = [];
   /** every enemy definition that has appeared this run, for the bestiary */
   readonly seen = new Set<string>();
   /** run-clock time each rate-limited pickup last dropped, keyed by pickup id */
