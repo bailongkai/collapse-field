@@ -18,9 +18,9 @@ const WAVES: readonly WaveEntry[] = [
   { minute: 9, mix: mix(['robot', 0.3], ['interceptor', 0.15], ['mech', 0.25], ['spitter', 0.1], ['dasher', 0.08], ['hound', 0.12]), minCount: 130, interval: 450, batch: 6, hpMult: 2.1, dmgMult: 1.2 },
   { minute: 10, mix: mix(['robot', 0.22], ['mech', 0.3], ['interceptor', 0.05], ['spitter', 0.1], ['dasher', 0.08], ['medic', 0.07], ['bomber', 0.06], ['hound', 0.12]), minCount: 150, interval: 450, batch: 7, hpMult: 2.25, dmgMult: 1.25 },
   { minute: 11, mix: mix(['infected', 0.2], ['robot', 0.22], ['mech', 0.3], ['spitter', 0.1], ['dasher', 0.06], ['hound', 0.12]), minCount: 170, interval: 400, batch: 7, hpMult: 2.4, dmgMult: 1.25 },
-  { minute: 12, mix: mix(['drone', 0.12], ['robot', 0.23], ['mech', 0.3], ['spitter', 0.1], ['dasher', 0.1], ['hound', 0.15]), minCount: 190, interval: 400, batch: 8, hpMult: 2.5, dmgMult: 1.3 },
-  { minute: 13, mix: mix(['robot', 0.18], ['interceptor', 0.07], ['mech', 0.3], ['spitter', 0.1], ['dasher', 0.08], ['medic', 0.07], ['bomber', 0.05], ['hound', 0.15]), minCount: 220, interval: 350, batch: 8, hpMult: 2.5, dmgMult: 1.3 },
-  { minute: 14, mix: mix(['robot', 0.2], ['mech', 0.4], ['interceptor', 0.05], ['spitter', 0.1], ['dasher', 0.1], ['hound', 0.15]), minCount: 250, interval: 300, batch: 10, hpMult: 2.5, dmgMult: 1.3 },
+  { minute: 12, mix: mix(['drone', 0.12], ['robot', 0.23], ['mech', 0.3], ['spitter', 0.1], ['dasher', 0.1], ['hound', 0.15]), minCount: 190, interval: 400, batch: 8, hpMult: 2.7, dmgMult: 1.35 },
+  { minute: 13, mix: mix(['robot', 0.18], ['interceptor', 0.07], ['mech', 0.3], ['spitter', 0.1], ['dasher', 0.08], ['medic', 0.07], ['bomber', 0.05], ['hound', 0.15]), minCount: 220, interval: 350, batch: 8, hpMult: 2.95, dmgMult: 1.4 },
+  { minute: 14, mix: mix(['robot', 0.2], ['mech', 0.4], ['interceptor', 0.05], ['spitter', 0.1], ['dasher', 0.1], ['hound', 0.15]), minCount: 250, interval: 300, batch: 10, hpMult: 3.2, dmgMult: 1.45 },
 ];
 
 /**
@@ -71,9 +71,9 @@ const CARGO_WAVES: readonly WaveEntry[] = [
   { minute: 9, mix: mix(['robot', 0.22], ['dasher', 0.12], ['mech', 0.3], ['loader', 0.15], ['tractor', 0.07], ['repairDrone', 0.06], ['hound', 0.08]), minCount: 72, interval: 550, batch: 5, hpMult: 2.2, dmgMult: 1.2 },
   { minute: 10, mix: mix(['robot', 0.2], ['dasher', 0.15], ['mech', 0.3], ['loader', 0.23], ['hound', 0.12]), minCount: 86, interval: 550, batch: 5, hpMult: 2.3, dmgMult: 1.25 },
   { minute: 11, mix: mix(['robot', 0.15], ['dasher', 0.15], ['mech', 0.35], ['loader', 0.23], ['hound', 0.12]), minCount: 94, interval: 500, batch: 5, hpMult: 2.4, dmgMult: 1.25 },
-  { minute: 12, mix: mix(['robot', 0.12], ['dasher', 0.12], ['mech', 0.3], ['loader', 0.25], ['tractor', 0.07], ['repairDrone', 0.06], ['hound', 0.08]), minCount: 92, interval: 500, batch: 6, hpMult: 2.5, dmgMult: 1.3 },
-  { minute: 13, mix: mix(['dasher', 0.18], ['mech', 0.35], ['loader', 0.33], ['hound', 0.14]), minCount: 112, interval: 450, batch: 6, hpMult: 2.5, dmgMult: 1.3 },
-  { minute: 14, mix: mix(['dasher', 0.15], ['mech', 0.35], ['loader', 0.35], ['hound', 0.15]), minCount: 124, interval: 450, batch: 6, hpMult: 2.5, dmgMult: 1.3 },
+  { minute: 12, mix: mix(['robot', 0.12], ['dasher', 0.12], ['mech', 0.3], ['loader', 0.25], ['tractor', 0.07], ['repairDrone', 0.06], ['hound', 0.08]), minCount: 92, interval: 500, batch: 6, hpMult: 2.7, dmgMult: 1.35 },
+  { minute: 13, mix: mix(['dasher', 0.18], ['mech', 0.35], ['loader', 0.33], ['hound', 0.14]), minCount: 112, interval: 450, batch: 6, hpMult: 2.95, dmgMult: 1.4 },
+  { minute: 14, mix: mix(['dasher', 0.15], ['mech', 0.35], ['loader', 0.35], ['hound', 0.15]), minCount: 124, interval: 450, batch: 6, hpMult: 3.2, dmgMult: 1.45 },
 ];
 const CARGO_EVENTS: readonly WaveEvent[] = byTime([
   { at: 90, kind: 'swarm', enemy: 'drone', count: 30, pattern: 'hLine' },
@@ -108,9 +108,9 @@ const LAB_WAVES: readonly WaveEntry[] = [
   { minute: 9, mix: mix(['spore', 0.3], ['infected', 0.22], ['spitter', 0.2], ['dasher', 0.08], ['splitter', 0.12], ['hound', 0.08]), minCount: 200, interval: 300, batch: 11, hpMult: 1.9, dmgMult: 1.2 },
   { minute: 10, mix: mix(['spore', 0.3], ['infected', 0.3], ['spitter', 0.25], ['dasher', 0.15]), minCount: 220, interval: 280, batch: 12, hpMult: 2.05, dmgMult: 1.2 },
   { minute: 11, mix: mix(['spore', 0.3], ['infected', 0.3], ['spitter', 0.25], ['dasher', 0.15]), minCount: 240, interval: 260, batch: 12, hpMult: 2.2, dmgMult: 1.25 },
-  { minute: 12, mix: mix(['spore', 0.25], ['infected', 0.17], ['spitter', 0.25], ['dasher', 0.08], ['splitter', 0.17], ['hound', 0.08]), minCount: 260, interval: 250, batch: 13, hpMult: 2.35, dmgMult: 1.25 },
-  { minute: 13, mix: mix(['spore', 0.25], ['infected', 0.3], ['spitter', 0.3], ['dasher', 0.15]), minCount: 280, interval: 240, batch: 14, hpMult: 2.5, dmgMult: 1.3 },
-  { minute: 14, mix: mix(['spore', 0.2], ['infected', 0.3], ['spitter', 0.3], ['dasher', 0.2]), minCount: 300, interval: 220, batch: 15, hpMult: 2.5, dmgMult: 1.3 },
+  { minute: 12, mix: mix(['spore', 0.25], ['infected', 0.17], ['spitter', 0.25], ['dasher', 0.08], ['splitter', 0.17], ['hound', 0.08]), minCount: 260, interval: 250, batch: 13, hpMult: 2.6, dmgMult: 1.32 },
+  { minute: 13, mix: mix(['spore', 0.25], ['infected', 0.3], ['spitter', 0.3], ['dasher', 0.15]), minCount: 280, interval: 240, batch: 14, hpMult: 2.85, dmgMult: 1.38 },
+  { minute: 14, mix: mix(['spore', 0.2], ['infected', 0.3], ['spitter', 0.3], ['dasher', 0.2]), minCount: 300, interval: 220, batch: 15, hpMult: 3.1, dmgMult: 1.45 },
 ];
 const LAB_EVENTS: readonly WaveEvent[] = byTime([
   { at: 60, kind: 'swarm', enemy: 'spore', count: 50, pattern: 'hLine' },
@@ -190,6 +190,11 @@ export const STAGES = {
     waves: WAVES,
     events: EVENTS,
     props: { enemy: 'crate', everyMs: 9000, max: 6 },
+    relics: [
+      { pickup: 'relicVacuum', x: 1400, y: -900 },
+      { pickup: 'relicNuke', x: -1600, y: 1100 },
+      { pickup: 'relicChest', x: 300, y: 2200 },
+    ],
     gemCap: 300,
     spawnMargin: 96,
     despawnFactor: 1.6,
@@ -206,6 +211,11 @@ export const STAGES = {
     waves: CARGO_WAVES,
     events: CARGO_EVENTS,
     props: { enemy: 'crate', everyMs: 6000, max: 10 },
+    relics: [
+      { pickup: 'relicNuke', x: -1500, y: -1200 },
+      { pickup: 'relicVacuum', x: 1800, y: 600 },
+      { pickup: 'relicChest', x: -400, y: 2300 },
+    ],
     gemCap: 300,
     spawnMargin: 96,
     despawnFactor: 1.6,
@@ -222,6 +232,11 @@ export const STAGES = {
     waves: LAB_WAVES,
     events: LAB_EVENTS,
     props: { enemy: 'canister', everyMs: 8000, max: 6 },
+    relics: [
+      { pickup: 'relicVacuum', x: -1300, y: -1300 },
+      { pickup: 'relicNuke', x: 1700, y: 900 },
+      { pickup: 'relicChest', x: 2200, y: -500 },
+    ],
     // more bodies means more gems; the cap goes up so late experience is not folded away
     gemCap: 400,
     spawnMargin: 96,
@@ -239,6 +254,11 @@ export const STAGES = {
     waves: ORBIT_WAVES,
     events: ORBIT_EVENTS,
     props: { enemy: 'asteroid', everyMs: 7000, max: 8 },
+    relics: [
+      { pickup: 'relicNuke', x: 1600, y: -1400 },
+      { pickup: 'relicVacuum', x: -1900, y: -300 },
+      { pickup: 'relicChest', x: 200, y: 2400 },
+    ],
     gemCap: 300,
     spawnMargin: 120,
     despawnFactor: 1.6,

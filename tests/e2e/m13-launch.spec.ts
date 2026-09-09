@@ -149,3 +149,24 @@ test('achievements: the screen lists them, and a qualifying run earns one on the
   await snap(page, 'bestiary');
   expect(errors, errors.join('\n')).toEqual([]);
 });
+
+test('relics: the HUD points at the nearest one, and it is where the stage says', async ({ page }) => {
+  const errors = await openGame(page, '?test=1&seed=19');
+  await page.evaluate(() => window.__game.startRun({ seed: 19 }));
+  await waitScene(page, 'game');
+  await page.evaluate(() => {
+    window.__game.setTimeScale(0);
+    window.__game.godMode(true);
+  });
+  const relics = await page.evaluate(() => window.__game.getState().pickups.filter((p) => p.defId.startsWith('relic')));
+  expect(relics.length).toBeGreaterThanOrEqual(3);
+  await page.evaluate(() => window.__game.step(2));
+  await snap(page, 'relic-arrow');
+  // walk onto one and it is gone
+  const target = relics[0];
+  await page.evaluate((r) => window.__game.setPlayerPos(r.x, r.y), target);
+  await page.evaluate(() => window.__game.step(3));
+  const left = await page.evaluate(() => window.__game.getState().pickups.filter((p) => p.defId.startsWith('relic')).length);
+  expect(left).toBe(relics.length - 1);
+  expect(errors, errors.join('\n')).toEqual([]);
+});

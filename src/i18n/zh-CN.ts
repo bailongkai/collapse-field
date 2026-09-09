@@ -143,6 +143,7 @@ export const zhCN = {
   'pickup.chest.name': '补给箱',
   'pickup.bossChest.name': '大型补给箱',
   'pickup.wreckChest.name': '残骸补给箱',
+  'pickup.relicChest.name': '遗落的补给箱',
   'character.survivor.name': '幸存者',
   'character.survivor.desc': '空间站安保队长，属性均衡。起始武器：等离子刃',
   'character.marine.name': '陆战队员',

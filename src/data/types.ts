@@ -159,6 +159,12 @@ export interface StageDef {
    * It does not chase, bite or count as a kill; it breaks, and it drops something.
    */
   readonly props?: { readonly enemy: string; readonly everyMs: number; readonly max: number };
+  /**
+   * Pickups placed at fixed world coordinates when the run starts, relative to where the player
+   * stands. They do not come to the player; the HUD points at the nearest one, and going to get it
+   * is the decision — a detour across a field that is not empty.
+   */
+  readonly relics?: readonly { readonly pickup: string; readonly x: number; readonly y: number }[];
   readonly gemCap: number;
   readonly spawnMargin: number;
   readonly despawnFactor: number;

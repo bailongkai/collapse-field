@@ -85,8 +85,8 @@ export function validateContent(frames?: ReadonlySet<string>): string[] {
       check(w.minute === i, `stage ${key}: wave row ${i} has minute ${w.minute}`);
       check(w.mix.length > 0, `stage ${key}: wave ${i} has an empty mix`);
       for (const m of w.mix) check(CONTENT.enemies[m.enemy], `stage ${key}: wave ${i} references unknown enemy "${m.enemy}"`);
-      check(w.hpMult <= 2.5 + 1e-9, `stage ${key}: wave ${i} hpMult ${w.hpMult} exceeds the 2.5 cap`);
-      check(w.dmgMult <= 1.3 + 1e-9, `stage ${key}: wave ${i} dmgMult ${w.dmgMult} exceeds the 1.3 cap`);
+      check(w.hpMult <= 3.2 + 1e-9, `stage ${key}: wave ${i} hpMult ${w.hpMult} exceeds the 3.2 cap`);
+      check(w.dmgMult <= 1.45 + 1e-9, `stage ${key}: wave ${i} dmgMult ${w.dmgMult} exceeds the 1.45 cap`);
       check((w.speedMult ?? 1) <= 1.5 + 1e-9, `stage ${key}: wave ${i} speedMult ${w.speedMult} exceeds the 1.5 cap`);
       check(w.minCount > 0 && w.interval > 0 && w.batch > 0, `stage ${key}: wave ${i} has a non-positive count/interval/batch`);
     });
@@ -98,6 +98,10 @@ export function validateContent(frames?: ReadonlySet<string>): string[] {
     });
     check(s.events.some((e) => e.kind === 'reaper'), `stage ${key}: no reaper event`);
     if (s.props) check(CONTENT.enemies[s.props.enemy]?.behavior === 'prop', `stage ${key}: props must be a prop enemy, got "${s.props.enemy}"`);
+    for (const r of s.relics ?? []) {
+      check(CONTENT.pickups[r.pickup]?.persistent && !CONTENT.pickups[r.pickup]?.magnetic, `stage ${key}: relic "${r.pickup}" must be a persistent, non-magnetic pickup`);
+      check(Math.hypot(r.x, r.y) >= 900, `stage ${key}: relic "${r.pickup}" is too close to the start to be a detour`);
+    }
     for (const f of s.decorFrames) frameOk(f, `stage ${key} decor`);
   }
   for (const [key, a] of Object.entries(ACHIEVEMENTS as Record<string, AchievementDef>)) {

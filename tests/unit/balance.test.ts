@@ -220,13 +220,10 @@ describe('view size and wave density', () => {
     console.log(`average survival: reference ${refAvg.toFixed(0)}s, wide ${wideAvg.toFixed(0)}s`);
     expect(wideAvg, `reference ${refAvg.toFixed(0)}s vs wide ${wideAvg.toFixed(0)}s`).toBeLessThan(refAvg * 1.8);
     expect(wideAvg, `reference ${refAvg.toFixed(0)}s vs wide ${wideAvg.toFixed(0)}s`).toBeGreaterThan(refAvg * 0.5);
-    // A wide view must not hand out a runaway build. It does hand out a bigger one, and that is a
-    // known open defect rather than an accepted design: over sixteen seeds the reference view ends
-    // at a median level of 7 and a wide view at 10, because densityScale corrects the enemy COUNT
-    // for the larger visible area but nothing corrects the experience that comes with them. The
-    // survival times above are comparable, so what a wide screen buys is build speed, not safety.
-    // The gate below is therefore loose on purpose: it is there to catch a blowout — one seed once
-    // reached level 53 through a per-kill chest loop — not to certify parity that does not exist.
+    // A wide view must not hand out a bigger build. densityScale gives it proportionally more
+    // bodies and the simulation scales the experience those bodies drop back by the same factor,
+    // so the level a run reaches should not depend on the screen it was played on. The tolerance
+    // is for seed noise, not for a gap: before the scaling, a wide view ended three levels higher.
     const med = (rs: RunResult[]): number => rs.map((r) => r.level).sort((a, b) => a - b)[Math.floor(rs.length / 2)];
     expect(med(wide), `reference level ${med(referenceRuns)} vs wide ${med(wide)}`).toBeLessThanOrEqual(med(referenceRuns) + 8);
   });

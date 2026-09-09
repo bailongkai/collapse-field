@@ -202,6 +202,19 @@ function drawChest(w = 48) {
   return img;
 }
 
+/** A chevron pointing right, for the relic guide at the edge of the view. */
+function drawArrow(size = 32) {
+  const img = new Jimp({ width: size, height: size, color: 0x00000000 });
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const cy = size / 2;
+    const t = 1 - Math.abs(y - cy) / cy; // 1 at the middle row, 0 at the edges
+    const tip = size * 0.15 + t * size * 0.75; // the point of the chevron
+    const back = tip - size * 0.3;
+    if (x <= tip && x >= back) img.setPixelColor(0xffffffff, x, y);
+  }
+  return img;
+}
+
 function solid(w, h, rgba) {
   return new Jimp({ width: w, height: h, color: rgba >>> 0 });
 }
@@ -221,6 +234,7 @@ async function main() {
   const procedural = [
     ['fx_slash', drawSlash()],
     ['pk_chest', drawChest()],
+    ['ui_arrow', drawArrow()],
     ['icon_plasmaBlade', drawIconBlade()],
     ['bar_bg', solid(40, 5, 0x101418ff)],
     ['bar_fill', solid(40, 5, 0x5ee06aff)],

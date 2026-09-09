@@ -1,4 +1,4 @@
-import { FIXED_DT, FIXED_DT_MS, REF_H, REF_W, RUN_SECONDS } from '../../config';
+import { FIXED_DT, FIXED_DT_MS, REF_AREA, REF_H, REF_W, RUN_SECONDS } from '../../config';
 import type { PlayerStats, StatBlock, StatKey } from '../../data/types';
 import { CONTENT, characterDef, stageDef, type ContentRegistry } from '../content/registry';
 import { composeStats } from '../stats/composeStats';
@@ -111,6 +111,8 @@ export class Simulation {
   private autopilot = false;
   private viewW: number;
   private viewH: number;
+  /** experience per gem is divided by the visible-area factor densityScale multiplies bodies by */
+  private xpScale = 1;
   private metaBonuses: StatBlock;
   private collected: PickupCollected[] = [];
   private detonated: Enemy[] = [];
@@ -121,6 +123,7 @@ export class Simulation {
   constructor(opts: SimulationOptions) {
     this.viewW = opts.viewW ?? REF_W;
     this.viewH = opts.viewH ?? REF_H;
+    this.xpScale = Math.min(1, REF_AREA / (this.viewW * this.viewH));
     const curse = opts.curse ?? 0;
     this.metaBonuses = { ...(opts.metaBonuses ?? {}) };
     if (curse > 0) {
@@ -163,6 +166,7 @@ export class Simulation {
       god: false,
     };
     this.signature = createSignature(ch.signature);
+    for (const r of this.stage.relics ?? []) spawnPickup(this.world, r.pickup, r.x, r.y);
     this.cachedStats = this.computeStats();
     this.world.player.hp = this.cachedStats.maxHealth;
     this.world.player.shieldCharges = this.signature.shieldReady ? 1 : 0;
@@ -243,6 +247,7 @@ export class Simulation {
   setViewSize(width: number, height: number): void {
     this.viewW = Math.max(320, width);
     this.viewH = Math.max(240, height);
+    this.xpScale = Math.min(1, REF_AREA / (this.viewW * this.viewH));
   }
 
   getViewSize(): { width: number; height: number } {
@@ -302,7 +307,10 @@ export class Simulation {
 
     if (run.phase === 'running') {
       const harvest = stepGems(world, stats, dt, spawnRingRadius(stage, this.viewW, this.viewH) * stage.despawnFactor);
-      if (harvest.xp > 0) this.addXp(harvest.xp * stats.growth);
+      // densityScale gives a wider view proportionally more bodies so it is not an easier run; the
+      // experience those bodies drop is scaled back by the same factor so it is not a faster one.
+      // Measured before this: a 1760-wide view ended a median three levels above the reference.
+      if (harvest.xp > 0) this.addXp(harvest.xp * stats.growth * this.xpScale);
 
       stepPickups(world, stats, dt, spawnRingRadius(stage, this.viewW, this.viewH) * stage.despawnFactor, this.collected);
       for (const c of this.collected) this.applyPickup(c);

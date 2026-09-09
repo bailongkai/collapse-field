@@ -41,6 +41,20 @@ export const PICKUPS = {
     effect: { kind: 'chest', grade: 'standard' }, dropChance: 0.02, maxOnGround: 1, minIntervalMs: 60_000,
     magnetic: true, magnetRadius: 4000, magnetSpeed: 250, persistent: true, sfx: 'levelup',
   },
+  // Relics: the same effects as the drops, placed on the map rather than dropped. Not magnetic,
+  // never recycled; the walk is the point.
+  relicChest: {
+    id: 'relicChest', nameKey: 'pickup.relicChest.name', frame: 'pk_chest', radius: 26,
+    effect: { kind: 'chest', grade: 'boss' }, dropChance: 0, magnetic: false, persistent: true, sfx: 'levelup',
+  },
+  relicVacuum: {
+    id: 'relicVacuum', nameKey: 'pickup.vacuum.name', frame: 'pk_vacuum', radius: 18,
+    effect: { kind: 'vacuum' }, dropChance: 0, magnetic: false, persistent: true, sfx: 'pickup',
+  },
+  relicNuke: {
+    id: 'relicNuke', nameKey: 'pickup.nuke.name', frame: 'pk_nuke', radius: 18,
+    effect: { kind: 'nuke' }, dropChance: 0, magnetic: false, persistent: true, sfx: 'emp',
+  },
 } as const satisfies Record<string, PickupDef>;
 
 export type PickupId = keyof typeof PICKUPS;

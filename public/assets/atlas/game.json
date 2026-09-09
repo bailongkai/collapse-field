@@ -1921,6 +1921,27 @@
 					}
 				},
 				{
+					"filename": "ui_arrow",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 32,
+						"h": 32
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 32,
+						"h": 32
+					},
+					"frame": {
+						"x": 517,
+						"y": 244,
+						"w": 32,
+						"h": 32
+					}
+				},
+				{
 					"filename": "decor_cargo_1",
 					"rotated": false,
 					"trimmed": false,
