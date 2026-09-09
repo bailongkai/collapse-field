@@ -1,3 +1,4 @@
+import { ACHIEVEMENT_LIST, LOCKED_BY_DEFAULT, conditionMet, type RunFacts } from '../../data/achievements';
 export interface SaveData {
   version: 2;
   gold: number;
@@ -8,7 +9,10 @@ export interface SaveData {
   /** permanent upgrade levels by id */
   upgrades: Record<string, number>;
   /** what gold and clears have opened. Stages listed here have been SURVIVED, which opens the next. */
-  unlocks: { characters: string[]; stages: string[] };
+  unlocks: { characters: string[]; stages: string[]; items: string[] };
+  /** achievement ids earned */
+  achievements: string[];
+  totalKills: number;
   /** best survival time per stage id, seconds */
   stageBest: Record<string, number>;
   /** what the launch screen last had selected */
@@ -26,7 +30,9 @@ export const DEFAULT_SAVE: SaveData = {
   bestKills: 0,
   settings: { locale: 'zh-CN', sfxVolume: 0.8, musicVolume: 0.5 },
   upgrades: {},
-  unlocks: { characters: [], stages: [] },
+  unlocks: { characters: [], stages: [], items: [] },
+  achievements: [],
+  totalKills: 0,
   stageBest: {},
   lastCharacterId: 'survivor',
   lastStageId: 'station',
@@ -40,7 +46,7 @@ export interface SaveStorage {
 }
 
 function cloneDefault(): SaveData {
-  return { ...DEFAULT_SAVE, settings: { ...DEFAULT_SAVE.settings }, upgrades: {}, unlocks: { characters: [], stages: [] }, stageBest: {} };
+  return { ...DEFAULT_SAVE, settings: { ...DEFAULT_SAVE.settings }, upgrades: {}, unlocks: { characters: [], stages: [], items: [] }, achievements: [], stageBest: {} };
 }
 
 const isStringList = (v: unknown): v is string[] => Array.isArray(v) && v.every((x) => typeof x === 'string');
@@ -68,7 +74,10 @@ export function loadSave(st: SaveStorage): SaveData {
     if (parsed.unlocks && typeof parsed.unlocks === 'object') {
       if (isStringList(parsed.unlocks.characters)) d.unlocks.characters = [...new Set(parsed.unlocks.characters)];
       if (isStringList(parsed.unlocks.stages)) d.unlocks.stages = [...new Set(parsed.unlocks.stages)];
+      if (isStringList(parsed.unlocks.items)) d.unlocks.items = [...new Set(parsed.unlocks.items)];
     }
+    if (isStringList(parsed.achievements)) d.achievements = [...new Set(parsed.achievements)];
+    if (typeof parsed.totalKills === 'number' && parsed.totalKills >= 0) d.totalKills = Math.floor(parsed.totalKills);
     if (parsed.stageBest && typeof parsed.stageBest === 'object') {
       for (const [k, v] of Object.entries(parsed.stageBest)) {
         if (typeof v === 'number' && v > 0) d.stageBest[k] = v;
@@ -100,6 +109,12 @@ export interface RunSummary {
   characterId?: string;
   /** whether the run reached the end of the stage; only a survived stage opens the next one */
   survived?: boolean;
+  level?: number;
+  curse?: number;
+  chestsOpened?: number;
+  bossKills?: number;
+  items?: readonly { id: string; level: number }[];
+  evolved?: readonly string[];
 }
 
 /** Fold a finished run into the save and persist it. Returns the new save object. */
@@ -112,7 +127,9 @@ export function commitRun(st: SaveStorage, save: SaveData, run: RunSummary): Sav
     ...save,
     settings: { ...save.settings },
     upgrades: { ...save.upgrades },
-    unlocks: { characters: [...save.unlocks.characters], stages },
+    unlocks: { characters: [...save.unlocks.characters], stages, items: [...save.unlocks.items] },
+    achievements: [...save.achievements],
+    totalKills: save.totalKills + Math.max(0, run.kills),
     stageBest,
     gold: save.gold + Math.max(0, Math.floor(run.gold)),
     runsPlayed: save.runsPlayed + 1,
@@ -123,4 +140,49 @@ export function commitRun(st: SaveStorage, save: SaveData, run: RunSummary): Sav
   };
   writeSave(st, next);
   return next;
+}
+
+/** Judges a finished run against every achievement not yet earned; returns the ids earned now. */
+export function awardAchievements(st: SaveStorage, save: SaveData, run: RunSummary): { save: SaveData; earned: string[] } {
+  const facts: RunFacts = {
+    stageId: run.stageId ?? '',
+    characterId: run.characterId ?? '',
+    timeSec: run.timeSec,
+    kills: run.kills,
+    level: run.level ?? 1,
+    survived: !!run.survived,
+    curse: run.curse ?? 0,
+    chestsOpened: run.chestsOpened ?? 0,
+    bossKills: run.bossKills ?? 0,
+    items: run.items ?? [],
+    evolved: run.evolved ?? [],
+    totalRuns: save.runsPlayed,
+    totalKills: save.totalKills,
+  };
+  const earned: string[] = [];
+  let gold = 0;
+  const items = [...save.unlocks.items];
+  for (const def of ACHIEVEMENT_LIST) {
+    if (save.achievements.includes(def.id) || !conditionMet(def.condition, facts)) continue;
+    earned.push(def.id);
+    gold += def.unlocks?.gold ?? 0;
+    for (const id of [def.unlocks?.passive, def.unlocks?.weapon]) if (id && !items.includes(id)) items.push(id);
+  }
+  if (earned.length === 0) return { save, earned };
+  const next: SaveData = {
+    ...save,
+    settings: { ...save.settings },
+    upgrades: { ...save.upgrades },
+    stageBest: { ...save.stageBest },
+    unlocks: { ...save.unlocks, characters: [...save.unlocks.characters], stages: [...save.unlocks.stages], items },
+    achievements: [...save.achievements, ...earned],
+    gold: save.gold + gold,
+  };
+  writeSave(st, next);
+  return { save: next, earned };
+}
+
+/** Items the level-up offer must not show: locked by default and not yet earned. */
+export function lockedItems(save: SaveData): string[] {
+  return LOCKED_BY_DEFAULT.filter((id) => !save.unlocks.items.includes(id));
 }

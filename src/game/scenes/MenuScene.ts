@@ -15,6 +15,7 @@ export class MenuScene extends Phaser.Scene {
   private startBtn!: UiButton;
   private settingsBtn!: UiButton;
   private shopBtn!: UiButton;
+  private achievementsBtn!: UiButton;
   private gold!: Phaser.GameObjects.Text;
   private offLocale: (() => void) | null = null;
 
@@ -40,17 +41,19 @@ export class MenuScene extends Phaser.Scene {
     this.startBtn = new UiButton(this, cx, cy, { id: 'menu.start', label: '', width: startW, height: 64, fontSize: 26, onPress: () => this.startGame() });
 
     // side by side when there is room, stacked when there is not
-    const rowW = narrow ? Math.min(260, this.scale.width - 80) : 220;
+    const rowW = narrow ? Math.min(260, this.scale.width - 80) : 200;
     if (narrow) {
       this.shopBtn = new UiButton(this, cx, cy + 84, { id: 'menu.shop', label: '', width: rowW, height: 50, fontSize: 20, onPress: () => this.openShop() });
-      this.settingsBtn = new UiButton(this, cx, cy + 148, { id: 'menu.settings', label: '', width: rowW, height: 50, fontSize: 20, onPress: () => this.openSettings() });
+      this.achievementsBtn = new UiButton(this, cx, cy + 148, { id: 'menu.achievements', label: '', width: rowW, height: 50, fontSize: 20, onPress: () => this.openOverlay('Achievements') });
+      this.settingsBtn = new UiButton(this, cx, cy + 212, { id: 'menu.settings', label: '', width: rowW, height: 50, fontSize: 20, onPress: () => this.openSettings() });
     } else {
-      this.shopBtn = new UiButton(this, cx - 120, cy + 84, { id: 'menu.shop', label: '', width: rowW, height: 50, fontSize: 20, onPress: () => this.openShop() });
-      this.settingsBtn = new UiButton(this, cx + 120, cy + 84, { id: 'menu.settings', label: '', width: rowW, height: 50, fontSize: 20, onPress: () => this.openSettings() });
+      this.shopBtn = new UiButton(this, cx - rowW - 12, cy + 84, { id: 'menu.shop', label: '', width: rowW, height: 50, fontSize: 20, onPress: () => this.openShop() });
+      this.achievementsBtn = new UiButton(this, cx, cy + 84, { id: 'menu.achievements', label: '', width: rowW, height: 50, fontSize: 20, onPress: () => this.openOverlay('Achievements') });
+      this.settingsBtn = new UiButton(this, cx + rowW + 12, cy + 84, { id: 'menu.settings', label: '', width: rowW, height: 50, fontSize: 20, onPress: () => this.openSettings() });
     }
 
     this.gold = this.add.text(this.scale.width - 16, 16, '', textStyle(18, { bold: true, color: COLORS.gold })).setOrigin(1, 0);
-    const footer = narrow ? cy + 220 : cy + 180;
+    const footer = narrow ? cy + 284 : cy + 180;
     this.hint = this.add
       .text(cx, footer, '', textStyle(15, { color: COLORS.dim, align: 'center', wrapWidth: this.scale.width - 48 }))
       .setOrigin(0.5);
@@ -76,6 +79,7 @@ export class MenuScene extends Phaser.Scene {
     this.startBtn.setLabel(t('menu.start'));
     this.settingsBtn.setLabel(t('menu.settings'));
     this.shopBtn.setLabel(t('menu.shop'));
+    this.achievementsBtn.setLabel(t('menu.achievements'));
     this.gold.setText(t('menu.gold', { n: app().save.gold }));
     this.hint.setText(t('menu.hint'));
     const save = app().save;
@@ -89,9 +93,14 @@ export class MenuScene extends Phaser.Scene {
     }
     // the shop and settings are overlays on top of this scene, which still has the keyboard: Enter
     // would otherwise start a run underneath an open panel
-    if (this.scene.isActive('Shop') || this.scene.isActive('Settings') || this.scene.isActive('Launch')) return;
+    if (this.scene.isActive('Shop') || this.scene.isActive('Settings') || this.scene.isActive('Launch') || this.scene.isActive('Achievements')) return;
     this.scene.launch('Launch');
     this.scene.bringToTop('Launch');
+  }
+
+  private openOverlay(key: string): void {
+    this.scene.launch(key);
+    this.scene.bringToTop(key);
   }
 
   private openShop(): void {

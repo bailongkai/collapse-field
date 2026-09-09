@@ -51,6 +51,8 @@ export interface SimulationOptions {
    * experience and gold in return. More bodies, tougher and sooner, for a bigger payout.
    */
   curse?: number;
+  /** weapon and passive ids the level-up offer must not show: not yet earned */
+  lockedItems?: readonly string[];
 }
 
 export interface RunState {
@@ -78,6 +80,9 @@ export interface RunState {
   skips: number;
   banishes: number;
   banished: string[];
+  /** items the save has not earned yet; treated like banished for the offer */
+  locked: string[];
+  bossKills: number;
   /** chests opened and already applied, waiting for the view to play their reveal */
   chestQueue: ChestResult[];
   /** how many chests this run has opened, for the results screen */
@@ -147,6 +152,8 @@ export class Simulation {
       skips: opts.charges?.skip ?? 0,
       banishes: opts.charges?.banish ?? 0,
       banished: [],
+      locked: [...(opts.lockedItems ?? [])],
+      bossKills: 0,
       chestQueue: [],
       chestsOpened: 0,
       reaperSpawned: false,
@@ -369,7 +376,10 @@ export class Simulation {
     this.world.events.push('death', e.x, e.y, 0, e.defId, e.def.deathFx === 'big');
     dropForEnemy(this.world, e, this.stage.gemCap);
     rollDrops(this.world, e, this.world.rng, this.cachedStats.luck, this.reg.pickupList, this.run.timeMs);
-    if (isBoss) this.world.events.push('bossKilled', e.x, e.y, 0, e.defId, true);
+    if (isBoss) {
+      this.run.bossKills++;
+      this.world.events.push('bossKilled', e.x, e.y, 0, e.defId, true);
+    }
     // the children are spawned before the parent's slot is freed, so a handle to the parent goes
     // dead instead of quietly becoming one of its own spores
     if (split) spawnRing(this.world, split.enemy, split.count, 18, { x: sx, y: sy, hpMult: 1, dmgMult: e.dmgMult, speedMult: e.speedMult });
@@ -427,7 +437,7 @@ export class Simulation {
       luck: this.cachedStats.luck,
       rng: this.world.rng,
       reg: this.reg,
-      excluded: new Set(run.banished),
+      excluded: new Set([...run.banished, ...run.locked]),
     });
     return true;
   }
@@ -462,7 +472,7 @@ export class Simulation {
       luck: this.cachedStats.luck,
       rng: this.world.rng,
       reg: this.reg,
-      excluded: new Set(run.banished),
+      excluded: new Set([...run.banished, ...run.locked]),
     });
     return true;
   }
@@ -635,7 +645,7 @@ export class Simulation {
       luck: this.cachedStats.luck,
       rng: this.world.rng,
       reg: this.reg,
-      excluded: new Set(run.banished),
+      excluded: new Set([...run.banished, ...run.locked]),
     });
     run.phase = 'levelup';
     this.world.events.push('levelUpOpen', this.world.player.x, this.world.player.y, run.level);

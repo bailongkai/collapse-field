@@ -32,7 +32,7 @@ export function buyCharacter(st: SaveStorage, save: SaveData, id: string): { res
     settings: { ...save.settings },
     upgrades: { ...save.upgrades },
     stageBest: { ...save.stageBest },
-    unlocks: { characters: [...save.unlocks.characters, id], stages: [...save.unlocks.stages] },
+    unlocks: { characters: [...save.unlocks.characters, id], stages: [...save.unlocks.stages], items: [...save.unlocks.items] },
     gold: save.gold - cost,
   };
   writeSave(st, next);

@@ -5,7 +5,8 @@ import { UiButton } from '../ui/button';
 import { restartOnResize } from '../ui/responsive';
 import { fitPanel } from '../layout';
 import { IconRow } from '../ui/iconRow';
-import { commitRun } from '../../core/save/saveData';
+import { commitRun, awardAchievements } from '../../core/save/saveData';
+import { ACHIEVEMENTS as CONTENT_ACHIEVEMENTS, type AchievementDef } from '../../data/achievements';
 import { stageUnlockedBySurviving } from '../../core/save/unlocks';
 import { CONTENT } from '../../core/content/registry';
 import { app } from '../app';
@@ -23,6 +24,8 @@ export interface ResultsData {
   characterId: string;
   stageId: string;
   curse: number;
+  chestsOpened: number;
+  bossKills: number;
 }
 
 /** End-of-run summary. Commits the run into the save on entry, then offers a retry or the menu. */
@@ -38,19 +41,32 @@ export class ResultsScene extends Phaser.Scene {
 
     // a resize rebuilds the screen with the same summary; the run is only committed once, and the
     // stage it opened is remembered so the rebuilt screen can still say so
-    let unlockedStage: string | null = (data as ResultsData & { unlockedStage?: string | null }).unlockedStage ?? null;
-    if (!(data as ResultsData & { committed?: boolean }).committed) {
+    const carried = data as ResultsData & { committed?: boolean; unlockedStage?: string | null; earned?: string[] };
+    let unlockedStage: string | null = carried.unlockedStage ?? null;
+    let earned: string[] = carried.earned ?? [];
+    if (!carried.committed) {
       unlockedStage = survived && data.stageId ? stageUnlockedBySurviving(ctx.save, data.stageId) : null;
-      ctx.save = commitRun(ctx.storage, ctx.save, {
+      const summary = {
         timeSec: data.timeSec ?? 0,
         kills: data.kills ?? 0,
         gold: data.gold ?? 0,
         stageId: data.stageId,
         characterId: data.characterId,
         survived,
-      });
+        level: data.level,
+        curse: data.curse,
+        chestsOpened: data.chestsOpened,
+        bossKills: data.bossKills,
+        items: [...(data.weapons ?? []), ...(data.passives ?? [])],
+        evolved: (data.weapons ?? []).filter((w) => CONTENT.weapons[w.id]?.evolvedOnly).map((w) => w.id),
+      };
+      ctx.save = commitRun(ctx.storage, ctx.save, summary);
+      // judged after the run is folded in, so cumulative conditions see this run too
+      const award = awardAchievements(ctx.storage, ctx.save, summary);
+      ctx.save = award.save;
+      earned = award.earned;
     }
-    restartOnResize(this, { ...data, committed: true, unlockedStage });
+    restartOnResize(this, { ...data, committed: true, unlockedStage, earned });
 
     const cy = this.scale.height / 2;
     const panel = fitPanel(this, 720, 520);
@@ -82,7 +98,16 @@ export class ResultsScene extends Phaser.Scene {
         .text(cx, rowsTop + rows.length * 36 + 2, t('results.unlocked_stage', { name: next ? t(next.nameKey) : unlockedStage }), textStyle(16, { bold: true, color: COLORS.good }))
         .setOrigin(0.5);
     }
-    const iconsTop = rowsTop + rows.length * 36 + (unlockedStage ? 40 : 24);
+    let extra = unlockedStage ? 40 : 0;
+    if (earned.length > 0) {
+      const table = CONTENT_ACHIEVEMENTS as Record<string, AchievementDef>;
+      const names = earned.map((id) => (table[id] ? t(table[id].nameKey) : id)).join(' · ');
+      this.add
+        .text(cx, rowsTop + rows.length * 36 + extra + 2, t('results.achievements', { names }), textStyle(15, { bold: true, color: COLORS.gold, wrapWidth: panel.w - 60, align: 'center' }))
+        .setOrigin(0.5, 0);
+      extra += 44;
+    }
+    const iconsTop = rowsTop + rows.length * 36 + extra + 24;
     const weapons = new IconRow(this, cx - 130, iconsTop, 6, 32);
     weapons.setItems(data.weapons ?? [], 'weapon');
     const passives = new IconRow(this, cx - 130, iconsTop + 42, 6, 32);

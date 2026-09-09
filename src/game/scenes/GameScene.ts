@@ -24,6 +24,7 @@ import { sfx } from '../audio/sfx';
 import { music } from '../audio/music';
 import { app } from '../app';
 import { metaBonuses, metaCharges } from '../../core/save/upgrades';
+import { lockedItems } from '../../core/save/saveData';
 import { t } from '../../i18n';
 import type { HudScene } from './HudScene';
 
@@ -82,6 +83,7 @@ export class GameScene extends Phaser.Scene {
       metaBonuses: metaBonuses(app().save),
       charges: metaCharges(app().save),
       curse: data.curse ?? 0,
+      lockedItems: lockedItems(app().save),
     });
 
     this.cameras.main.setBackgroundColor('#05070c');
@@ -333,6 +335,8 @@ export class GameScene extends Phaser.Scene {
       characterId: run.characterId,
       stageId: run.stageId,
       curse: run.curse,
+      chestsOpened: run.chestsOpened,
+      bossKills: run.bossKills,
     });
   }
 

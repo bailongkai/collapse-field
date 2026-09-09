@@ -5,7 +5,7 @@ import { buyCharacter, isCharacterUnlocked, isStageUnlocked, stageUnlockedBySurv
 import { STAGE_ORDER } from '../../src/data/stages';
 
 const fresh = (gold = 0): SaveData => ({
-  ...DEFAULT_SAVE, settings: { ...DEFAULT_SAVE.settings }, upgrades: {}, unlocks: { characters: [], stages: [] }, stageBest: {}, gold,
+  ...DEFAULT_SAVE, settings: { ...DEFAULT_SAVE.settings }, upgrades: {}, unlocks: { characters: [], stages: [], items: [] }, achievements: [], stageBest: {}, gold,
 });
 
 describe('save migration', () => {
@@ -19,7 +19,7 @@ describe('save migration', () => {
     expect(s.upgrades.hull).toBe(2);
     expect(s.settings.locale).toBe('en');
     // the new fields take their defaults: nothing bought, only the first stage open
-    expect(s.unlocks).toEqual({ characters: [], stages: [] });
+    expect(s.unlocks).toEqual({ characters: [], stages: [], items: [] });
     expect(isStageUnlocked(s, 'station')).toBe(true);
     expect(isStageUnlocked(s, 'cargo')).toBe(false);
   });
@@ -32,7 +32,7 @@ describe('save migration', () => {
 
   it('round-trips unlocks and dedupes them', () => {
     const st = new MemoryStorage();
-    writeSave(st, { ...fresh(), unlocks: { characters: ['marine', 'marine'], stages: ['station'] }, stageBest: { station: 900, bogus: -1 } });
+    writeSave(st, { ...fresh(), unlocks: { characters: ['marine', 'marine'], stages: ['station'], items: [] }, stageBest: { station: 900, bogus: -1 } });
     const s = loadSave(st);
     expect(s.unlocks.characters).toEqual(['marine']);
     expect(s.stageBest).toEqual({ station: 900 });

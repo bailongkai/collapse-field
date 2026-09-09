@@ -1,6 +1,7 @@
 import { CONTENT } from './registry';
 import { hasKey } from '../../i18n';
 import { UPGRADES, type UpgradeDef } from '../../data/upgrades';
+import { ACHIEVEMENTS, type AchievementDef } from '../../data/achievements';
 import { STAT_KEYS } from '../../data/types';
 
 /**
@@ -96,6 +97,18 @@ export function validateContent(frames?: ReadonlySet<string>): string[] {
     });
     check(s.events.some((e) => e.kind === 'reaper'), `stage ${key}: no reaper event`);
     for (const f of s.decorFrames) frameOk(f, `stage ${key} decor`);
+  }
+  for (const [key, a] of Object.entries(ACHIEVEMENTS as Record<string, AchievementDef>)) {
+    check(a.id === key, `achievement ${key}: id mismatch`);
+    check(hasKey(a.nameKey), `achievement ${key}: missing i18n ${a.nameKey}`);
+    check(hasKey(a.descKey), `achievement ${key}: missing i18n ${a.descKey}`);
+    frameOk(a.icon, `achievement ${key} icon`);
+    if (a.unlocks?.passive) check(CONTENT.passives[a.unlocks.passive], `achievement ${key}: unlocks unknown passive "${a.unlocks.passive}"`);
+    if (a.unlocks?.weapon) check(CONTENT.weapons[a.unlocks.weapon], `achievement ${key}: unlocks unknown weapon "${a.unlocks.weapon}"`);
+    const c = a.condition;
+    if (c.kind === 'survive' && c.stageId) check(CONTENT.stages[c.stageId], `achievement ${key}: unknown stage "${c.stageId}"`);
+    if (c.kind === 'survive' && c.characterId) check(CONTENT.characters[c.characterId], `achievement ${key}: unknown character "${c.characterId}"`);
+    if (c.kind === 'itemLevel') check(CONTENT.weapons[c.id] || CONTENT.passives[c.id], `achievement ${key}: unknown item "${c.id}"`);
   }
   for (const [key, u] of Object.entries(UPGRADES) as [string, UpgradeDef][]) {
     check(u.id === key, `upgrade ${key}: id mismatch`);

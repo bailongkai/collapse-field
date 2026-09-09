@@ -113,3 +113,27 @@ test('launch: the challenge toggle is remembered and shows on the results', asyn
   await snap(page, 'results-challenge');
   expect(errors, errors.join('\n')).toEqual([]);
 });
+
+test('achievements: the screen lists them, and a qualifying run earns one on the results', async ({ page }) => {
+  const errors = await openGame(page, '?test=1&seed=18');
+  expect(await page.evaluate(() => window.__game.ui.press('menu.achievements'))).toBe(true);
+  await page.waitForFunction(() => window.__game.ui.buttons().some((b) => b.id === 'achievements.back'));
+  await snap(page, 'achievements');
+  await page.evaluate(() => window.__game.ui.press('achievements.back'));
+  await expectScenes(page, ['Menu']);
+
+  await page.evaluate(() => window.__game.startRun({ seed: 18 }));
+  await waitScene(page, 'game');
+  await page.evaluate(() => {
+    window.__game.setTimeScale(0);
+    window.__game.godMode(true);
+    window.__game.setTime(305);
+  });
+  await page.evaluate(() => window.__game.step(2));
+  await page.evaluate(() => window.__game.endRun('died'));
+  await waitScene(page, 'results');
+  const save = await page.evaluate(() => window.__game.save.get());
+  expect(save.achievements).toContain('fiveMinutes');
+  await snap(page, 'results-achievement');
+  expect(errors, errors.join('\n')).toEqual([]);
+});
