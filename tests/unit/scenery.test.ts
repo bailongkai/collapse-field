@@ -86,3 +86,12 @@ describe('weapons have a voice', () => {
     expect(shots).toBeGreaterThanOrEqual(1);
   });
 });
+
+describe('what gets a chest marker', () => {
+  it('a sentinel carries one; a crate does not', async () => {
+    const { carriesChest, enemyDef } = await import('../../src/core/content/registry');
+    expect(carriesChest(enemyDef('sentinel'))).toBe(true);
+    expect(carriesChest(enemyDef('mothership'))).toBe(true);
+    for (const id of ['crate', 'canister', 'asteroid', 'drone', 'mech']) expect(carriesChest(enemyDef(id)), id).toBe(false);
+  });
+});

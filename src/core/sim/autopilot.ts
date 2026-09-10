@@ -1,7 +1,7 @@
 import type { World } from './world';
 import { setPlayerInput } from './systems/playerSystem';
 import { FIXED_DT_MS } from '../../config';
-import { weaponDef } from '../content/registry';
+import { carriesChest, weaponDef } from '../content/registry';
 
 /**
  * A hands-off player for the balance harness.
@@ -98,7 +98,7 @@ export function driveAutopilot(world: World, tick: number): void {
     eDy[count] = dy / d;
     // a body's own radius is what the player actually collides with, not its centre
     eDist[count] = Math.max(1, d - e.radius);
-    const prize = (e.def?.drops?.length ?? 0) > 0;
+    const prize = !!e.def && carriesChest(e.def);
     ePrize[count] = prize ? 1 : 0;
     count++;
     if (d < nearestD) {

@@ -1,6 +1,6 @@
 import { REF_AREA } from '../../../config';
 import type { EnemyDef, StageDef, WaveEntry } from '../../../data/types';
-import { enemyDef } from '../../content/registry';
+import { carriesChest, enemyDef } from '../../content/registry';
 import type { Enemy } from '../entities/enemy';
 import type { World } from '../world';
 import { resolveCircle } from '../obstacles';
@@ -192,7 +192,7 @@ export class Spawner {
       // an event enemy that has been outrun is simply gone — except when it is carrying something.
       // A sentinel that can be walked away from is a chest the player never gets, so it is put back
       // on the ring like an ordinary spawn and has to be dealt with.
-      if (e.isEvent && !e.def?.drops?.length) {
+      if (e.isEvent && !(e.def && carriesChest(e.def))) {
         world.enemies.free(e);
         return;
       }

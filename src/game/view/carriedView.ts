@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import type { World } from '../../core/sim/world';
+import { carriesChest } from '../../core/content/registry';
 
 /** How many reward carriers can be marked at once. The stage never fields more than a couple. */
 const MAX_MARKERS = 6;
@@ -46,7 +47,7 @@ export class CarriedView {
     const alive = world.enemies.aliveList();
     for (let i = 0; i < world.enemies.count && used < MAX_MARKERS; i++) {
       const e = world.enemies.items[alive[i]];
-      if (!e.def?.drops?.length) continue;
+      if (!e.def || !carriesChest(e.def)) continue;
       // clamped to the edge of the view, so a carrier off screen still shows which way to go
       const x = Math.min(maxX - 24, Math.max(minX + 24, e.x));
       const y = Math.min(maxY - 28, Math.max(minY + 28, e.y - e.radius - 30));

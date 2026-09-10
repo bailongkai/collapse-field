@@ -60,3 +60,12 @@ export function stageDef(id: string): StageDef {
   if (!d) throw new Error(`unknown stage: ${id}`);
   return d;
 }
+
+/**
+ * Whether killing this enemy can drop a supply chest. This, and not "has a drop table", is what
+ * the chest marker, the autopilot's prize pull and the no-outrunning rule are about: breakable
+ * scenery has a drop table too, and a crate is not worth a marker or a detour.
+ */
+export function carriesChest(def: EnemyDef): boolean {
+  return (def.drops ?? []).some((d) => CONTENT.pickups[d.pickup]?.effect.kind === 'chest');
+}
