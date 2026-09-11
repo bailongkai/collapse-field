@@ -19,8 +19,14 @@ import { ResultsScene } from './game/scenes/ResultsScene';
 import { ReviveScene } from './game/scenes/ReviveScene';
 import { TutorialScene } from './game/scenes/TutorialScene';
 import { contentSummary } from './data';
+import { openNativeStorage } from './platform/storage';
+import { bindAppEvents } from './platform/appEvents';
+import { Capacitor } from '@capacitor/core';
 
-initApp();
+// on a device the save is read from native storage before anything else happens
+const nativeStorage = await openNativeStorage(Capacitor.isNativePlatform());
+initApp(undefined, nativeStorage);
+void bindAppEvents();
 
 const initial = logicalSizeForWindow(window.innerWidth, window.innerHeight);
 

@@ -19,10 +19,11 @@ export interface AppContext {
 
 let ctx: AppContext | null = null;
 
-export function initApp(search: string = typeof location !== 'undefined' ? location.search : ''): AppContext {
+/** `nativeStorage` is the device store opened before boot; the web passes nothing and uses localStorage. */
+export function initApp(search: string = typeof location !== 'undefined' ? location.search : '', nativeStorage: SaveStorage | null = null): AppContext {
   const q = new URLSearchParams(search);
   const testMode = q.get('test') === '1';
-  const storage: SaveStorage = testMode ? new MemoryStorage() : new LocalStorageAdapter();
+  const storage: SaveStorage = testMode ? new MemoryStorage() : nativeStorage ?? new LocalStorageAdapter();
   const save = loadSave(storage);
   // tests drive the game through the hook and must not be met by the walkthrough: ?tutorial=1 opts a
   // test in, and ?tutorial=0 opts a real-storage session out

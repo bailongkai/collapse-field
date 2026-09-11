@@ -6,6 +6,7 @@ import { DIGIT_FONT_KEY } from '../fonts/retroDigits';
 import { IconRow } from '../ui/iconRow';
 import { UiButton } from '../ui/button';
 import { app } from '../app';
+import { safeInsets } from '../safeArea';
 import type { GameScene } from './GameScene';
 
 /** Screen-space HUD. Runs in parallel with GameScene and only redraws when a value changes. */
@@ -39,24 +40,30 @@ export class HudScene extends Phaser.Scene {
     this.last = { time: -1, level: -1, kills: -1, xp: -1, build: '' };
     this.lastSignature = '';
 
-    this.xpBarBg = this.add.rectangle(this.scale.width / 2, 10, this.scale.width, 20, 0x0d1420).setOrigin(0.5);
-    this.xpBarFill = this.add.rectangle(0, 10, 0, 20, 0x4fe0ff).setOrigin(0, 0.5);
-    this.levelText = this.add.text(this.scale.width - 12, 10, '', textStyle(14, { bold: true })).setOrigin(1, 0.5);
-    this.timer = this.add.bitmapText(this.scale.width / 2, 30, DIGIT_FONT_KEY, '00:00', 32).setOrigin(0.5, 0);
-    this.killsText = this.add.text(this.scale.width - 12, 76, '', textStyle(16, { color: COLORS.dim, align: 'right' })).setOrigin(1, 0);
-    this.signatureText = this.add.text(this.scale.width - 12, 98, '', textStyle(14, { color: COLORS.accent, align: 'right' })).setOrigin(1, 0);
+    // a phone's notch and rounded corners: everything at an edge moves in by the inset
+    const inset = safeInsets(this);
+    const top = inset.top;
+    const right = this.scale.width - inset.right;
+    const left = inset.left;
+    this.xpBarBg = this.add.rectangle(this.scale.width / 2, top + 10, this.scale.width, 20, 0x0d1420).setOrigin(0.5);
+    this.xpBarFill = this.add.rectangle(0, top + 10, 0, 20, 0x4fe0ff).setOrigin(0, 0.5);
+    this.levelText = this.add.text(right - 12, top + 10, '', textStyle(14, { bold: true })).setOrigin(1, 0.5);
+    this.timer = this.add.bitmapText(this.scale.width / 2, top + 30, DIGIT_FONT_KEY, '00:00', 32).setOrigin(0.5, 0);
+    this.killsText = this.add.text(right - 12, top + 76, '', textStyle(16, { color: COLORS.dim, align: 'right' })).setOrigin(1, 0);
+    this.signatureText = this.add.text(right - 12, top + 98, '', textStyle(14, { color: COLORS.accent, align: 'right' })).setOrigin(1, 0);
     this.bossBarW = Math.min(400, this.scale.width - 80);
-    this.bossBarBg = this.add.rectangle(this.scale.width / 2, this.scale.height - 40, this.bossBarW, 12, 0x2a0f14).setOrigin(0.5).setVisible(false);
+    const bottom = this.scale.height - inset.bottom;
+    this.bossBarBg = this.add.rectangle(this.scale.width / 2, bottom - 40, this.bossBarW, 12, 0x2a0f14).setOrigin(0.5).setVisible(false);
     this.bossBarFill = this.add
-      .rectangle(this.scale.width / 2 - this.bossBarW / 2, this.scale.height - 40, this.bossBarW, 12, 0xff5555)
+      .rectangle(this.scale.width / 2 - this.bossBarW / 2, bottom - 40, this.bossBarW, 12, 0xff5555)
       .setOrigin(0, 0.5)
       .setVisible(false);
-    this.bossName = this.add.text(this.scale.width / 2, this.scale.height - 58, '', textStyle(16, { bold: true, color: COLORS.warn })).setOrigin(0.5).setVisible(false);
-    this.toast = this.add.text(this.scale.width / 2, 120, '', textStyle(22, { bold: true, color: COLORS.gold, stroke: true })).setOrigin(0.5).setVisible(false);
+    this.bossName = this.add.text(this.scale.width / 2, bottom - 58, '', textStyle(16, { bold: true, color: COLORS.warn })).setOrigin(0.5).setVisible(false);
+    this.toast = this.add.text(this.scale.width / 2, top + 120, '', textStyle(22, { bold: true, color: COLORS.gold, stroke: true })).setOrigin(0.5).setVisible(false);
 
     // touch players have no Escape key, so they get a button once touch is detected
     const touch = app().touch;
-    this.pauseButton = new UiButton(this, this.scale.width - 60, 130, {
+    this.pauseButton = new UiButton(this, right - 60, top + 130, {
       id: 'hud.pause',
       label: '',
       icon: 'icon_pause',
@@ -68,8 +75,8 @@ export class HudScene extends Phaser.Scene {
     this.pauseButton.setVisible(touch.active);
     this.offTouch = touch.onChange((on) => this.pauseButton?.setVisible(on));
 
-    this.weaponRow = new IconRow(this, 34, 52, 6, 32);
-    this.passiveRow = new IconRow(this, 34, 92, 6, 32);
+    this.weaponRow = new IconRow(this, left + 34, top + 52, 6, 32);
+    this.passiveRow = new IconRow(this, left + 34, top + 92, 6, 32);
 
     this.scale.on(Phaser.Scale.Events.RESIZE, this.onResize, this);
 

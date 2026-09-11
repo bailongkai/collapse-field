@@ -1,6 +1,22 @@
 import { test, expect, type Page } from '@playwright/test';
 import { openGame, startRun, waitScene, state, events, step, press, snap, realWait } from './helpers';
 
+/** Presses through whatever overlay is up (a chest reveal, a level-up) until the run is running. */
+async function settle(page: Page): Promise<void> {
+  for (let i = 0; i < 20; i++) {
+    if (!(await page.evaluate(() => window.__game.hasRun()))) return;
+    const phase = (await state(page)).phase;
+    if (phase === 'running') return;
+    if (phase === 'levelup') {
+      await page.evaluate(() => window.__game.pickChoice(0));
+    } else if (await page.evaluate(() => window.__game.activeScenes().includes('Chest'))) {
+      // a revive's clear can drop a wreck chest, which opens its reveal over the run
+      await press(page, 'chest.continue');
+    }
+    await realWait(60);
+  }
+}
+
 /** Surrounds the player with heavies and steps until the run is no longer running. */
 async function die(page: Page): Promise<void> {
   await page.evaluate(() => {
@@ -8,19 +24,15 @@ async function die(page: Page): Promise<void> {
     window.__game.spawn('mech', 30, { ring: true, radius: 40 });
   });
   for (let i = 0; i < 40; i++) {
+    // the run can end inside a batch, which unbinds the hook: that is the outcome wanted here
+    if (!(await page.evaluate(() => window.__game.hasRun()))) return;
     const phase = (await state(page)).phase;
-    if (phase === 'levelup') {
-      await page.evaluate(() => window.__game.pickChoice(0));
+    if (phase === 'running') {
+      await step(page, 60);
       continue;
     }
-    // a revive's clear can drop a wreck chest, which opens its reveal over the run
-    if (phase === 'paused' && (await page.evaluate(() => window.__game.activeScenes().includes('Chest')))) {
-      await press(page, 'chest.continue');
-      await realWait(60);
-      continue;
-    }
-    if (phase !== 'running') break;
-    await step(page, 60);
+    if (phase === 'revivePrompt' || phase === 'ended') return;
+    await settle(page);
   }
 }
 
@@ -36,7 +48,8 @@ test('revive: death opens the ad offer, and watching the ad puts the player back
 
   // the fake ad resolves at once under test; the overlay closes on its own once it has
   await press(page, 'revive.accept');
-  await page.waitForFunction(() => window.__game.getState().phase === 'running');
+  await page.waitForFunction(() => window.__game.getState().adRevived === true);
+  await settle(page);
   await waitScene(page, 'game');
   const s = await state(page);
   expect(s.adRevived).toBe(true);

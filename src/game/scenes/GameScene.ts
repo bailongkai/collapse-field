@@ -29,6 +29,7 @@ import { metaBonuses, metaCharges } from '../../core/save/upgrades';
 import { lockedItems } from '../../core/save/saveData';
 import { t } from '../../i18n';
 import { analytics, getPlatform } from '../../platform';
+import { haptic } from '../../platform/haptics';
 import type { HudScene } from './HudScene';
 
 export interface GameSceneData {
@@ -139,6 +140,7 @@ export class GameScene extends Phaser.Scene {
     this.input.keyboard?.on('keydown-ESC', () => this.openPause());
     this.input.keyboard?.on('keydown-P', () => this.openPause());
     this.game.events.on(Phaser.Core.Events.HIDDEN, this.onHidden);
+    window.addEventListener('app-back', this.onBack);
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.teardown());
 
@@ -187,6 +189,11 @@ export class GameScene extends Phaser.Scene {
     this.sim.setViewSize(this.scale.width, this.scale.height);
   };
 
+  /** Android's back button: pause a running game; overlays already have their own buttons. */
+  private onBack = (): void => {
+    if (this.scene.isActive() && this.sim.run.phase === 'running') this.openPause();
+  };
+
   private onHidden = (): void => {
     if (this.scene.isActive() && this.sim.run.phase === 'running') this.openPause();
   };
@@ -194,6 +201,7 @@ export class GameScene extends Phaser.Scene {
   /** Single teardown path: stops child scenes, detaches the profiler and unbinds the debug hook. */
   private teardown(): void {
     this.game.events.off(Phaser.Core.Events.HIDDEN, this.onHidden);
+    window.removeEventListener('app-back', this.onBack);
     this.scale.off(Phaser.Scale.Events.RESIZE, this.onResize, this);
     this.scene.stop('Hud');
     this.scene.stop('LevelUp');
@@ -255,6 +263,7 @@ export class GameScene extends Phaser.Scene {
   private openLevelUpOverlay(): void {
     if (this.levelUpPending || this.scene.isActive('LevelUp')) return;
     this.levelUpPending = true;
+    haptic('light');
     this.cameras.main.flash(200, 90, 200, 255);
     this.playerView.pop();
     sfx.play('levelup');
@@ -282,6 +291,7 @@ export class GameScene extends Phaser.Scene {
   private openChestOverlay(): void {
     if (this.chestPending || this.scene.isActive('Chest')) return;
     this.chestPending = true;
+    haptic('medium');
     this.sim.pause();
     this.scene.launch('Chest');
     this.scene.bringToTop('Chest');
@@ -497,6 +507,7 @@ export class GameScene extends Phaser.Scene {
       if (!visual) continue;
       switch (e.type) {
         case 'hurt':
+          haptic('medium');
           this.playerView.flashHurt();
           this.cameras.main.shake(150, 0.006);
           sfx.play('hurt');
@@ -543,6 +554,7 @@ export class GameScene extends Phaser.Scene {
           break;
         }
         case 'bossKilled':
+          haptic('heavy');
           this.toast(t('toast.bossKilled', { name: this.enemyName(e.id) }), 3000);
           this.cameras.main.flash(400, 255, 255, 255);
           this.cameras.main.shake(700, 0.012);

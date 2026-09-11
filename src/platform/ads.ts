@@ -41,6 +41,19 @@ export function webAds(cfg: AdsConfig): AdsService {
 export function nativeAds(cfg: AdsConfig): AdsService {
   let ready: Promise<typeof AdMobNs> | null = null;
   const mod = () => (ready ??= import('@capacitor-community/admob').then(async (m) => {
+    // the stores require the tracking prompt on iOS and the GDPR consent form where it applies,
+    // both before the first ad; neither failing may stop the game from starting
+    try {
+      await m.AdMob.requestTrackingAuthorization();
+    } catch {
+      /* not iOS, or already answered */
+    }
+    try {
+      const info = await m.AdMob.requestConsentInfo();
+      if (info.isConsentFormAvailable && info.status === m.AdmobConsentStatus.REQUIRED) await m.AdMob.showConsentForm();
+    } catch (error) {
+      console.warn('consent flow failed', error);
+    }
     await m.AdMob.initialize({ initializeForTesting: cfg.testMode });
     return m;
   }));

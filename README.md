@@ -165,6 +165,13 @@ purchases and replace the sample AdMob unit ids in `src/platform/index.ts`. Stor
 splash come from `npm run assets:icons` (`public/icons/icon-store-1024.png`, `splash-2732.png`);
 the privacy policy the stores ask for is `public/privacy.html`.
 
+On a device the save lives in native Preferences (`src/platform/storage.ts`), read once before
+the game boots and written through a serialised queue, because iOS treats a web view's
+localStorage as a cache. The HUD keeps clear of the notch through `safeInsets()`, Android's back
+button pauses a running game (`app-back` on window), and hits, levels, chests and boss kills tap
+the phone through `haptic()`. AdMob asks for iOS tracking permission and the GDPR consent form
+before its first ad.
+
 A run offers one ad revive at death (`RunPhase 'revivePrompt'`, never in headless runs), the
 results screen offers to double the gold for an ad, and an interstitial plays every third run
 end unless "去除广告" was bought. The first run opens on a three-page briefing (`?tutorial=1`
