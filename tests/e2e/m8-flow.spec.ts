@@ -116,7 +116,7 @@ test('M8: Enter on the menu does not start a run under an open panel', async ({ 
 });
 
 test('M8: audio stays inside its caps during real play, and the score starts with the run', async ({ page }) => {
-  const errors = await openGame(page, '?debug=1&seed=91');
+  const errors = await openGame(page, '?debug=1&seed=91&tutorial=0');
   // the real Start button is the gesture that lets the browser begin audio
   await pressStart(page);
   await waitScene(page, 'game');

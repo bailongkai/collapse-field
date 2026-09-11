@@ -28,6 +28,7 @@ import { app } from '../app';
 import { metaBonuses, metaCharges } from '../../core/save/upgrades';
 import { lockedItems } from '../../core/save/saveData';
 import { t } from '../../i18n';
+import { analytics, getPlatform } from '../../platform';
 import type { HudScene } from './HudScene';
 
 export interface GameSceneData {
@@ -59,6 +60,7 @@ export class GameScene extends Phaser.Scene {
   private accumulator = 0;
   private levelUpPending = false;
   private chestPending = false;
+  private revivePending = false;
   private timeScale = 1;
   private layers!: Record<
     'floor' | 'decor' | 'shadows' | 'gems' | 'pickups' | 'enemies' | 'player' | 'projectiles' | 'fx' | 'numbers',
@@ -75,6 +77,7 @@ export class GameScene extends Phaser.Scene {
     this.timeScale = 1;
     this.levelUpPending = false;
     this.chestPending = false;
+    this.revivePending = false;
     this.slotCache = [];
 
     const seed = data.seed ?? app().seed ?? (Date.now() >>> 0);
@@ -88,7 +91,10 @@ export class GameScene extends Phaser.Scene {
       charges: metaCharges(app().save),
       curse: data.curse ?? 0,
       lockedItems: lockedItems(app().save),
+      // a rewarded ad can only be offered where one can be shown; the headless harness never sees it
+      adRevive: getPlatform().ads.available(),
     });
+    analytics.track({ name: 'run_start', stage: this.sim.stage.id, character: this.sim.character.id, curse: this.sim.run.curse });
 
     this.cameras.main.setBackgroundColor('#05070c');
     this.layers = {
@@ -135,6 +141,45 @@ export class GameScene extends Phaser.Scene {
     this.game.events.on(Phaser.Core.Events.HIDDEN, this.onHidden);
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.teardown());
+
+    // the first run opens on the briefing; the clock waits for it
+    if (!app().save.tutorialDone) {
+      this.sim.pause();
+      this.scene.launch('Tutorial');
+      this.scene.bringToTop('Tutorial');
+    }
+  }
+
+  /** Called by the briefing when it is dismissed. */
+  closeTutorial(): void {
+    this.accumulator = 0;
+    this.input_.reset();
+    this.sim.resume();
+  }
+
+  /** Opens the ad offer over the frozen death frame. */
+  private openReviveOverlay(): void {
+    if (this.revivePending || this.scene.isActive('Revive')) return;
+    this.revivePending = true;
+    this.scene.launch('Revive');
+    this.scene.bringToTop('Revive');
+    this.scene.get('Revive').events.once(Phaser.Scenes.Events.CREATE, () => {
+      this.revivePending = false;
+    });
+  }
+
+  /** The offer was answered: the ad was watched, or it was declined or failed. */
+  resolveAdRevive(watched: boolean): void {
+    if (this.sim.run.phase !== 'revivePrompt') return;
+    if (watched) {
+      this.sim.acceptAdRevive();
+      this.accumulator = 0;
+      this.input_.reset();
+      this.cameras.main.flash(300, 255, 255, 255);
+      sfx.play('levelup');
+    } else {
+      this.sim.declineAdRevive();
+    }
   }
 
   /** A wider window shows more of the map, so the wave density follows it to keep the pressure. */
@@ -153,10 +198,13 @@ export class GameScene extends Phaser.Scene {
     this.scene.stop('Hud');
     this.scene.stop('LevelUp');
     this.scene.stop('Chest');
+    this.scene.stop('Revive');
+    this.scene.stop('Tutorial');
     this.scene.stop('Pause');
     this.profiler.detach();
     this.levelUpPending = false;
     this.chestPending = false;
+    this.revivePending = false;
     this.offTouch?.();
     this.offTouch = null;
     this.joystick.destroy();
@@ -256,7 +304,9 @@ export class GameScene extends Phaser.Scene {
 
   /** Called by the overlay; applies the pick and closes or re-rolls in place. */
   applyLevelUpChoice(index: number): boolean {
+    const pick = this.sim.run.choices?.[index];
     if (!this.sim.applyChoice(index)) return false;
+    if (pick) analytics.track({ name: 'levelup_pick', kind: pick.kind, id: 'id' in pick ? pick.id : pick.kind });
     this.scene.stop('LevelUp');
     if (this.sim.run.phase === 'levelup') this.openLevelUpOverlay();
     return true;
@@ -321,6 +371,7 @@ export class GameScene extends Phaser.Scene {
     const chestBusy = run.chestQueue.length > 0 || this.chestPending || this.scene.isActive('Chest');
     if (run.chestQueue.length > 0) this.openChestOverlay();
     if (run.phase === 'levelup' && !chestBusy) this.openLevelUpOverlay();
+    if (run.phase === 'revivePrompt') this.openReviveOverlay();
     if (run.phase === 'ended') this.finishRun();
   }
 
@@ -331,6 +382,7 @@ export class GameScene extends Phaser.Scene {
 
   private finishRun(): void {
     const run = this.sim.run;
+    analytics.track({ name: 'run_end', stage: run.stageId, character: run.characterId, timeSec: Math.round(run.timeMs / 1000), level: run.level, kills: run.kills, cause: run.ended ?? 'died', curse: run.curse });
     this.scene.start('Results', {
       timeSec: run.timeMs / 1000,
       kills: run.kills,
@@ -435,6 +487,9 @@ export class GameScene extends Phaser.Scene {
           break;
         case 'revive':
           hook?.pushEvent('revive');
+          break;
+        case 'revivePrompt':
+          hook?.pushEvent('revive:offer');
           break;
         default:
           break;
@@ -570,6 +625,7 @@ export class GameScene extends Phaser.Scene {
       kills: run.kills,
       gold: run.gold,
       chestsOpened: run.chestsOpened,
+      adRevived: run.adRevived,
       charges: { reroll: run.rerolls, skip: run.skips, banish: run.banishes, banished: [...run.banished] },
       curse: run.curse,
       signature: {
@@ -640,6 +696,11 @@ export class GameScene extends Phaser.Scene {
             this.chestPending = false;
             this.sim.resume();
           }
+          if (this.sim.run.phase === 'revivePrompt') {
+            this.scene.stop('Revive');
+            this.revivePending = false;
+            this.sim.declineAdRevive();
+          }
           if (this.sim.run.phase === 'levelup') {
             if (policy === 'none') break;
             let picks = 0;
@@ -705,6 +766,11 @@ export class GameScene extends Phaser.Scene {
       },
       getChoices: () => this.sim.run.choices,
       pickChoice: (i: number) => this.applyLevelUpChoice(i),
+      answerRevive: (watched: boolean) => {
+        this.scene.stop('Revive');
+        this.revivePending = false;
+        this.resolveAdRevive(watched);
+      },
       reroll: () => this.rerollLevelUp(),
       skip: () => this.skipLevelUp(),
       banish: (i: number) => this.banishLevelUp(i),

@@ -5,7 +5,9 @@ import { UiButton } from '../ui/button';
 import { restartOnResize } from '../ui/responsive';
 import { fitPanel } from '../layout';
 import { IconRow } from '../ui/iconRow';
-import { commitRun, awardAchievements } from '../../core/save/saveData';
+import { commitRun, awardAchievements, grantGold, interstitialDue } from '../../core/save/saveData';
+import { analytics, getPlatform } from '../../platform';
+import { sfx } from '../audio/sfx';
 import { ACHIEVEMENTS as CONTENT_ACHIEVEMENTS, type AchievementDef } from '../../data/achievements';
 import { stageUnlockedBySurviving } from '../../core/save/unlocks';
 import { CONTENT } from '../../core/content/registry';
@@ -43,7 +45,7 @@ export class ResultsScene extends Phaser.Scene {
 
     // a resize rebuilds the screen with the same summary; the run is only committed once, and the
     // stage it opened is remembered so the rebuilt screen can still say so
-    const carried = data as ResultsData & { committed?: boolean; unlockedStage?: string | null; earned?: string[] };
+    const carried = data as ResultsData & { committed?: boolean; unlockedStage?: string | null; earned?: string[]; doubled?: boolean };
     let unlockedStage: string | null = carried.unlockedStage ?? null;
     let earned: string[] = carried.earned ?? [];
     if (!carried.committed) {
@@ -68,8 +70,14 @@ export class ResultsScene extends Phaser.Scene {
       const award = awardAchievements(ctx.storage, ctx.save, summary);
       ctx.save = award.save;
       earned = award.earned;
+      // an interstitial every few run ends, never over the first frame of a fresh player's game,
+      // and never once it has been bought off
+      const due = interstitialDue(ctx.storage, ctx.save);
+      ctx.save = due.save;
+      if (due.show) void getPlatform().ads.showInterstitial().then(() => analytics.track({ name: 'ad_shown', kind: 'interstitial', earned: false }));
     }
-    restartOnResize(this, { ...data, committed: true, unlockedStage, earned });
+    const doubled = carried.doubled ?? false;
+    restartOnResize(this, { ...data, committed: true, unlockedStage, earned, doubled });
 
     const cy = this.scale.height / 2;
     const panel = fitPanel(this, 720, 640);
@@ -85,7 +93,7 @@ export class ResultsScene extends Phaser.Scene {
       [t('results.time'), formatTime(data.timeSec ?? 0)],
       [t('results.level'), String(data.level ?? 1)],
       [t('results.kills'), String(data.kills ?? 0)],
-      [t('results.gold'), String(data.gold ?? 0)],
+      [t('results.gold'), doubled ? t('results.doubled', { n: data.gold ?? 0 }) : String(data.gold ?? 0)],
     ];
     const half = Math.min(150, panel.w / 2 - 30);
     const rowsTop = cy - panel.h / 2 + 120;
@@ -140,6 +148,10 @@ export class ResultsScene extends Phaser.Scene {
     const btnW = Math.min(220, panel.w / 2 - 24);
     const btnY = cy + panel.h / 2 - 48;
     const stacked = panel.w < 520;
+    // the gold of this run again for an ad: the one offer worth making every time, and only once
+    if (!doubled && (data.gold ?? 0) > 0 && getPlatform().ads.available()) {
+      const dbl = new UiButton(this, cx, btnY - (stacked ? 120 : 60), { id: 'results.doubleGold', label: t('results.doubleGold'), width: Math.min(300, panel.w - 48), height: 44, fontSize: 17, onPress: () => void this.doubleGold(data, dbl) });
+    }
     if (stacked) {
       new UiButton(this, cx, btnY - 60, { id: 'results.retry', label: t('results.retry'), width: Math.min(260, panel.w - 48), onPress: () => this.retry(data) });
       new UiButton(this, cx, btnY, { id: 'results.menu', label: t('results.menu'), width: Math.min(260, panel.w - 48), onPress: () => this.scene.start('Menu') });
@@ -149,6 +161,22 @@ export class ResultsScene extends Phaser.Scene {
     }
     this.input.keyboard?.on('keydown-ENTER', () => this.retry(data));
     this.input.keyboard?.on('keydown-M', () => this.scene.start('Menu'));
+  }
+
+  private async doubleGold(data: ResultsData, btn: UiButton): Promise<void> {
+    btn.setEnabled(false);
+    sfx.play('click');
+    const earned = await getPlatform().ads.showRewarded('doubleGold');
+    analytics.track({ name: 'ad_shown', kind: 'doubleGold', earned });
+    if (!this.scene.isActive()) return;
+    if (!earned) {
+      btn.setEnabled(true);
+      return;
+    }
+    const ctx = app();
+    ctx.save = grantGold(ctx.storage, ctx.save, data.gold ?? 0);
+    sfx.play('levelup');
+    this.scene.restart({ ...data, committed: true, doubled: true });
   }
 
   private retry(data: ResultsData): void {

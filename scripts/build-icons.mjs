@@ -34,7 +34,17 @@ function icon(size) {
   return img;
 }
 
-for (const size of [192, 512]) {
+for (const size of [192, 512, 1024]) {
   await icon(size).write(join(out, `icon-${size}.png`));
   console.log(`icon-${size}.png`);
 }
+
+// the stores want an opaque 1024 (no rounded corners, no alpha) and a square splash
+const flat = new Jimp({ width: 1024, height: 1024, color: 0x05070cff });
+flat.composite(icon(1024), 0, 0);
+await flat.write(join(out, 'icon-store-1024.png'));
+console.log('icon-store-1024.png');
+const splash = new Jimp({ width: 2732, height: 2732, color: 0x05070cff });
+splash.composite(icon(768), (2732 - 768) / 2, (2732 - 768) / 2);
+await splash.write(join(out, 'splash-2732.png'));
+console.log('splash-2732.png');

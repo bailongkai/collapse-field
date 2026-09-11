@@ -141,3 +141,32 @@ behind the achievements screen lights every enemy a run has met.
 Every stage scatters breakable scenery, places three relics at fixed
 coordinates with a guide arrow at the edge of the view, and the cargo deck has
 solid containers to fight around.
+
+## 打包手机版 (Capacitor)
+
+The web build is also the mobile build: Capacitor wraps `dist/` in a native shell. The native
+projects are generated locally and not committed.
+
+```
+xcode-select --install && sudo gem install cocoapods     # iOS (macOS only)
+# Android: install Android Studio, then set ANDROID_HOME / JAVA_HOME
+npx cap add ios
+npx cap add android
+npm run cap:sync        # build + copy dist/ into both shells
+npm run cap:ios         # opens Xcode
+npm run cap:android     # opens Android Studio
+```
+
+Monetisation goes through `src/platform/`: `ads.ts` (AdMob rewarded + interstitial), `purchases.ts`
+(RevenueCat; product ids in `src/core/save/purchases.ts`) and `analytics.ts`. On the web every
+service is a fake that completes at once under `?test=1`, which is what the browser suite
+exercises; on a device the native plugin is loaded lazily. Set `VITE_REVENUECAT_KEY` for real
+purchases and replace the sample AdMob unit ids in `src/platform/index.ts`. Store icons and the
+splash come from `npm run assets:icons` (`public/icons/icon-store-1024.png`, `splash-2732.png`);
+the privacy policy the stores ask for is `public/privacy.html`.
+
+A run offers one ad revive at death (`RunPhase 'revivePrompt'`, never in headless runs), the
+results screen offers to double the gold for an ad, and an interstitial plays every third run
+end unless "去除广告" was bought. The first run opens on a three-page briefing (`?tutorial=1`
+opts a test in).
+

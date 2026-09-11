@@ -22,6 +22,12 @@ export interface SaveData {
   lastStageId: string;
   /** the challenge fraction last chosen on the launch screen */
   lastCurse: number;
+  /** bought: no interstitials between runs */
+  removeAds: boolean;
+  /** the first-run walkthrough has been seen */
+  tutorialDone: boolean;
+  /** runs ended since the last interstitial, for the cadence */
+  runsSinceAd: number;
 }
 
 export const DEFAULT_SAVE: SaveData = {
@@ -40,6 +46,9 @@ export const DEFAULT_SAVE: SaveData = {
   lastCharacterId: 'survivor',
   lastStageId: 'station',
   lastCurse: 0,
+  removeAds: false,
+  tutorialDone: false,
+  runsSinceAd: 0,
 };
 
 export interface SaveStorage {
@@ -90,6 +99,9 @@ export function loadSave(st: SaveStorage): SaveData {
     if (typeof parsed.lastCharacterId === 'string') d.lastCharacterId = parsed.lastCharacterId;
     if (typeof parsed.lastStageId === 'string') d.lastStageId = parsed.lastStageId;
     if (typeof parsed.lastCurse === 'number' && parsed.lastCurse >= 0) d.lastCurse = Math.min(1, parsed.lastCurse);
+    if (typeof parsed.removeAds === 'boolean') d.removeAds = parsed.removeAds;
+    if (typeof parsed.tutorialDone === 'boolean') d.tutorialDone = parsed.tutorialDone;
+    if (typeof parsed.runsSinceAd === 'number' && parsed.runsSinceAd >= 0) d.runsSinceAd = Math.floor(parsed.runsSinceAd);
     if (parsed.settings && typeof parsed.settings === 'object') {
       if (parsed.settings.locale === 'en' || parsed.settings.locale === 'zh-CN') d.settings.locale = parsed.settings.locale;
       if (typeof parsed.settings.sfxVolume === 'number') d.settings.sfxVolume = Math.min(1, Math.max(0, parsed.settings.sfxVolume));
@@ -146,6 +158,28 @@ export function commitRun(st: SaveStorage, save: SaveData, run: RunSummary): Sav
   };
   writeSave(st, next);
   return next;
+}
+
+/** Adds gold outside a run — a rewarded ad, a purchase — and persists. */
+export function grantGold(st: SaveStorage, save: SaveData, n: number): SaveData {
+  const next: SaveData = { ...save, gold: save.gold + Math.max(0, Math.floor(n)) };
+  writeSave(st, next);
+  return next;
+}
+
+/** Sets one flag on the save and persists; for the purchases and the tutorial. */
+export function setFlag(st: SaveStorage, save: SaveData, patch: Partial<Pick<SaveData, 'removeAds' | 'tutorialDone' | 'runsSinceAd'>>): SaveData {
+  const next: SaveData = { ...save, ...patch };
+  writeSave(st, next);
+  return next;
+}
+
+/** An interstitial every third run end, unless bought off. Returns the updated save and whether to show one. */
+export function interstitialDue(st: SaveStorage, save: SaveData, every = 3): { save: SaveData; show: boolean } {
+  if (save.removeAds) return { save, show: false };
+  const runs = save.runsSinceAd + 1;
+  if (runs < every) return { save: setFlag(st, save, { runsSinceAd: runs }), show: false };
+  return { save: setFlag(st, save, { runsSinceAd: 0 }), show: true };
 }
 
 /** Judges a finished run against every achievement not yet earned; returns the ids earned now. */

@@ -54,6 +54,11 @@ export interface SimulationOptions {
   curse?: number;
   /** weapon and passive ids the level-up offer must not show: not yet earned */
   lockedItems?: readonly string[];
+  /**
+   * Whether death should pause on an offer rather than end the run at once. The view sets it when
+   * a rewarded ad can be shown; headless runs never do, so the balance harness never sees it.
+   */
+  adRevive?: boolean;
 }
 
 export interface RunState {
@@ -86,6 +91,9 @@ export interface RunState {
   bossKills: number;
   /** damage dealt per weapon slot, for the results breakdown */
   damageBySlot: number[];
+  /** whether the one ad revive this run allows has been offered already */
+  adReviveOffered: boolean;
+  adRevived: boolean;
   /** chests opened and already applied, waiting for the view to play their reveal */
   chestQueue: ChestResult[];
   /** how many chests this run has opened, for the results screen */
@@ -110,6 +118,7 @@ export class Simulation {
   private spawner = new Spawner();
   private events = new EventScheduler();
   private autopilot = false;
+  private adRevive: boolean;
   private viewW: number;
   private viewH: number;
   /** experience per gem is divided by the visible-area factor densityScale multiplies bodies by */
@@ -125,6 +134,7 @@ export class Simulation {
     this.viewW = opts.viewW ?? REF_W;
     this.viewH = opts.viewH ?? REF_H;
     this.xpScale = Math.min(1, REF_AREA / (this.viewW * this.viewH));
+    this.adRevive = opts.adRevive ?? false;
     const curse = opts.curse ?? 0;
     this.metaBonuses = { ...(opts.metaBonuses ?? {}) };
     if (curse > 0) {
@@ -161,6 +171,8 @@ export class Simulation {
       locked: [...(opts.lockedItems ?? [])],
       bossKills: 0,
       damageBySlot: [],
+      adReviveOffered: false,
+      adRevived: false,
       chestQueue: [],
       chestsOpened: 0,
       reaperSpawned: false,
@@ -351,6 +363,14 @@ export class Simulation {
     }
     world.player.hp = 0;
     run.hp = 0;
+    // one second chance a run, offered rather than taken: the run freezes on a prompt and the
+    // view decides — ad watched, or not
+    if (!fatal && this.adRevive && !run.adReviveOffered) {
+      run.adReviveOffered = true;
+      run.phase = 'revivePrompt';
+      world.events.push('revivePrompt', world.player.x, world.player.y, run.timeMs / 1000);
+      return;
+    }
     run.phase = 'ended';
     const survived = run.timeMs >= RUN_SECONDS * 1000;
     run.ended = survived ? 'survived' : 'died';
@@ -863,6 +883,28 @@ export class Simulation {
 
   resume(): void {
     if (this.run.phase === 'paused') this.run.phase = 'running';
+  }
+
+  /** The ad was watched: back on your feet at half health, the screen cleared, as a shop revive does. */
+  acceptAdRevive(): boolean {
+    const { run, world } = this;
+    if (run.phase !== 'revivePrompt') return false;
+    run.adRevived = true;
+    world.player.hp = Math.round(this.cachedStats.maxHealth * 0.5);
+    run.hp = world.player.hp;
+    world.player.iframesMs = 2000;
+    this.killAllOnScreen();
+    run.phase = 'running';
+    world.events.push('revive', world.player.x, world.player.y, run.revivalsUsed + 1);
+    return true;
+  }
+
+  /** The offer was declined, or no ad could be shown: the death stands. */
+  declineAdRevive(): void {
+    if (this.run.phase !== 'revivePrompt') return;
+    this.run.phase = 'ended';
+    this.run.ended = 'died';
+    this.world.events.push('died', this.world.player.x, this.world.player.y, this.run.timeMs / 1000);
   }
 
   endRun(cause: RunEnd): void {

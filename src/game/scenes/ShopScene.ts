@@ -10,6 +10,9 @@ import { buyCharacter, isCharacterUnlocked } from '../../core/save/unlocks';
 import { CHARACTER_LIST } from '../../data/characters';
 import { app } from '../app';
 import { sfx } from '../audio/sfx';
+import { analytics, getPlatform } from '../../platform';
+import { PRODUCT_IDS, applyPurchase, productOwned, type ProductId } from '../../core/save/purchases';
+import { tDynamic as td } from '../../i18n';
 
 const ROW_H = 58;
 
@@ -25,13 +28,21 @@ export class ShopScene extends Phaser.Scene {
     const cx = this.scale.width / 2;
     const cy = this.scale.height / 2;
     const priced = CHARACTER_LIST.filter((c) => c.cost !== undefined);
+    // the store rows sit under the characters: only where there is a store to buy from
+    const store = getPlatform().purchases.available() ? PRODUCT_IDS : [];
     // upgrades and characters side by side when there is room; one column under the other on a
     // phone held upright. Thirteen rows in one column on a landscape screen squeezed the text
     // together until the names sat on the descriptions.
     const wide = this.scale.width >= 980 && !isPortraitScene(this);
-    const rowsTall = wide ? Math.max(UPGRADE_LIST.length, priced.length) : UPGRADE_LIST.length + priced.length;
-    const rowH = Math.max(44, Math.min(ROW_H, (this.scale.height - (wide ? 200 : 260)) / rowsTall));
-    const panel = fitPanel(this, wide ? 1180 : 760, (wide ? 170 : 210) + rowsTall * rowH);
+    // side by side on a wide screen; two products per row on a phone, where every row is scarce
+    const storeCols = wide ? 1 : 2;
+    const storeRows = store.length > 0 ? Math.ceil(store.length / storeCols) + 2 : 0;
+    const rowsTall = wide ? Math.max(UPGRADE_LIST.length, priced.length + storeRows) : UPGRADE_LIST.length + priced.length + storeRows;
+    // the row height comes from the panel the screen can actually hold, not the other way round:
+    // sizing rows first and clamping the panel after left the store rows under the back button
+    const chrome = wide ? 170 : 210;
+    const panel = fitPanel(this, wide ? 1180 : 760, chrome + rowsTall * ROW_H);
+    const rowH = Math.max(36, Math.min(ROW_H, (panel.h - chrome) / rowsTall));
     const narrow = !wide && panel.w < 640;
     const colW = wide ? (panel.w - 72) / 2 : panel.w - 48;
     const left = cx - panel.w / 2 + 24;
@@ -102,6 +113,33 @@ export class ShopScene extends Phaser.Scene {
       if (owned || ctx.save.gold < (def.cost ?? 0)) btn.setEnabled(false);
     });
 
+    if (store.length > 0) {
+      const storeTop = charTop + 30 + priced.length * rowH + 14;
+      this.add.text(charLeft, storeTop, t('shop.iap'), textStyle(18, { bold: true, color: COLORS.accent })).setOrigin(0, 0.5);
+      const restore = new UiButton(this, charBuyX, storeTop, { id: 'shop.restore', label: t('shop.restore'), width: btnW, height: 36, fontSize: 13, onPress: () => void this.restore() });
+      void restore;
+      const cellW = colW / storeCols;
+      const cellBtnW = storeCols === 1 ? btnW : 96;
+      store.forEach((id, i) => {
+        const col = i % storeCols;
+        const y = storeTop + 30 + Math.floor(i / storeCols) * rowH;
+        const owned = productOwned(ctx.save, id);
+        const cellX = charLeft + col * cellW;
+        const textX = cellX + 12;
+        this.add.text(textX, y - 11, td(`shop.iap.${id}`), textStyle(storeCols === 1 ? 19 : 15, { bold: true })).setOrigin(0, 0.5);
+        this.add.text(textX, y + 11, td(`shop.iap.${id}.desc`), textStyle(storeCols === 1 ? 14 : 12, { color: COLORS.dim })).setOrigin(0, 0.5);
+        const btn = new UiButton(this, cellX + cellW - cellBtnW / 2, y, {
+          id: `shop.iap.${id}`,
+          label: owned ? t('shop.iap.owned') : t('shop.iap.buy'),
+          width: cellBtnW,
+          height: storeCols === 1 ? 44 : 38,
+          fontSize: storeCols === 1 ? 17 : 14,
+          onPress: () => void this.purchase(id),
+        });
+        if (owned) btn.setEnabled(false);
+      });
+    }
+
     new UiButton(this, cx, cy + panel.h / 2 - 36, { id: 'shop.back', label: t('common.back'), width: Math.min(200, panel.w - 48), height: 48, onPress: () => this.close() });
     this.input.keyboard?.on('keydown-ESC', () => this.close());
   }
@@ -128,6 +166,27 @@ export class ShopScene extends Phaser.Scene {
     } else {
       sfx.play('click');
     }
+  }
+
+  private async purchase(id: ProductId): Promise<void> {
+    sfx.play('click');
+    const ok = await getPlatform().purchases.buy(id);
+    analytics.track({ name: 'purchase', id, ok });
+    if (!this.scene.isActive()) return;
+    if (!ok) return;
+    const ctx = app();
+    ctx.save = applyPurchase(ctx.storage, ctx.save, id);
+    sfx.play('levelup');
+    this.scene.restart();
+  }
+
+  private async restore(): Promise<void> {
+    sfx.play('click');
+    const owned = await getPlatform().purchases.restore();
+    if (!this.scene.isActive()) return;
+    const ctx = app();
+    for (const id of owned) if (PRODUCT_IDS.includes(id)) ctx.save = applyPurchase(ctx.storage, ctx.save, id);
+    if (owned.length > 0) this.scene.restart();
   }
 
   private close(): void {

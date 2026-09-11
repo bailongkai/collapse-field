@@ -2,7 +2,8 @@ export interface OwnedItem {
   id: string;
   level: number;
 }
-export type RunPhase = 'running' | 'levelup' | 'paused' | 'ended';
+/** 'revivePrompt' freezes a dead run while the player is offered a second chance for an ad. */
+export type RunPhase = 'running' | 'levelup' | 'paused' | 'revivePrompt' | 'ended';
 export type RunEnd = 'died' | 'survived';
 /**
  * The result of opening a chest, already applied to the run. The view drains this queue to play the

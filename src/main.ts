@@ -16,6 +16,8 @@ import { PauseScene } from './game/scenes/PauseScene';
 import { SettingsScene } from './game/scenes/SettingsScene';
 import { ShopScene } from './game/scenes/ShopScene';
 import { ResultsScene } from './game/scenes/ResultsScene';
+import { ReviveScene } from './game/scenes/ReviveScene';
+import { TutorialScene } from './game/scenes/TutorialScene';
 import { contentSummary } from './data';
 
 initApp();
@@ -32,12 +34,11 @@ const config: Phaser.Types.Core.GameConfig = {
   // only the clamped extremes leave a small border.
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH, parent: 'app', width: initial.width, height: initial.height },
   // three simultaneous pointers: a thumb on the virtual stick, a second finger for a button, spare
-  // three simultaneous pointers: a thumb on the virtual stick, a second finger for a button, spare
   input: { gamepad: true, activePointers: 3 },
   render: { antialias: true, roundPixels: false },
   fps: { target: 60, forceSetTimeOut: false },
   scene: [BootScene, PreloadScene, MenuScene, GameScene, HudScene, LevelUpScene,
-    ChestScene, LaunchScene, AchievementsScene, BestiaryScene, PauseScene, SettingsScene, ShopScene, ResultsScene],
+    ChestScene, ReviveScene, TutorialScene, LaunchScene, AchievementsScene, BestiaryScene, PauseScene, SettingsScene, ShopScene, ResultsScene],
 };
 
 const game = new Phaser.Game(config);

@@ -22,8 +22,20 @@ describe('i18n', () => {
   it('falls back to zh-CN for keys missing in en', () => {
     setLocale('en');
     expect(t('menu.start')).toBe('Start');
-    expect(t('weapon.plasmaBlade.name')).toBe('等离子刃');
+    // the table is complete now, so the fallback is exercised by taking a key away
+    const table = en as Record<string, string | undefined>;
+    const kept = table['weapon.plasmaBlade.name'];
+    delete table['weapon.plasmaBlade.name'];
+    try {
+      expect(t('weapon.plasmaBlade.name')).toBe('等离子刃');
+    } finally {
+      table['weapon.plasmaBlade.name'] = kept;
+    }
     setLocale('zh-CN');
+  });
+  it('en covers every key, so the English build has no Chinese in it', () => {
+    const missing = allKeys().filter((k) => !(k in en));
+    expect(missing, missing.join(', ')).toEqual([]);
   });
   it('en only contains known keys', () => {
     const known = new Set<string>(allKeys());

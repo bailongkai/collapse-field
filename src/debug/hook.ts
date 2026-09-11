@@ -9,8 +9,9 @@ import { sfx } from '../game/audio/sfx';
 import { app } from '../game/app';
 import { loadSave, writeSave } from '../core/save/saveData';
 import { VERSION } from '../config';
+import { analytics } from '../platform';
 
-export type SceneName = 'boot' | 'preload' | 'menu' | 'game' | 'levelup' | 'chest' | 'pause' | 'results';
+export type SceneName = 'boot' | 'preload' | 'menu' | 'game' | 'levelup' | 'chest' | 'revive' | 'tutorial' | 'pause' | 'results';
 
 export interface FrameStats {
   frames: number;
@@ -41,6 +42,7 @@ export interface HookRunState {
   kills: number;
   gold: number;
   chestsOpened: number;
+  adRevived: boolean;
   charges: { reroll: number; skip: number; banish: number; banished: string[] };
   /** the challenge fraction the run was started with */
   curse: number;
@@ -90,6 +92,8 @@ export interface RunHandlers {
   triggerLevelUp(): void;
   getChoices(): LevelUpChoice[] | null;
   pickChoice(i: number): void;
+  /** answers the ad offer without the overlay: true stands for a watched ad */
+  answerRevive(watched: boolean): void;
   reroll(): boolean;
   skip(): boolean;
   banish(i: number): boolean;
@@ -121,6 +125,8 @@ export interface GameDebugApi extends Omit<RunHandlers, 'profileStart' | 'profil
   content(): { weapons: string[]; passives: string[]; enemies: string[]; pickups: string[]; characters: string[]; stages: string[] };
   i18n: { setLocale(l: Locale): void; getLocale(): Locale; t(k: string): string };
   save: { get(): SaveData; reset(): void; addGold(n: number): void };
+  /** what the game reported about itself, for the tests */
+  analytics(): readonly { name: string }[];
   mute(on: boolean): void;
   detach(): void;
   /** internal: used by scenes */
@@ -153,7 +159,7 @@ export function installHook(game: Phaser.Game, contentProvider: () => GameDebugA
     scene() {
       const active = game.scene.getScenes(true).map((s) => s.scene.key);
       // most-specific first: an overlay is what the player is looking at, whatever is behind it
-      for (const k of ['Chest', 'LevelUp', 'Pause', 'Results', 'Game', 'Menu', 'Preload', 'Boot']) {
+      for (const k of ['Revive', 'Tutorial', 'Chest', 'LevelUp', 'Pause', 'Results', 'Game', 'Menu', 'Preload', 'Boot']) {
         if (active.includes(k)) return sceneKeyToName(k);
       }
       return 'boot';
@@ -220,6 +226,7 @@ export function installHook(game: Phaser.Game, contentProvider: () => GameDebugA
         writeSave(ctx.storage, ctx.save);
       },
     },
+    analytics: () => analytics.recent(),
     mute(on) {
       sfx.setMuted(on);
     },
@@ -264,6 +271,7 @@ export function installHook(game: Phaser.Game, contentProvider: () => GameDebugA
     triggerLevelUp: () => requireRun().triggerLevelUp(),
     getChoices: () => requireRun().getChoices(),
     pickChoice: (i) => requireRun().pickChoice(i),
+    answerRevive: (w) => requireRun().answerRevive(w),
     reroll: () => requireRun().reroll(),
     skip: () => requireRun().skip(),
     banish: (i) => requireRun().banish(i),

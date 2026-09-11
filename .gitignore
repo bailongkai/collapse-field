@@ -6,3 +6,7 @@ playwright-report/
 tests/e2e/screenshots/
 .DS_Store
 *.log
+
+# native shells are generated with `npx cap add`
+/ios/
+/android/

@@ -166,3 +166,14 @@ config is dropped.
 When gating on a command's exit status, do not pipe it into `head` or `tail`:
 the pipeline reports the last command's status and a failing test run will look
 like a pass.
+
+## The mobile layer
+
+`src/platform/` is the only place that knows about ads, purchases or analytics, and nothing in
+`src/core` does. Death offers one ad revive per run through `RunPhase 'revivePrompt'`, but only
+when `SimulationOptions.adRevive` is set; headless runs never set it, so the balance harness and
+every unit test see a plain death. On the web the fakes answer only under `?test=1&ads=1`
+(purchases under `?test=1`), so a test that wants the offer opts in and no other test meets it.
+The first run opens on the tutorial; test mode marks it seen unless `?tutorial=1`, and a
+real-storage session can opt out with `?tutorial=0`. `fastForward` declines the offer for itself.
+
