@@ -27,7 +27,9 @@
     "verify": "npm run typecheck && npm run lint && npm run test:unit && npm run test:e2e && npm run test:mobile && npm run test:iphone && npm run test:portrait && npm run test:perf",
     "cap:sync": "npm run build && cap sync",
     "cap:ios": "cap open ios",
-    "cap:android": "cap open android"
+    "cap:android": "cap open android",
+    "art:gen": "node scripts/gen-art.mjs",
+    "art:prompts": "node scripts/gen-art.mjs --dry"
   },
   "dependencies": {
     "@capacitor-community/admob": "^8.1.0",

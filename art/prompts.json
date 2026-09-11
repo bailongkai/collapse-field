@@ -1,0 +1,573 @@
+{
+  "style": "2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background.",
+  "notes": "Characters and enemies face RIGHT; the game mirrors them. Sizes are in-game pixels; generate large and let the atlas builder scale.",
+  "assets": [
+    {
+      "frame": "player",
+      "size": 44,
+      "zh": "幸存者（安保队长）",
+      "kind": "sprite",
+      "prompt": "A human character seen from above, standing, FACING RIGHT (the right edge of the image is the way they look), weapon held forward. Station security chief in a dark navy tactical vest with cyan light strips, short hair, holding a glowing plasma blade (a short cyan energy sword) forward. Balanced, heroic, the default protagonist."
+    },
+    {
+      "frame": "player_marine",
+      "size": 44,
+      "zh": "陆战队员",
+      "kind": "sprite",
+      "prompt": "A human character seen from above, standing, FACING RIGHT (the right edge of the image is the way they look), weapon held forward. Heavy marine in bulky orange-and-grey powered armour with a wide helmet, holding a long two-handed railgun with a green energy coil forward. Broad silhouette, heavier than the others."
+    },
+    {
+      "frame": "player_engineer",
+      "size": 44,
+      "zh": "系统工程师",
+      "kind": "sprite",
+      "prompt": "A human character seen from above, standing, FACING RIGHT (the right edge of the image is the way they look), weapon held forward. Slim station engineer in a white lab coat over a grey jumpsuit, goggles pushed up, a handheld laser targeting device with a blue beam emitter forward, a small backpack of tools."
+    },
+    {
+      "frame": "player_unit",
+      "size": 46,
+      "zh": "维护单元 M-7",
+      "kind": "sprite",
+      "prompt": "A human character seen from above, standing, FACING RIGHT (the right edge of the image is the way they look), weapon held forward. A boxy maintenance robot, round head with one large cyan optical lens, rubber-tracked base, industrial yellow-and-grey plating with hazard stripes, one arm ending in an EMP emitter dish forward."
+    },
+    {
+      "frame": "player_navigator",
+      "size": 44,
+      "zh": "领航员",
+      "kind": "sprite",
+      "prompt": "A human character seen from above, standing, FACING RIGHT (the right edge of the image is the way they look), weapon held forward. Recon pilot in a sleek green flight suit and visor helmet, light build, a small orbital drone controller on the wrist, two tiny drones hovering just beside the shoulders."
+    },
+    {
+      "frame": "enemy_drone",
+      "size": 34,
+      "zh": "蜂群无人机",
+      "kind": "sprite",
+      "prompt": "An enemy seen from above, FACING RIGHT, menacing but simple. A tiny insect-like alien swarm drone: dark purple shell, four short legs, one glowing red eye. Simple, cheap-looking, the most common enemy."
+    },
+    {
+      "frame": "enemy_spitter",
+      "size": 42,
+      "zh": "酸液喷吐者",
+      "kind": "sprite",
+      "prompt": "An enemy seen from above, FACING RIGHT, menacing but simple. A squat green alien with a bloated sac body and a wide open mouth dripping bright acid-green liquid. Ranged attacker."
+    },
+    {
+      "frame": "enemy_dasher",
+      "size": 42,
+      "zh": "冲锋者",
+      "kind": "sprite",
+      "prompt": "An enemy seen from above, FACING RIGHT, menacing but simple. A lean humanoid raider in a black stealth suit with red visor, crouched in a sprint pose with blades on both forearms. Fast, aggressive."
+    },
+    {
+      "frame": "enemy_infected",
+      "size": 40,
+      "zh": "异形感染体",
+      "kind": "sprite",
+      "prompt": "An enemy seen from above, FACING RIGHT, menacing but simple. A former crew member in a torn grey uniform, skin sickly green, alien growths on the shoulder, shambling with arms forward. Zombie-like."
+    },
+    {
+      "frame": "enemy_robot",
+      "size": 44,
+      "zh": "战斗机器人",
+      "kind": "sprite",
+      "prompt": "An enemy seen from above, FACING RIGHT, menacing but simple. A bipedal security robot in gunmetal grey with red status lights, boxy chest, one arm a gun barrel. Sturdy."
+    },
+    {
+      "frame": "enemy_interceptor",
+      "size": 36,
+      "zh": "拦截机",
+      "kind": "sprite",
+      "prompt": "An enemy seen from above, FACING RIGHT, menacing but simple. A small sharp arrow-shaped hover ship, dark grey with red stripes, two rear thrusters glowing. Fast, flies in straight lines in swarms."
+    },
+    {
+      "frame": "enemy_mech",
+      "size": 56,
+      "zh": "重型机甲",
+      "kind": "sprite",
+      "prompt": "An enemy seen from above, FACING RIGHT, menacing but simple. A heavy quadruped combat mech, thick armour plates in dark green, missile pods on the back, glowing orange joints. Slow, tanky."
+    },
+    {
+      "frame": "enemy_sentinel",
+      "size": 64,
+      "zh": "掠夺者哨兵（背补给箱）",
+      "kind": "sprite",
+      "prompt": "An enemy seen from above, FACING RIGHT, menacing but simple. An elite raider sentinel: tall armoured walker in gold-trimmed black armour, and a clearly visible SUPPLY CRATE strapped to its back (orange metal crate with cyan lights). It carries loot; the crate must be obvious."
+    },
+    {
+      "frame": "enemy_mothership",
+      "size": 140,
+      "zh": "母舰（Boss）",
+      "kind": "sprite",
+      "prompt": "Boss enemy, seen from directly above: a huge alien mothership, a dark purple saucer with a ring of pink-magenta lights, a glowing central core, spiked organic armour around the rim. Imposing, detailed, symmetrical. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "enemy_annihilator",
+      "size": 180,
+      "zh": "湮灭者（终局收割者）",
+      "kind": "sprite",
+      "prompt": "Boss enemy, seen from directly above: an enormous black warship shaped like a dagger, crimson-red glowing seams and engines, skeletal armour plates, a single huge red eye-sensor at the front. Unstoppable, dread-inducing. FACING RIGHT. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "enemy_loader",
+      "size": 60,
+      "zh": "装载机甲",
+      "kind": "sprite",
+      "prompt": "An enemy seen from above, FACING RIGHT, menacing but simple. An industrial cargo loader mech gone rogue: yellow-and-black hazard paint, huge forklift-like arms, tracked base, red warning light on top."
+    },
+    {
+      "frame": "enemy_hauler",
+      "size": 150,
+      "zh": "重型运输车（Boss）",
+      "kind": "sprite",
+      "prompt": "Boss enemy, seen from above, FACING RIGHT: a massive armoured cargo hauler truck, eight wheels, orange industrial plating with dents, cargo containers chained on the back, a plough blade at the front. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "enemy_spore",
+      "size": 30,
+      "zh": "孢子",
+      "kind": "sprite",
+      "prompt": "An enemy seen from above, FACING RIGHT, menacing but simple. A small drifting alien spore: a round mossy green pod with soft spikes and a faint yellow glow, no face. Weak, comes in huge numbers."
+    },
+    {
+      "frame": "enemy_broodmother",
+      "size": 150,
+      "zh": "孵化母体（Boss）",
+      "kind": "sprite",
+      "prompt": "Boss enemy, seen from directly above: a giant alien broodmother, a bloated purple-green organic mass with many egg sacs glowing yellow, root-like tendrils spreading out, a central toothed maw. Grotesque, biological. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "enemy_raider",
+      "size": 30,
+      "zh": "掠夺者快艇",
+      "kind": "sprite",
+      "prompt": "An enemy seen from above, FACING RIGHT, menacing but simple. A small fast pirate attack boat in space: beige-and-rust hull, mismatched welded plates, one engine flare. Cheap and quick."
+    },
+    {
+      "frame": "enemy_escort",
+      "size": 38,
+      "zh": "护卫舰",
+      "kind": "sprite",
+      "prompt": "An enemy seen from above, FACING RIGHT, menacing but simple. A compact yellow escort fighter with twin cannons and a canopy, tidy military design."
+    },
+    {
+      "frame": "enemy_flagship",
+      "size": 170,
+      "zh": "旗舰（Boss）",
+      "kind": "sprite",
+      "prompt": "Boss enemy, seen from directly above, FACING RIGHT: a colossal pirate flagship, long grey hull with gold trim, rows of gun turrets, three engine flares in blue, a skull emblem painted on the deck. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "enemy_bomber",
+      "size": 30,
+      "zh": "自爆无人机",
+      "kind": "sprite",
+      "prompt": "An enemy seen from above, FACING RIGHT, menacing but simple. A small round red drone packed with explosives, blinking warning light, tiny fins. Reads as a bomb."
+    },
+    {
+      "frame": "enemy_medic",
+      "size": 40,
+      "zh": "维修工程师",
+      "kind": "sprite",
+      "prompt": "An enemy seen from above, FACING RIGHT, menacing but simple. A white-and-teal repair robot with a red-cross style marking (use a plus symbol), two small welding arms, a healing beam emitter. Supports other enemies."
+    },
+    {
+      "frame": "enemy_tractor",
+      "size": 56,
+      "zh": "牵引车",
+      "kind": "sprite",
+      "prompt": "An enemy seen from above, FACING RIGHT, menacing but simple. A squat heavy tractor vehicle with a large tractor-beam dish on top glowing violet, treads, grey industrial body. It pulls the player in."
+    },
+    {
+      "frame": "enemy_repairDrone",
+      "size": 28,
+      "zh": "维修无人机",
+      "kind": "sprite",
+      "prompt": "An enemy seen from above, FACING RIGHT, menacing but simple. A small yellow floating repair drone with a single tool arm and a green light, round body."
+    },
+    {
+      "frame": "enemy_splitter",
+      "size": 40,
+      "zh": "分裂体",
+      "kind": "sprite",
+      "prompt": "An enemy seen from above, FACING RIGHT, menacing but simple. A lumpy purple alien blob with two half-formed faces, visibly about to split in two, glossy wet surface."
+    },
+    {
+      "frame": "enemy_hatchery",
+      "size": 64,
+      "zh": "孵化巢",
+      "kind": "sprite",
+      "prompt": "Seen from directly above: an alien hatchery nest, a ring of fleshy purple ridges around a glowing green pool with eggs, organic and pulsing. Stationary. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "enemy_minelayer",
+      "size": 36,
+      "zh": "布雷艇",
+      "kind": "sprite",
+      "prompt": "An enemy seen from above, FACING RIGHT, menacing but simple. A green boxy drone with an open rear hatch dropping a mine, cautionary stripes, dim lights."
+    },
+    {
+      "frame": "enemy_mine",
+      "size": 26,
+      "zh": "近炸雷",
+      "kind": "sprite",
+      "prompt": "Seen from above: a spherical proximity mine, dark bronze with spikes and a blinking red light on top. Small. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "enemy_phaser",
+      "size": 34,
+      "zh": "相位舰",
+      "kind": "sprite",
+      "prompt": "An enemy seen from above, FACING RIGHT, menacing but simple. A sleek pink-magenta ship that looks half-transparent, with ghostly afterimages, smooth curved hull, phasing in and out."
+    },
+    {
+      "frame": "enemy_hound",
+      "size": 30,
+      "zh": "猎犬无人机",
+      "kind": "sprite",
+      "prompt": "An enemy seen from above, FACING RIGHT, menacing but simple. A small four-legged robotic hound, sprinting pose, silver body, red eye strip, very fast."
+    },
+    {
+      "frame": "prop_asteroid",
+      "size": 40,
+      "zh": "小行星（可破坏）",
+      "kind": "sprite",
+      "prompt": "Seen from above: a grey rocky asteroid chunk with craters and a few cyan ore veins, breakable prop. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "bolt_laser",
+      "size": 24,
+      "zh": "制导激光弹",
+      "kind": "sprite",
+      "prompt": "A short glowing blue-cyan laser bolt, elongated horizontal capsule with bright white core and soft glow, pointing RIGHT. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "bolt_rail",
+      "size": 28,
+      "zh": "磁轨炮弹",
+      "kind": "sprite",
+      "prompt": "A thin bright green railgun slug with a trailing spark, elongated horizontal, pointing RIGHT. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "bolt_acid",
+      "size": 22,
+      "zh": "酸液弹",
+      "kind": "sprite",
+      "prompt": "A round blob of bright acid-green liquid with a small drip trail, glossy. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "orbit_drone",
+      "size": 28,
+      "zh": "轨道无人机",
+      "kind": "sprite",
+      "prompt": "A tiny friendly cyan-and-white drone, round with two small wings and a blue light, seen from above. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "pk_heal",
+      "size": 28,
+      "zh": "医疗包",
+      "kind": "sprite",
+      "prompt": "A small white medical kit with a bright red plus symbol, rounded corners, seen from above. Pickup item. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "pk_vacuum",
+      "size": 28,
+      "zh": "磁力脉冲",
+      "kind": "sprite",
+      "prompt": "A small silver horseshoe magnet with cyan energy arcs between its poles. Pickup item. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "pk_nuke",
+      "size": 28,
+      "zh": "EMP 爆发",
+      "kind": "sprite",
+      "prompt": "A golden lightning-bolt emblem inside a small round device, glowing. Pickup item. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "pk_coin",
+      "size": 24,
+      "zh": "金币",
+      "kind": "sprite",
+      "prompt": "A round gold coin with a stylised star engraved, slight glossy highlight. Pickup item. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "pk_chest",
+      "size": 48,
+      "zh": "补给箱",
+      "kind": "sprite",
+      "prompt": "A sci-fi supply crate seen from above at a slight angle: orange metal box with dark straps, a cyan glowing lock panel on the lid, small vents. Loot container. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "icon_guidedLaser",
+      "size": 40,
+      "zh": "制导激光图标",
+      "kind": "sprite",
+      "prompt": "A flat square-ish game inventory icon, bold simple emblem readable at 40 pixels, cel-shaded with dark outline, transparent background, no text, no frame. Emblem: a blue laser beam bending toward a crosshair."
+    },
+    {
+      "frame": "icon_railgun",
+      "size": 40,
+      "zh": "磁轨炮图标",
+      "kind": "sprite",
+      "prompt": "A flat square-ish game inventory icon, bold simple emblem readable at 40 pixels, cel-shaded with dark outline, transparent background, no text, no frame. Emblem: a green railgun coil with a slug leaving it."
+    },
+    {
+      "frame": "icon_orbitalDrones",
+      "size": 40,
+      "zh": "轨道无人机图标",
+      "kind": "sprite",
+      "prompt": "A flat square-ish game inventory icon, bold simple emblem readable at 40 pixels, cel-shaded with dark outline, transparent background, no text, no frame. Emblem: three small cyan drones on an orbit ring."
+    },
+    {
+      "frame": "icon_empField",
+      "size": 40,
+      "zh": "EMP 力场图标",
+      "kind": "sprite",
+      "prompt": "A flat square-ish game inventory icon, bold simple emblem readable at 40 pixels, cel-shaded with dark outline, transparent background, no text, no frame. Emblem: concentric blue electric rings around a dot."
+    },
+    {
+      "frame": "icon_reactorCore",
+      "size": 40,
+      "zh": "反应堆核心图标",
+      "kind": "sprite",
+      "prompt": "A flat square-ish game inventory icon, bold simple emblem readable at 40 pixels, cel-shaded with dark outline, transparent background, no text, no frame. Emblem: a glowing orange reactor core hexagon."
+    },
+    {
+      "frame": "icon_nanoArmor",
+      "size": 40,
+      "zh": "纳米装甲图标",
+      "kind": "sprite",
+      "prompt": "A flat square-ish game inventory icon, bold simple emblem readable at 40 pixels, cel-shaded with dark outline, transparent background, no text, no frame. Emblem: a silver shield with hexagonal nano pattern."
+    },
+    {
+      "frame": "icon_lifeCore",
+      "size": 40,
+      "zh": "生命核心图标",
+      "kind": "sprite",
+      "prompt": "A flat square-ish game inventory icon, bold simple emblem readable at 40 pixels, cel-shaded with dark outline, transparent background, no text, no frame. Emblem: a red heart shaped like a power cell."
+    },
+    {
+      "frame": "icon_coolingSystem",
+      "size": 40,
+      "zh": "冷却系统图标",
+      "kind": "sprite",
+      "prompt": "A flat square-ish game inventory icon, bold simple emblem readable at 40 pixels, cel-shaded with dark outline, transparent background, no text, no frame. Emblem: a blue snowflake over a fan blade."
+    },
+    {
+      "frame": "icon_fieldAmp",
+      "size": 40,
+      "zh": "力场放大器图标",
+      "kind": "sprite",
+      "prompt": "A flat square-ish game inventory icon, bold simple emblem readable at 40 pixels, cel-shaded with dark outline, transparent background, no text, no frame. Emblem: a bronze star radiating outward lines."
+    },
+    {
+      "frame": "decor_0",
+      "size": 64,
+      "zh": "空间站装饰 0",
+      "kind": "sprite",
+      "prompt": "Seen from directly above: a broken computer console with sparking wires, station debris, muted colours so it stays background. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "decor_1",
+      "size": 64,
+      "zh": "空间站装饰 1",
+      "kind": "sprite",
+      "prompt": "Seen from directly above: a dented metal supply barrel, station debris, muted colours so it stays background. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "decor_2",
+      "size": 64,
+      "zh": "空间站装饰 2",
+      "kind": "sprite",
+      "prompt": "Seen from directly above: a stack of two grey cargo boxes, station debris, muted colours so it stays background. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "decor_3",
+      "size": 64,
+      "zh": "空间站装饰 3",
+      "kind": "sprite",
+      "prompt": "Seen from directly above: a fallen structural beam, station debris, muted colours so it stays background. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "decor_4",
+      "size": 64,
+      "zh": "空间站装饰 4",
+      "kind": "sprite",
+      "prompt": "Seen from directly above: a small generator with a warning light, station debris, muted colours so it stays background. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "decor_5",
+      "size": 64,
+      "zh": "空间站装饰 5",
+      "kind": "sprite",
+      "prompt": "Seen from directly above: a toppled locker with its door open, station debris, muted colours so it stays background. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "decor_6",
+      "size": 64,
+      "zh": "空间站装饰 6",
+      "kind": "sprite",
+      "prompt": "Seen from directly above: a coolant pipe junction with a valve, station debris, muted colours so it stays background. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "decor_7",
+      "size": 64,
+      "zh": "空间站装饰 7",
+      "kind": "sprite",
+      "prompt": "Seen from directly above: a floor grate with a red emergency light, station debris, muted colours so it stays background. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "decor_cargo_0",
+      "size": 72,
+      "zh": "货舱装饰 0",
+      "kind": "sprite",
+      "prompt": "Seen from directly above: a large orange shipping container, cargo deck clutter, muted colours. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "decor_cargo_1",
+      "size": 64,
+      "zh": "货舱装饰 1",
+      "kind": "sprite",
+      "prompt": "Seen from directly above: a pallet of strapped crates, cargo deck clutter, muted colours. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "decor_cargo_2",
+      "size": 64,
+      "zh": "货舱装饰 2",
+      "kind": "sprite",
+      "prompt": "Seen from directly above: a yellow forklift parked, cargo deck clutter, muted colours. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "decor_cargo_3",
+      "size": 64,
+      "zh": "货舱装饰 3",
+      "kind": "sprite",
+      "prompt": "Seen from directly above: a cargo net full of sacks, cargo deck clutter, muted colours. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "decor_cargo_4",
+      "size": 64,
+      "zh": "货舱装饰 4",
+      "kind": "sprite",
+      "prompt": "Seen from directly above: a fuel drum cluster, cargo deck clutter, muted colours. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "decor_lab_0",
+      "size": 56,
+      "zh": "实验室装饰 0",
+      "kind": "sprite",
+      "prompt": "Seen from directly above: a cracked glass specimen tank leaking green fluid, bio lab, muted colours with a faint green tint. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "decor_lab_1",
+      "size": 64,
+      "zh": "实验室装饰 1",
+      "kind": "sprite",
+      "prompt": "Seen from directly above: a lab bench with beakers, bio lab, muted colours with a faint green tint. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "decor_lab_2",
+      "size": 56,
+      "zh": "实验室装饰 2",
+      "kind": "sprite",
+      "prompt": "Seen from directly above: a centrifuge machine, bio lab, muted colours with a faint green tint. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "decor_lab_3",
+      "size": 64,
+      "zh": "实验室装饰 3",
+      "kind": "sprite",
+      "prompt": "Seen from directly above: a biohazard waste bin, bio lab, muted colours with a faint green tint. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "decor_lab_4",
+      "size": 64,
+      "zh": "实验室装饰 4",
+      "kind": "sprite",
+      "prompt": "Seen from directly above: a pile of alien egg husks, bio lab, muted colours with a faint green tint. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "decor_lab_5",
+      "size": 64,
+      "zh": "实验室装饰 5",
+      "kind": "sprite",
+      "prompt": "Seen from directly above: a sealed containment pod, bio lab, muted colours with a faint green tint. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "decor_lab_6",
+      "size": 64,
+      "zh": "实验室装饰 6",
+      "kind": "sprite",
+      "prompt": "Seen from directly above: a microscope station, bio lab, muted colours with a faint green tint. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "decor_orbit_0",
+      "size": 72,
+      "zh": "轨道装饰 0",
+      "kind": "sprite",
+      "prompt": "Seen from directly above: a large brown cratered asteroid, space rock, soft rim light. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "decor_orbit_1",
+      "size": 64,
+      "zh": "轨道装饰 1",
+      "kind": "sprite",
+      "prompt": "Seen from directly above: a jagged brown asteroid, space rock, soft rim light. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "decor_orbit_2",
+      "size": 72,
+      "zh": "轨道装饰 2",
+      "kind": "sprite",
+      "prompt": "Seen from directly above: a large grey asteroid, space rock, soft rim light. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "decor_orbit_3",
+      "size": 64,
+      "zh": "轨道装饰 3",
+      "kind": "sprite",
+      "prompt": "Seen from directly above: a rounded grey asteroid, space rock, soft rim light. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "decor_orbit_4",
+      "size": 44,
+      "zh": "轨道装饰 4",
+      "kind": "sprite",
+      "prompt": "Seen from directly above: a small grey asteroid, space rock, soft rim light. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "decor_orbit_5",
+      "size": 44,
+      "zh": "轨道装饰 5",
+      "kind": "sprite",
+      "prompt": "Seen from directly above: a small brown asteroid, space rock, soft rim light. 2D game sprite for a top-down sci-fi survivor game (overhead view tilted about 70 degrees, so the top of the object is visible and a little of its front). Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, strong readable silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "floor_station",
+      "size": 512,
+      "zh": "空间站地板",
+      "kind": "floor",
+      "prompt": "Seamless tileable top-down floor texture for a 2D sci-fi game, 512x512, edges wrap perfectly, subtle low-contrast detail so sprites stay readable on top, muted colours, no objects, no text. Dark steel deck plating with thin panel seams, occasional rivets and a faint cyan light strip."
+    },
+    {
+      "frame": "floor_cargo",
+      "size": 512,
+      "zh": "货舱地板",
+      "kind": "floor",
+      "prompt": "Seamless tileable top-down floor texture for a 2D sci-fi game, 512x512, edges wrap perfectly, subtle low-contrast detail so sprites stay readable on top, muted colours, no objects, no text. Industrial concrete-and-steel cargo deck with faded yellow hazard lane markings and scuffs."
+    },
+    {
+      "frame": "floor_lab",
+      "size": 512,
+      "zh": "实验室地板",
+      "kind": "floor",
+      "prompt": "Seamless tileable top-down floor texture for a 2D sci-fi game, 512x512, edges wrap perfectly, subtle low-contrast detail so sprites stay readable on top, muted colours, no objects, no text. Clean pale-grey laboratory tiles with a subtle green-tinted grid and small drain grates."
+    },
+    {
+      "frame": "floor_orbit",
+      "size": 512,
+      "zh": "轨道背景",
+      "kind": "floor",
+      "prompt": "Seamless tileable top-down floor texture for a 2D sci-fi game, 512x512, edges wrap perfectly, subtle low-contrast detail so sprites stay readable on top, muted colours, no objects, no text. Deep space: near-black with faint distant stars and a very subtle nebula haze, no bright objects."
+    }
+  ]
+}

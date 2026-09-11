@@ -736,6 +736,13 @@
       "frame": "prop_asteroid",
       "size": 40,
       "atlas": "game"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_hound",
+      "size": 30,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_06.png"
     }
   ],
   "font": {

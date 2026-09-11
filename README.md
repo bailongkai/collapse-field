@@ -177,3 +177,13 @@ results screen offers to double the gold for an ad, and an interstitial plays ev
 end unless "去除广告" was bought. The first run opens on a three-page briefing (`?tutorial=1`
 opts a test in).
 
+## Custom art
+
+`art/prompts.json` holds an image-model prompt for every game frame (characters, enemies, bosses,
+projectiles, pickups, icons, decor) and the four floors, plus the shared style block. `npm run
+art:prompts` prints them; `OPENAI_API_KEY=... npm run art:gen` generates whatever is missing into
+`art/generated/` (`--only a,b` for a subset, `--force` to redo). `npm run assets:atlas` and
+`assets:floors` then prefer a generated file over the Kenney frame of the same name, trimming
+its transparent margin and scaling it to the manifest size, so swapping one sprite is dropping
+one PNG in that folder. Characters and enemies must face right; the game mirrors them.
+

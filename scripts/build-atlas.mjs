@@ -11,6 +11,8 @@ import { packAsync } from 'free-tex-packer-core';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const CACHE = join(ROOT, '.cache', 'kenney');
+/** custom art from scripts/gen-art.mjs wins over the Kenney frame of the same name */
+const CUSTOM = join(ROOT, 'art', 'generated');
 const OUT = join(ROOT, 'public', 'assets', 'atlas');
 const manifest = JSON.parse(readFileSync(join(ROOT, 'scripts', 'asset-manifest.json'), 'utf8'));
 
@@ -48,6 +50,14 @@ async function loadScaled(path, size) {
     const longest = Math.max(img.width, img.height);
     if (longest !== size) img.scaleToFit({ w: size, h: size });
   }
+  return img;
+}
+
+/** A generated image: trimmed of its transparent margin, then scaled like any other frame. */
+async function loadCustom(path, size) {
+  const img = await Jimp.read(path);
+  img.autocrop({ cropOnlyFrames: false, tolerance: 0.02 });
+  if (size) img.scaleToFit({ w: size, h: size });
   return img;
 }
 
@@ -247,14 +257,21 @@ async function main() {
   for (const e of manifest.entries) {
     if (seen.has(e.frame)) throw new Error(`duplicate frame ${e.frame}`);
     seen.add(e.frame);
-    const path = resolveFile(e.pack, e.file);
-    const img = await loadScaled(path, e.atlas === 'game' ? e.size : undefined);
-    console.log(`${e.frame.padEnd(22)} <- ${e.pack}/${path.slice(join(CACHE, e.pack).length + 1)} ${img.width}x${img.height}`);
+    const custom = join(CUSTOM, `${e.frame}.png`);
+    let img;
+    if (existsSync(custom)) {
+      img = await loadCustom(custom, e.atlas === 'game' ? e.size : undefined);
+      console.log(`${e.frame.padEnd(22)} <- art/generated (custom) ${img.width}x${img.height}`);
+    } else {
+      const path = resolveFile(e.pack, e.file);
+      img = await loadScaled(path, e.atlas === 'game' ? e.size : undefined);
+      console.log(`${e.frame.padEnd(22)} <- ${e.pack}/${path.slice(join(CACHE, e.pack).length + 1)} ${img.width}x${img.height}`);
+    }
     groups[e.atlas].push({ path: e.frame + '.png', contents: await img.getBuffer('image/png') });
   }
   const procedural = [
     ['fx_slash', drawSlash()],
-    ['pk_chest', drawChest()],
+    ['pk_chest', existsSync(join(CUSTOM, 'pk_chest.png')) ? await loadCustom(join(CUSTOM, 'pk_chest.png'), 48) : drawChest()],
     ['ui_arrow', drawArrow()],
     ['wall_orange', drawContainer(64, [0xd8, 0x74, 0x3a])],
     ['wall_grey', drawContainer(64, [0x8a, 0x94, 0xa0])],

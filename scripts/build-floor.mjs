@@ -1,5 +1,5 @@
 // Composes public/assets/tiles/floor_<stage>.png (grid x grid tiles) for every stage in manifest.floors.
-import { readFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, mkdirSync, existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Jimp } from 'jimp';
@@ -11,6 +11,16 @@ const outDir = join(ROOT, 'public', 'assets', 'tiles');
 mkdirSync(outDir, { recursive: true });
 
 for (const [stage, { pack, tiles, tileSize, grid }] of Object.entries(manifest.floors)) {
+  // a generated seamless texture replaces the composed Kenney tiles
+  const custom = join(ROOT, 'art', 'generated', `floor_${stage}.png`);
+  if (existsSync(custom)) {
+    const img = await Jimp.read(custom);
+    const side = tileSize * grid;
+    if (img.width !== side || img.height !== side) img.resize({ w: side, h: side });
+    await img.write(join(outDir, `floor_${stage}.png`));
+    console.log(`floor_${stage}.png ${side}x${side} from art/generated (custom)`);
+    continue;
+  }
   const canvas = new Jimp({ width: tileSize * grid, height: tileSize * grid, color: 0x000000ff });
   const images = [];
   for (const t of tiles) {

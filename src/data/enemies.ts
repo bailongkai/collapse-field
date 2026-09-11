@@ -85,7 +85,7 @@ export const ENEMIES = {
    * reaper; from the ninth minute this is what catches it.
    */
   hound: {
-    id: 'hound', nameKey: 'enemy.hound.name', frame: 'enemy_interceptor', tint: 0xff5577, faceTarget: false,
+    id: 'hound', nameKey: 'enemy.hound.name', frame: 'enemy_hound', tint: 0xff5577, faceTarget: false,
     hp: 14, damage: 7, speed: 215, radius: 13, gemTier: 'blue', knockbackResist: 0.3,
     behavior: 'chase', deathFx: 'small',
   },

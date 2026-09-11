@@ -1942,7 +1942,7 @@
 					}
 				},
 				{
-					"filename": "enemy_spore",
+					"filename": "enemy_hound",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
@@ -1963,6 +1963,27 @@
 					}
 				},
 				{
+					"filename": "enemy_spore",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 30,
+						"h": 30
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 30,
+						"h": 30
+					},
+					"frame": {
+						"x": 481,
+						"y": 237,
+						"w": 30,
+						"h": 30
+					}
+				},
+				{
 					"filename": "enemy_raider",
 					"rotated": false,
 					"trimmed": false,
@@ -1977,7 +1998,7 @@
 						"h": 16
 					},
 					"frame": {
-						"x": 481,
+						"x": 515,
 						"y": 237,
 						"w": 30,
 						"h": 16
