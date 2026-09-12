@@ -42,8 +42,11 @@ export function stepWeapons(instances: WeaponInstance[], ctx: WeaponContext, dtM
     inst.cooldownLeft -= dtMs;
     if (inst.cooldownLeft <= 0) {
       const result = behavior.onFire(ctx, inst, eff);
-      // one event per volley, not per shot: the view voices it, and a six-round burst is one sound
-      ctx.events.push('shot', ctx.player.x, ctx.player.y, inst.slot, inst.defId);
+      // One event per volley, not per shot: the view voices it, and a six-round burst is one sound.
+      // A behaviour that found nothing to shoot at queues no volley and holds no cooldown, and it
+      // must not be voiced either — otherwise a weapon that is not firing is the loudest thing on
+      // the field, six times a second, for as long as the player is walking between crowds.
+      if (inst.volleyLeft > 0 || result === 'hold') ctx.events.push('shot', ctx.player.x, ctx.player.y, inst.slot, inst.defId);
       if (result === 'cooldown') inst.cooldownLeft += eff.cooldownMs;
       else inst.cooldownLeft = Infinity;
       // fire the first shot of the volley on this very tick

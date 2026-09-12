@@ -1,4 +1,4 @@
-import { FIXED_DT, FIXED_DT_MS, REF_AREA, REF_H, REF_W } from '../../config';
+import { FIXED_DT, FIXED_DT_MS, MAX_ENEMY_RADIUS, REF_AREA, REF_H, REF_W } from '../../config';
 import type { PlayerStats, StatBlock, StatKey } from '../../data/types';
 import { CONTENT, characterDef, stageDef, type ContentRegistry } from '../content/registry';
 import { composeStats } from '../stats/composeStats';
@@ -23,7 +23,7 @@ import { resolveCircle } from './obstacles';
 import { bulwarkScale } from '../enemies/behaviors/bulwark';
 import { bossArmourScale } from '../enemies/behaviors/bossExtras';
 import { inBlast } from '../enemies/behaviors/bomber';
-import { createSignature, signatureBonus, signatureStep, onSignatureChest, onSignatureHurt, onSignatureKill, type SignatureState } from './signature';
+import { createSignature, onSignatureCrowd, onSignatureTurn, signatureBonus, signatureStep, onSignatureChest, onSignatureHurt, onSignatureKill, type SignatureState } from './signature';
 import { auraRadius } from '../weapons/behaviors/aura';
 import { weaponParams } from '../stats/weaponParams';
 import { spawnGem } from './systems/dropSystem';
@@ -284,12 +284,13 @@ export class Simulation {
     const dt = FIXED_DT;
     const { world, run } = this;
     const stage = this.stage;
-    const stats = this.cachedStats;
+    let stats = this.cachedStats;
 
     run.timeMs += FIXED_DT_MS;
     run.tick++;
 
     if (this.autopilot) driveAutopilot(this.world, run.tick);
+    const facingBefore = world.player.facing;
     stepPlayer(world.player, stats, dt);
     if (world.obstacles.length > 0 && resolveCircle(world.obstacles, world.player.x, world.player.y, PLAYER_RADIUS, this.scratch)) {
       world.player.x = this.scratch.x;
@@ -311,6 +312,24 @@ export class Simulation {
     world.rebuildGrid();
     stepSeparation(world, world.rng, this.viewW, this.viewH);
     if (world.obstacles.length > 0) this.keepEnemiesOutOfWalls();
+
+    // The about-face is judged after the grid is rebuilt, against this tick's bodies rather than
+    // last tick's, and the refreshed stats are handed to the weapons below — otherwise the bonus a
+    // turn earned could never reach the shot that same turn fires, which is the whole ability.
+    const sig = this.character.signature;
+    if (sig.kind === 'reversal' && world.player.facing !== facingBefore) {
+      if (onSignatureTurn(this.signature, sig, this.countInArc(sig.range, sig.arcDeg))) {
+        this.refreshStats();
+        stats = this.cachedStats;
+        world.events.push('signature', world.player.x, world.player.y, 0, run.characterId, true);
+      }
+    }
+    // the crowd is counted once a tick and handed to the stacking signature; it is the one ability
+    // whose value is read rather than triggered
+    if (sig.kind === 'pressure' && onSignatureCrowd(this.signature, sig, this.countNear(sig.radius))) {
+      this.refreshStats();
+      stats = this.cachedStats;
+    }
 
     this.weaponCtx.tick = run.tick;
     this.weaponCtx.stats = stats;
@@ -798,6 +817,49 @@ export class Simulation {
   }
 
   /** The boss currently on the field, if any, for the HUD's health bar. */
+  /** Bodies within `r` of the player. Cheap: one grid query and a circle test. */
+  private countNear(r: number): number {
+    const w = this.world;
+    const p = w.player;
+    const q = r + MAX_ENEMY_RADIUS;
+    const n = w.grid.queryInto(p.x - q, p.y - q, p.x + q, p.y + q, w.queryBuf);
+    let count = 0;
+    for (let i = 0; i < n; i++) {
+      const e = w.enemies.items[w.queryBuf[i]];
+      if (!e.active || !e.def || e.def.behavior === 'prop' || e.def.behavior === 'mire') continue;
+      // a body that does its work by exploding still counts: those are the crowds that kill you
+      if (e.def.damage <= 0 && !e.def.explode) continue;
+      const rr = r + e.radius;
+      const dx = e.x - p.x;
+      const dy = e.y - p.y;
+      if (dx * dx + dy * dy <= rr * rr) count++;
+    }
+    return count;
+  }
+
+  /** Bodies inside a cone of `arcDeg` about the player's facing, out to `range`. */
+  private countInArc(range: number, arcDeg: number): number {
+    const w = this.world;
+    const p = w.player;
+    const q = range + MAX_ENEMY_RADIUS;
+    const n = w.grid.queryInto(p.x - q, p.y - q, p.x + q, p.y + q, w.queryBuf);
+    const fx = Math.cos(p.facing);
+    const fy = Math.sin(p.facing);
+    const cos = Math.cos((arcDeg * Math.PI) / 360);
+    let count = 0;
+    for (let i = 0; i < n; i++) {
+      const e = w.enemies.items[w.queryBuf[i]];
+      if (!e.active || !e.def || e.def.behavior === 'prop') continue;
+      const dx = e.x - p.x;
+      const dy = e.y - p.y;
+      const d = Math.hypot(dx, dy);
+      if (d > range || d < 1e-3) continue;
+      if ((dx / d) * fx + (dy / d) * fy < cos) continue;
+      count++;
+    }
+    return count;
+  }
+
   bossStatus(): { name: string; hp: number; maxHp: number } | null {
     const alive = this.world.enemies.aliveList();
     for (let i = 0; i < this.world.enemies.count; i++) {
@@ -841,6 +903,8 @@ export class Simulation {
         volleyFacing: 0,
         limit: { damage: 0, area: 0, cooldown: 0, speed: 0 },
         activeCount: 0,
+        plantSerial: 0,
+        holdMs: 0,
         lastHitTick: new Int32Array(ENEMY_CAP).fill(-1e9),
       };
       this.world.weaponInstances.push(inst);

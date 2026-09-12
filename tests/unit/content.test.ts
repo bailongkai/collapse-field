@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { validateContent } from '../../src/core/content/validate';
+import { LOCKED_BY_DEFAULT } from '../../src/data/achievements';
 import { CONTENT, enemyDef, stageDef } from '../../src/core/content/registry';
 
 function atlasFrames(name: string): string[] {
@@ -24,16 +25,31 @@ describe('content', () => {
     expect(validateContent(frames)).toEqual([]);
   });
 
-  it('has five base weapons, five evolutions and eight passives', () => {
+  it('every base weapon has exactly one evolution, and there is one character per base weapon', () => {
     const weapons = Object.values(CONTENT.weapons);
-    expect(weapons.filter((w) => !w.evolvedOnly)).toHaveLength(5);
-    expect(weapons.filter((w) => w.evolvedOnly)).toHaveLength(5);
-    expect(Object.keys(CONTENT.passives)).toHaveLength(8);
+    const base = weapons.filter((w) => !w.evolvedOnly);
+    const evolved = weapons.filter((w) => w.evolvedOnly);
+    expect(evolved).toHaveLength(base.length);
+    expect(Object.keys(CONTENT.characters)).toHaveLength(base.length);
+    // one starting weapon each, and every base weapon is somebody's
+    const starts = Object.values(CONTENT.characters).map((c) => c.startingWeapon);
+    expect(new Set(starts).size).toBe(starts.length);
+    expect(new Set(starts)).toEqual(new Set(base.map((w) => w.id)));
   });
 
-  it('every weapon behavior is one of the five archetypes', () => {
-    const known = new Set(['slash', 'aimed', 'stream', 'orbit', 'aura']);
+  it('every weapon behavior is a registered archetype', () => {
+    const known = new Set(['slash', 'aimed', 'stream', 'orbit', 'aura', 'pylon', 'chain', 'pivot']);
     for (const w of CONTENT.weaponList) expect(known.has(w.behavior), `${w.id}: ${w.behavior}`).toBe(true);
+  });
+
+  it('every evolution is paired with a passive the player can actually be offered', () => {
+    // a pair that is locked behind an achievement puts the evolution out of reach of the player
+    // who just bought the character, which is five levels of content nobody can see
+    for (const w of CONTENT.weaponList) {
+      if (!w.evolution) continue;
+      expect(CONTENT.passives[w.evolution.requires], `${w.id} pairs with an unknown passive`).toBeTruthy();
+      expect(LOCKED_BY_DEFAULT.includes(w.evolution.requires), `${w.id} pairs with the locked ${w.evolution.requires}`).toBe(false);
+    }
   });
 });
 

@@ -1114,6 +1114,69 @@
    "zh": "塌缩带地板",
    "kind": "floor",
    "prompt": "Seamless tileable top-down floor texture for a 2D sci-fi game, 512x512, edges wrap perfectly, subtle low-contrast detail so sprites stay readable on top, muted colours, no objects, no text. Near-black space shot through with faint spiral streaks of infalling matter all bending the same way, a very subtle violet-to-cyan gradient in the streaks, sparse dim stars smeared into short arcs, no bright core, nothing that reads as an object."
+  },
+  {
+   "frame": "player_sapper",
+   "size": 44,
+   "zh": "阵地工兵",
+   "kind": "sprite",
+   "prompt": "A stocky field sapper in heavy dark-navy armour plating with orange hazard chevrons on the shoulders, a short cyan-lit stake driver held out to the right like a nail gun, a bandolier of glowing cyan stakes across the chest, heavy boots, visor up over a determined face."
+  },
+  {
+   "frame": "player_welder",
+   "size": 44,
+   "zh": "熔接工",
+   "kind": "sprite",
+   "prompt": "Chibi game character, two heads tall with a big head and small body, seen from a high 3/4 angle (camera above and in front), body turned to the RIGHT and looking RIGHT, tool held out pointing to the RIGHT edge of the image, standing pose with feet together, natural human skin tone on the face. No letters, no logos, no text anywhere. A hull welder in a heavy orange-and-grey hazard suit with bulky insulated shoulders and thick gloves, round open-visor helmet with the visor tipped up over the face, a thick armoured cable looping from a boxy backpack power cell over the shoulder into a stubby arc torch held forward, one small cyan spark at the torch tip, two grounding clamps hanging from the belt. Broad, planted, heavy-footed silhouette."
+  },
+  {
+   "frame": "player_gunner",
+   "size": 44,
+   "zh": "炮长",
+   "kind": "sprite",
+   "prompt": "Gun-crew commander: a lean deck officer in an off-white heat-shielded coat over a dark navy flight suit, a large orange targeting monocle clamped over one eye, a compact brass gyro ring on the hip, shouldering a long slender rail-lance with a glowing orange charge coil near the muzzle and the muzzle pointing right, weight on the back foot as if about to spin on the spot. Slimmer and lighter than the armoured marine."
+  },
+  {
+   "frame": "icon_arcPylons",
+   "size": 40,
+   "zh": "电弧锚桩图标",
+   "kind": "sprite",
+   "prompt": "A flat square-ish game inventory icon, bold simple emblem readable at 40 pixels, cel-shaded with dark outline, transparent background, no text, no frame. Emblem: a short cyan-green stake driven into a deck plate with an arc of light leaving its tip."
+  },
+  {
+   "frame": "icon_arcConduit",
+   "size": 40,
+   "zh": "电弧导体图标",
+   "kind": "sprite",
+   "prompt": "A flat square-ish game inventory icon, bold simple emblem readable at 40 pixels, cel-shaded with dark outline, transparent background, no text, no frame. Emblem: a jagged cyan lightning bolt forking into three branches."
+  },
+  {
+   "frame": "icon_pivotCannon",
+   "size": 40,
+   "zh": "回身炮图标",
+   "kind": "sprite",
+   "prompt": "A flat square-ish game inventory icon, bold simple emblem readable at 40 pixels, cel-shaded with dark outline, transparent background, no text, no frame. Emblem: a curved orange arrow turning back on itself around a gun barrel."
+  },
+  {
+   "frame": "icon_stabilizer",
+   "size": 40,
+   "zh": "稳定器图标",
+   "kind": "sprite",
+   "prompt": "A flat square-ish game inventory icon, bold simple emblem readable at 40 pixels, cel-shaded with dark outline, transparent background, no text, no frame. Emblem: a teal gyroscope ring with a steady glowing core."
+  },
+  {
+   "frame": "icon_heatsink",
+   "size": 40,
+   "zh": "散热片图标",
+   "kind": "sprite",
+   "prompt": "A flat square-ish game inventory icon, bold simple emblem readable at 40 pixels, cel-shaded with dark outline, transparent background, no text, no frame. Emblem: a stack of finned silver cooling plates with a soft blue glow between them."
+  },
+  {
+   "frame": "icon_railTuner",
+   "size": 40,
+   "zh": "导轨校准图标",
+   "kind": "sprite",
+   "prompt": "A flat square-ish game inventory icon, bold simple emblem readable at 40 pixels, cel-shaded with dark outline, transparent background, no text, no frame. Emblem: two parallel rails with a bright spark accelerating along them."
   }
  ]
 }

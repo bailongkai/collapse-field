@@ -34,6 +34,26 @@ export const PASSIVES = {
     id: 'magnetCore', nameKey: 'passive.magnetCore.name', descKey: 'passive.magnetCore.desc',
     icon: 'pk_vacuum', rarity: 60, maxLevel: 3, perLevel: { magnet: 0.5 },
   },
+  /**
+   * The three passives the new evolutions are paired with. They are deliberately unlocked from the
+   * start: thrusters, magazine and magnetCore are all behind achievements, so pairing a newly
+   * bought character's evolution with one of those would put it out of reach of the player who
+   * just paid for the character. Each also drives a stat no passive touched before — duration,
+   * recovery and projectile speed — so the level table of a weapon that spends them stops being
+   * three dead cards.
+   */
+  stabilizer: {
+    id: 'stabilizer', nameKey: 'passive.stabilizer.name', descKey: 'passive.stabilizer.desc',
+    icon: 'icon_stabilizer', rarity: 60, maxLevel: 4, perLevel: { duration: 0.12 },
+  },
+  heatsink: {
+    id: 'heatsink', nameKey: 'passive.heatsink.name', descKey: 'passive.heatsink.desc',
+    icon: 'icon_heatsink', rarity: 60, maxLevel: 4, perLevel: { recovery: 0.3 },
+  },
+  railTuner: {
+    id: 'railTuner', nameKey: 'passive.railTuner.name', descKey: 'passive.railTuner.desc',
+    icon: 'icon_railTuner', rarity: 55, maxLevel: 4, perLevel: { projectileSpeed: 0.15 },
+  },
 } as const satisfies Record<string, PassiveDef>;
 
 export type PassiveId = keyof typeof PASSIVES;

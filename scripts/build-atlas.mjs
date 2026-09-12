@@ -82,6 +82,41 @@ function drawTechButton(size = 48, edge = [0x4f, 0xe0, 0xff], fill = [0x10, 0x1c
   return img;
 }
 
+
+/** A flat energy beam: a bright core with a soft falloff, used for the arc and the lance. */
+function drawBeam(w, h, rgb) {
+  const img = new Jimp({ width: w, height: h, color: 0x00000000 });
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const t = Math.abs(y - (h - 1) / 2) / ((h - 1) / 2 || 1);
+    // a hard core and a wide glow, so it reads at any length once the view stretches it
+    const a = Math.max(0, 1 - t * t * t);
+    const core = Math.max(0, 1 - t * 3);
+    const mix = rgb.map((c) => Math.round(c + (255 - c) * core));
+    // taper the ends so a segment between two bodies does not look like a cut bar
+    const ex = Math.min(1, Math.min(x, w - 1 - x) / Math.max(1, w * 0.06));
+    const alpha = Math.round(255 * a * ex);
+    if (alpha <= 2) continue;
+    img.setPixelColor(((mix[0] << 24) | (mix[1] << 16) | (mix[2] << 8) | alpha) >>> 0, x, y);
+  }
+  return img;
+}
+
+/** The stake the sapper drives into the deck: a lit post seen from above, drawn upright. */
+function drawStake(w = 22, h = 44) {
+  const img = new Jimp({ width: w, height: h, color: 0x00000000 });
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const cx = w / 2;
+    const halfW = x < cx ? cx - x : x - cx;
+    const taper = 2 + (1 - y / h) * (w / 2 - 3);
+    if (halfW > taper) continue;
+    const lit = y < h * 0.42;
+    const [r, g, b] = lit ? [0x9c, 0xff, 0xd8] : [0x24, 0x3a, 0x4e];
+    const edge = halfW > taper - 1.6 ? 0.55 : 1;
+    img.setPixelColor((((r * edge) << 24) | ((g * edge) << 16) | ((b * edge) << 8) | 0xff) >>> 0, x, y);
+  }
+  return img;
+}
+
 // --- procedural frames -------------------------------------------------------
 function drawSlash(w = 128, h = 48) {
   const img = new Jimp({ width: w, height: h, color: 0x00000000 });
@@ -295,6 +330,10 @@ async function main() {
   groups.ui.push({ path: 'panel_tech.png', contents: await drawTechButton(64, [0x4f, 0xe0, 0xff], [0x0b, 0x14, 0x22], 0.45).getBuffer('image/png') });
   const procedural = [
     ['fx_slash', drawSlash()],
+    // a beam is long and thin, so it cannot be a manifest entry: those are fitted into a square box
+    ['fx_arc', drawBeam(192, 14, [0x4f, 0xe0, 0xff])],
+    ['fx_lance', drawBeam(448, 64, [0xff, 0x8a, 0x3d])],
+    ['pylon_stake', drawStake()],
     ['pk_chest', existsSync(join(CUSTOM, 'pk_chest.png')) ? await loadCustom(join(CUSTOM, 'pk_chest.png'), 48) : drawChest()],
     ['ui_arrow', drawArrow()],
     ['wall_orange', drawContainer(64, [0xd8, 0x74, 0x3a])],

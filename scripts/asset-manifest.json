@@ -1261,6 +1261,69 @@
       "size": 58,
       "pack": "sci-fi-rts",
       "file": "PNG/Default size/Unit/scifiUnit_06.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "icon_arcPylons",
+      "size": 40,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Power-ups/bolt_bronze.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "icon_arcConduit",
+      "size": 40,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Power-ups/powerupBlue_bolt.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "icon_pivotCannon",
+      "size": 40,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Power-ups/things_gold.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "icon_stabilizer",
+      "size": 40,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Power-ups/shield_bronze.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "icon_heatsink",
+      "size": 40,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Power-ups/pill_blue.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "icon_railTuner",
+      "size": 40,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Power-ups/star_silver.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "player_sapper",
+      "size": 44,
+      "pack": "top-down-shooter",
+      "file": "PNG/Survivor 1/survivor1_machine.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "player_welder",
+      "size": 44,
+      "pack": "top-down-shooter",
+      "file": "PNG/Soldier 1/soldier1_machine.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "player_gunner",
+      "size": 44,
+      "pack": "top-down-shooter",
+      "file": "PNG/Woman Green/womanGreen_machine.png"
     }
   ],
   "font": {

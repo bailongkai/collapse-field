@@ -14,7 +14,8 @@ const sim = (charges = { reroll: 0, skip: 0, banish: 0 }, seed = 4) => {
 const maxEverything = (s: Simulation): void => {
   s.run.weapons.length = 0;
   s.world.weaponInstances.length = 0;
-  for (const id of ['plasmaBlade', 'guidedLaser', 'railgun', 'orbitalDrones', 'empField']) s.giveWeapon(id, 8);
+  // only six slots, so a maxed build is the six cheapest base weapons rather than every one
+  for (const id of CONTENT.weaponList.filter((w) => !w.evolvedOnly).slice(0, 6).map((w) => w.id)) s.giveWeapon(id, 8);
   for (const id of Object.keys(CONTENT.passives)) s.givePassive(id, CONTENT.passives[id].maxLevel);
 };
 

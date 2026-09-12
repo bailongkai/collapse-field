@@ -38,7 +38,11 @@ export class ShopScene extends Phaser.Scene {
     // side by side on a wide screen; two products per row on a phone, where every row is scarce
     const storeCols = wide ? 1 : 2;
     const storeRows = store.length > 0 ? Math.ceil(store.length / storeCols) + 2 : 0;
-    const rowsTall = wide ? Math.max(UPGRADE_LIST.length, priced.length + storeRows) : UPGRADE_LIST.length + priced.length + storeRows;
+    // seven characters in one column no longer fit a phone held upright, so they pair up the way
+    // the store rows do: two to a line, which is four lines instead of seven
+    const charCols = wide ? 1 : 2;
+    const charRows = Math.ceil(priced.length / charCols);
+    const rowsTall = wide ? Math.max(UPGRADE_LIST.length, charRows + storeRows) : UPGRADE_LIST.length + charRows + storeRows;
     // the row height comes from the panel the screen can actually hold, not the other way round:
     // sizing rows first and clamping the panel after left the store rows under the back button
     const chrome = wide ? 170 : 210;
@@ -88,36 +92,42 @@ export class ShopScene extends Phaser.Scene {
     // characters are bought here too, so gold has somewhere to go once the upgrades are maxed
     const charLeft = wide ? left + colW + 24 : left;
     const charTop = wide ? cy - panel.h / 2 + 60 : cy - panel.h / 2 + 88 + UPGRADE_LIST.length * rowH + 8;
-    const charBuyX = charLeft + colW - btnW / 2;
+    const charCellW = colW / charCols;
+    const charBtnW = charCols === 1 ? btnW : 104;
     this.add.text(charLeft, charTop, t('shop.characters'), textStyle(18, { bold: true, color: COLORS.accent })).setOrigin(0, 0.5);
     priced.forEach((def, i) => {
-      const y = charTop + 30 + i * rowH;
+      const col = i % charCols;
+      const cellX = charLeft + col * charCellW;
+      const y = charTop + 30 + Math.floor(i / charCols) * rowH;
       const owned = isCharacterUnlocked(ctx.save, def.id);
-      this.add.image(charLeft + 18, y, 'game', def.frame).setDisplaySize(32, 32);
-      const textX = charLeft + 44;
+      this.add.image(cellX + 16, y, 'game', def.frame).setDisplaySize(charCols === 1 ? 32 : 26, charCols === 1 ? 32 : 26);
+      const textX = cellX + (charCols === 1 ? 44 : 34);
       const weapon = tDynamic(`weapon.${def.startingWeapon}.name`);
-      if (narrow) {
+      if (charCols > 1) {
+        this.add.text(textX, y - 10, t(def.nameKey), textStyle(14, { bold: true })).setOrigin(0, 0.5);
+        this.add.text(textX, y + 10, weapon, textStyle(11, { color: COLORS.dim })).setOrigin(0, 0.5);
+      } else if (narrow) {
         this.add.text(textX, y - 11, t(def.nameKey), textStyle(17, { bold: true })).setOrigin(0, 0.5);
         this.add.text(textX, y + 11, weapon, textStyle(13, { color: COLORS.dim })).setOrigin(0, 0.5);
       } else {
         this.add.text(textX, y - 12, t(def.nameKey), textStyle(19, { bold: true })).setOrigin(0, 0.5);
         this.add.text(textX, y + 12, weapon, textStyle(14, { color: COLORS.dim })).setOrigin(0, 0.5);
       }
-      const btn = new UiButton(this, charBuyX, y, {
+      const btn = new UiButton(this, cellX + charCellW - charBtnW / 2, y, {
         id: `shop.buyChar.${def.id}`,
         label: owned ? t('shop.owned') : t('shop.buy', { n: def.cost ?? 0 }),
-        width: btnW,
-        height: 44,
-        fontSize: narrow ? 15 : 17,
+        width: charBtnW,
+        height: charCols === 1 ? 44 : 38,
+        fontSize: charCols === 1 ? (narrow ? 15 : 17) : 13,
         onPress: () => this.buyChar(def.id),
       });
       if (owned || ctx.save.gold < (def.cost ?? 0)) btn.setEnabled(false);
     });
 
     if (store.length > 0) {
-      const storeTop = charTop + 30 + priced.length * rowH + 14;
+      const storeTop = charTop + 30 + Math.ceil(priced.length / charCols) * rowH + 14;
       this.add.text(charLeft, storeTop, t('shop.iap'), textStyle(18, { bold: true, color: COLORS.accent })).setOrigin(0, 0.5);
-      const restore = new UiButton(this, charBuyX, storeTop, { id: 'shop.restore', label: t('shop.restore'), width: btnW, height: 36, fontSize: 13, onPress: () => void this.restore() });
+      const restore = new UiButton(this, charLeft + colW - btnW / 2, storeTop, { id: 'shop.restore', label: t('shop.restore'), width: btnW, height: 36, fontSize: 13, onPress: () => void this.restore() });
       void restore;
       const cellW = colW / storeCols;
       const cellBtnW = storeCols === 1 ? btnW : 96;

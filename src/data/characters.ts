@@ -8,10 +8,12 @@ const BASE_STATS: PlayerStats = {
 const stats = (over: Partial<PlayerStats>): PlayerStats => ({ ...BASE_STATS, ...over });
 
 /**
- * Five characters for five starting weapons. A character is stats plus a starting weapon plus a
+ * Eight characters for eight starting weapons. A character is stats plus a starting weapon plus a
  * level-up bonus, and that is enough: the blade sweeps both sides, the laser aims itself, the
  * railgun is a cone, the drones orbit and the field is an aura, so the first minute already plays
- * five different ways before a single upgrade is chosen.
+ * eight different ways before a single upgrade is chosen: the pylons are placed and stay where
+ * they were put, the conduit will not fire at all unless a body is close, and the pivot cannon
+ * fires only on the tick the player turns.
  */
 export const CHARACTERS = {
   survivor: {
@@ -77,6 +79,52 @@ export const CHARACTERS = {
     levelBonuses: [{ everyLevels: 10, stat: 'growth', amount: 0.05 }],
     signature: { kind: 'onHurt', nameKey: 'signature.navigator.name', descKey: 'signature.navigator.desc', bonus: { moveSpeed: 0.6 }, durationMs: 2000, cooldownMs: 8000 },
     cost: 1200,
+  },
+
+  /**
+   * 阵地工兵: the only character who cannot simply outrun the answer, and the only one whose weapon
+   * stays where she puts it. Standing still plants an anchor and the stacks build; panicking and
+   * running sheds them.
+   */
+  sapper: {
+    id: 'sapper',
+    nameKey: 'character.sapper.name',
+    descKey: 'character.sapper.desc',
+    frame: 'player_sapper',
+    radius: 16,
+    baseStats: stats({ maxHealth: 110, armor: 1, moveSpeed: 0.88, might: 0.9, area: 1.1, magnet: 1.15 }),
+    startingWeapon: 'arcPylons',
+    levelBonuses: [{ everyLevels: 12, stat: 'area', amount: 0.05 }],
+    signature: { kind: 'dugIn', nameKey: 'signature.sapper.name', descKey: 'signature.sapper.desc', radius: 140, rampMs: 1800, maxStacks: 4, perStack: { might: 0.05, armor: 0.4 }, decayMs: 900 },
+    cost: 1400,
+  },
+  // 熔接工: armour that only exists while the crowd is on top of him, which is the one character
+  // whose defence and whose damage are both paid for by the same decision.
+  welder: {
+    id: 'welder',
+    nameKey: 'character.welder.name',
+    descKey: 'character.welder.desc',
+    frame: 'player_welder',
+    radius: 17,
+    baseStats: stats({ maxHealth: 95, recovery: 0.3, moveSpeed: 0.9, might: 1, area: 1.1 }),
+    startingWeapon: 'arcConduit',
+    levelBonuses: [{ everyLevels: 12, stat: 'recovery', amount: 0.15 }],
+    signature: { kind: 'pressure', nameKey: 'signature.welder.name', descKey: 'signature.welder.desc', radius: 96, minEnemies: 8, maxStacks: 8, perEnemy: { armor: 1, recovery: 0.15 } },
+    cost: 1500,
+  },
+  // 炮长: eighty health, and a gun that only goes off when she turns. The most fragile character in
+  // the game and the only one whose damage is a matter of timing rather than position.
+  gunner: {
+    id: 'gunner',
+    nameKey: 'character.gunner.name',
+    descKey: 'character.gunner.desc',
+    frame: 'player_gunner',
+    radius: 16,
+    baseStats: stats({ maxHealth: 80, might: 1.1, area: 1.2, projectileSpeed: 1.25 }),
+    startingWeapon: 'pivotCannon',
+    levelBonuses: [{ everyLevels: 14, stat: 'area', amount: 0.08 }],
+    signature: { kind: 'reversal', nameKey: 'signature.gunner.name', descKey: 'signature.gunner.desc', count: 5, arcDeg: 70, range: 320, bonus: { might: 0.5, cooldown: -0.3 }, durationMs: 4000, cooldownMs: 9000 },
+    cost: 1600,
   },
 } as const satisfies Record<string, CharacterDef>;
 

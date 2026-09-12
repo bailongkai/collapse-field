@@ -45,7 +45,8 @@ test('agency: a maxed build is offered limit break cards', async ({ page }) => {
     const g = window.__game;
     g.setTimeScale(0);
     g.godMode(true);
-    for (const id of ['plasmaBlade', 'guidedLaser', 'railgun', 'orbitalDrones', 'empField']) g.giveWeapon(id, 8);
+    // six slots, so a maxed build is six weapons: leave one free and a seventh is still offerable
+    for (const id of ['plasmaBlade', 'guidedLaser', 'railgun', 'orbitalDrones', 'empField', 'arcPylons']) g.giveWeapon(id, 8);
     for (const id of g.content().passives) g.givePassive(id, 5);
     g.triggerLevelUp();
   });

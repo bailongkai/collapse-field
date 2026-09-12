@@ -82,6 +82,76 @@ export const WEAPONS = {
     visual: { frame: 'fx_ring', blend: 'add', tint: 0x40c0ff, sfx: 'emp' },
     evolution: { requires: 'lifeCore', into: 'singularityField' },
   },
+
+  /**
+   * 电弧锚桩: the first weapon in the game that is placed rather than carried. A stake alone does
+   * nothing; arcs are strung between every pair in range and between every stake and the player,
+   * and the player's own arcs are the brightest on the field, so walking away visibly turns most
+   * of the damage off. The reach is fixed and only the width grows with area — a lattice that grew
+   * with fieldAmp would have erased its own identity by the level the player actually reaches.
+   */
+  arcPylons: {
+    id: 'arcPylons', nameKey: 'weapon.arcPylons.name', descKey: 'weapon.arcPylons.desc',
+    icon: 'icon_arcPylons', rarity: 55, maxLevel: 8, behavior: 'pylon',
+    // duration is held above amount x cooldown at every level, so `amount` is the cap that binds
+    // and a shorter cooldown genuinely refills an abandoned field instead of doing nothing
+    base: { damage: 7, cooldown: 3000, amount: 3, area: 1, speed: 1, duration: 15000, pierce: Infinity, knockback: 0.2, interval: 0, hitCooldown: 750 },
+    levels: [
+      { damage: 3 },
+      { amount: 1, duration: 3000 },
+      { damage: 4 },
+      { area: 0.12, hitCooldown: -70, speed: 0.3 },
+      { damage: 4 },
+      { amount: 1, duration: 4000 },
+      { damage: 4, area: 0.12, hitCooldown: -60, speed: 0.3 },
+    ],
+    visual: { frame: 'pylon_stake', blend: 'normal', tint: 0x5cf0b0, sfx: 'emp' },
+    evolution: { requires: 'stabilizer', into: 'graviticLattice' },
+  },
+  /**
+   * 电弧导体: worth nothing in an empty field and more with every body pressed together, so the
+   * correct play is to walk towards the drones — the play contact damage has spent the whole game
+   * punishing. The jump is short on purpose: a loose crowd breaks the chain, so density is the
+   * resource rather than mere presence.
+   */
+  arcConduit: {
+    id: 'arcConduit', nameKey: 'weapon.arcConduit.name', descKey: 'weapon.arcConduit.desc',
+    icon: 'icon_arcConduit', rarity: 80, maxLevel: 8, behavior: 'chain',
+    base: { damage: 6, cooldown: 1250, amount: 1, area: 1, speed: 1, duration: 140, pierce: 4, knockback: 0.5, interval: 0, hitCooldown: 0 },
+    levels: [
+      { pierce: 1 },
+      { damage: 2 },
+      { amount: 1, cooldown: -150 },
+      { damage: 2 },
+      { pierce: 2, area: 0.2 },
+      { damage: 3 },
+      { amount: 1, cooldown: -150 },
+    ],
+    visual: { frame: 'fx_arc', blend: 'add', tint: 0x4fe0ff, sfx: 'emp' },
+    evolution: { requires: 'heatsink', into: 'stormLattice' },
+  },
+  /**
+   * 回身炮: it charges while a heading is held and then waits, firing nothing until the player
+   * turns. Every other weapon treats the turn as a consequence; this one makes it the trigger, so
+   * the question stops being where to stand and becomes when to turn. A turn spent early is a shot
+   * spent at half strength.
+   */
+  pivotCannon: {
+    id: 'pivotCannon', nameKey: 'weapon.pivotCannon.name', descKey: 'weapon.pivotCannon.desc',
+    icon: 'icon_pivotCannon', rarity: 90, maxLevel: 8, behavior: 'pivot',
+    base: { damage: 26, cooldown: 2400, amount: 1, area: 1, speed: 1, duration: 200, pierce: Infinity, knockback: 1.2, interval: 0, hitCooldown: 0 },
+    levels: [
+      { damage: 9 },
+      { amount: 1 },
+      { damage: 11 },
+      { cooldown: -250 },
+      { damage: 13, area: 0.1 },
+      { amount: 1 },
+      { damage: 19, area: 0.1 },
+    ],
+    visual: { frame: 'fx_lance', blend: 'add', tint: 0xff8a3d, sfx: 'rail' },
+    evolution: { requires: 'railTuner', into: 'horizonWipe' },
+  },
   // --- evolutions: reached only through a supply chest with the base weapon maxed and its passive owned
   annihilationBlade: {
     id: 'annihilationBlade', nameKey: 'weapon.annihilationBlade.name', descKey: 'weapon.annihilationBlade.desc',
@@ -117,6 +187,32 @@ export const WEAPONS = {
     base: { damage: 18, cooldown: Infinity, amount: 0, area: 2.0, speed: 1, duration: 0, pierce: Infinity, knockback: 0.8, interval: 0, hitCooldown: 600 },
     levels: [{}, {}, {}, {}, {}, {}, {}],
     visual: { frame: 'fx_ring', blend: 'add', tint: 0xcc88ff, sfx: 'emp' },
+  },
+
+  graviticLattice: {
+    id: 'graviticLattice', nameKey: 'weapon.graviticLattice.name', descKey: 'weapon.graviticLattice.desc',
+    icon: 'icon_arcPylons', iconTint: 0xb070ff, rarity: 0, maxLevel: 8, behavior: 'pylon', evolvedOnly: true,
+    // a negative knockback is the evolution's verb: the arcs drag bodies onto the line and hold
+    // them there, so the lattice stops being a fence and becomes a room with no way across
+    base: { damage: 44, cooldown: 1500, amount: 7, area: 1.7, speed: 1.6, duration: 13500, pierce: Infinity, knockback: -0.5, interval: 0, hitCooldown: 380 },
+    levels: [{}, {}, {}, {}, {}, {}, {}],
+    visual: { frame: 'pylon_stake', blend: 'add', tint: 0xb070ff, sfx: 'emp' },
+  },
+  stormLattice: {
+    id: 'stormLattice', nameKey: 'weapon.stormLattice.name', descKey: 'weapon.stormLattice.desc',
+    icon: 'icon_arcConduit', iconTint: 0xfff0b0, rarity: 0, maxLevel: 8, behavior: 'chain', evolvedOnly: true,
+    // fourteen links at a tenth of falloff each: the first weapon whose output still climbs past
+    // twenty bodies, which is the archetype's promise finally paid out
+    base: { damage: 20, cooldown: 900, amount: 3, area: 1.2, speed: 1, duration: 200, pierce: 14, knockback: 0.5, interval: 0, hitCooldown: 0 },
+    levels: [{}, {}, {}, {}, {}, {}, {}],
+    visual: { frame: 'fx_arc', blend: 'add', tint: 0xfff0b0, sfx: 'emp' },
+  },
+  horizonWipe: {
+    id: 'horizonWipe', nameKey: 'weapon.horizonWipe.name', descKey: 'weapon.horizonWipe.desc',
+    icon: 'icon_pivotCannon', iconTint: 0xfff2c4, rarity: 0, maxLevel: 8, behavior: 'pivot', evolvedOnly: true,
+    base: { damage: 120, cooldown: 1200, amount: 5, area: 1.5, speed: 1.6, duration: 260, pierce: Infinity, knockback: 2, interval: 0, hitCooldown: 0 },
+    levels: [{}, {}, {}, {}, {}, {}, {}],
+    visual: { frame: 'fx_lance', blend: 'add', tint: 0xfff2c4, sfx: 'rail' },
   },
 } as const satisfies Record<string, WeaponDef>;
 

@@ -12,6 +12,7 @@ import { PlayerView } from '../view/playerView';
 import { EnemyView } from '../view/enemyView';
 import { CarriedView } from '../view/carriedView';
 import { TetherView } from '../view/tetherView';
+import { PylonView } from '../view/pylonView';
 import { RelicView } from '../view/relicView';
 import { ObstacleView } from '../view/obstacleView';
 import { ShadowView } from '../view/shadowView';
@@ -52,6 +53,7 @@ export class GameScene extends Phaser.Scene {
   private enemyView!: EnemyView;
   private carriedView!: CarriedView;
   private tetherView!: TetherView;
+  private pylonView!: PylonView;
   private relicView!: RelicView;
   private obstacleView!: ObstacleView;
   private shadowView!: ShadowView;
@@ -119,6 +121,8 @@ export class GameScene extends Phaser.Scene {
     this.carriedView = new CarriedView(this, this.layers.fx);
     // under the bodies: a beam is the floor between them, not something drawn over their heads
     this.tetherView = new TetherView(this, this.layers.shadows);
+    // on the floor with the beams, under every body: a lattice is terrain, not an overlay
+    this.pylonView = new PylonView(this, this.layers.shadows);
     this.relicView = new RelicView(this, this.layers.numbers);
     this.obstacleView = new ObstacleView(this, this.sim.stage, this.layers.pickups);
     this.gemView = new GemView(this, this.layers.gems);
@@ -227,6 +231,7 @@ export class GameScene extends Phaser.Scene {
     this.enemyView.destroy();
     this.carriedView.destroy();
     this.tetherView.destroy();
+    this.pylonView.destroy();
     this.relicView.destroy();
     this.obstacleView.destroy();
     this.shadowView.destroy();
@@ -432,6 +437,7 @@ export class GameScene extends Phaser.Scene {
     this.enemyView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH, deltaMs);
     this.carriedView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH, deltaMs);
     this.tetherView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH, deltaMs);
+    this.pylonView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH, deltaMs);
     this.relicView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH, deltaMs);
     this.gemView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH);
     this.pickupView.sync(this.sim.world, this.sim.run.timeMs);

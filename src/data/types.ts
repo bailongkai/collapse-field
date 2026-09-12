@@ -34,7 +34,7 @@ export interface WeaponParams {
   /** ms per enemy between hits (aura / orbit) */
   hitCooldown: number;
 }
-export type WeaponBehaviorId = 'slash' | 'aimed' | 'stream' | 'orbit' | 'aura';
+export type WeaponBehaviorId = 'slash' | 'aimed' | 'stream' | 'orbit' | 'aura' | 'pylon' | 'chain' | 'pivot';
 export interface WeaponDef {
   readonly id: string;
   readonly nameKey: I18nKey;
@@ -297,5 +297,14 @@ export type SignatureDef =
   | { readonly kind: 'chestSurge'; readonly nameKey: I18nKey; readonly descKey: I18nKey; readonly bonus: StatBlock; readonly durationMs: number }
   /** a charge that negates the next hit outright, then takes `cooldownMs` to come back */
   | { readonly kind: 'shield'; readonly nameKey: I18nKey; readonly descKey: I18nKey; readonly cooldownMs: number }
+  /**
+   * Standing still plants an anchor; every `rampMs` inside `radius` of it adds a stack of
+   * `perStack`, up to `maxStacks`, and leaving sheds one every `decayMs`.
+   */
+  | { readonly kind: 'dugIn'; readonly nameKey: I18nKey; readonly descKey: I18nKey; readonly radius: number; readonly rampMs: number; readonly maxStacks: number; readonly perStack: StatBlock; readonly decayMs: number }
+  /** every enemy within `radius` past the `minEnemies`-th is a stack of `perEnemy`, up to `maxStacks` */
+  | { readonly kind: 'pressure'; readonly nameKey: I18nKey; readonly descKey: I18nKey; readonly radius: number; readonly minEnemies: number; readonly maxStacks: number; readonly perEnemy: StatBlock }
+  /** turning into `count` enemies inside a `arcDeg` cone of `range` grants `bonus` for `durationMs` */
+  | { readonly kind: 'reversal'; readonly nameKey: I18nKey; readonly descKey: I18nKey; readonly count: number; readonly arcDeg: number; readonly range: number; readonly bonus: StatBlock; readonly durationMs: number; readonly cooldownMs: number }
   /** taking a hit adds `bonus` to stats for `durationMs` */
   | { readonly kind: 'onHurt'; readonly nameKey: I18nKey; readonly descKey: I18nKey; readonly bonus: StatBlock; readonly durationMs: number; readonly cooldownMs: number };
