@@ -11,6 +11,7 @@ import { FloorView } from '../view/floorView';
 import { PlayerView } from '../view/playerView';
 import { EnemyView } from '../view/enemyView';
 import { CarriedView } from '../view/carriedView';
+import { TetherView } from '../view/tetherView';
 import { RelicView } from '../view/relicView';
 import { ObstacleView } from '../view/obstacleView';
 import { ShadowView } from '../view/shadowView';
@@ -50,6 +51,7 @@ export class GameScene extends Phaser.Scene {
   private playerView!: PlayerView;
   private enemyView!: EnemyView;
   private carriedView!: CarriedView;
+  private tetherView!: TetherView;
   private relicView!: RelicView;
   private obstacleView!: ObstacleView;
   private shadowView!: ShadowView;
@@ -115,6 +117,8 @@ export class GameScene extends Phaser.Scene {
     this.enemyView = new EnemyView(this, this.layers.enemies);
     // above the bodies, below the numbers: the marker has to survive a crowded screen
     this.carriedView = new CarriedView(this, this.layers.fx);
+    // under the bodies: a beam is the floor between them, not something drawn over their heads
+    this.tetherView = new TetherView(this, this.layers.shadows);
     this.relicView = new RelicView(this, this.layers.numbers);
     this.obstacleView = new ObstacleView(this, this.sim.stage, this.layers.pickups);
     this.gemView = new GemView(this, this.layers.gems);
@@ -222,6 +226,7 @@ export class GameScene extends Phaser.Scene {
     this.playerView.destroy();
     this.enemyView.destroy();
     this.carriedView.destroy();
+    this.tetherView.destroy();
     this.relicView.destroy();
     this.obstacleView.destroy();
     this.shadowView.destroy();
@@ -426,6 +431,7 @@ export class GameScene extends Phaser.Scene {
     this.shadowView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH);
     this.enemyView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH, deltaMs);
     this.carriedView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH, deltaMs);
+    this.tetherView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH, deltaMs);
     this.relicView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH, deltaMs);
     this.gemView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH);
     this.pickupView.sync(this.sim.world, this.sim.run.timeMs);
@@ -630,7 +636,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   private emptyBehaviorCounts(): Record<EnemyBehaviorId, number> {
-    return { chase: 0, line: 0, boss: 0, ranged: 0, dasher: 0, bomber: 0, healer: 0, tractor: 0, nest: 0, blink: 0, layer: 0, prop: 0 };
+    return { chase: 0, line: 0, boss: 0, ranged: 0, dasher: 0, bomber: 0, healer: 0, tractor: 0, nest: 0, blink: 0, layer: 0, prop: 0,
+      mortar: 0, bulwark: 0, scavenger: 0, tether: 0, mire: 0, flanker: 0, suppressor: 0 };
   }
 
   private getState(): HookRunState {

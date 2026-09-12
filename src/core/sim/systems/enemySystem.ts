@@ -9,6 +9,13 @@ import { tractorStep } from '../../enemies/behaviors/tractor';
 import { nestStep } from '../../enemies/behaviors/nest';
 import { blinkStep } from '../../enemies/behaviors/blink';
 import { layerStep } from '../../enemies/behaviors/layer';
+import { mortarStep } from '../../enemies/behaviors/mortar';
+import { bulwarkStep } from '../../enemies/behaviors/bulwark';
+import { scavengerStep } from '../../enemies/behaviors/scavenger';
+import { tetherStep } from '../../enemies/behaviors/tether';
+import { mireStep } from '../../enemies/behaviors/mire';
+import { flankerStep } from '../../enemies/behaviors/flanker';
+import { suppressorStep } from '../../enemies/behaviors/suppressor';
 import type { Enemy } from '../entities/enemy';
 import type { Player } from '../entities/player';
 import type { World } from '../world';
@@ -42,6 +49,35 @@ export function stepEnemies(world: World, player: Player, dt: number, detonated:
         break;
       case 'layer':
         layerStep(world, e, player, dt);
+        break;
+      case 'mortar':
+        mortarStep(world, e, player, dt);
+        break;
+      case 'bulwark':
+        bulwarkStep(e, player, dt);
+        break;
+      case 'scavenger':
+        // it leaves with what it swallowed rather than dying: no kill, no drop, nothing earned
+        if (scavengerStep(world, e, player, dt)) {
+          world.events.push('death', e.x, e.y, 0, e.defId, false);
+          world.enemies.free(e);
+          return;
+        }
+        break;
+      case 'tether':
+        tetherStep(world, e, player, dt);
+        break;
+      case 'mire':
+        if (mireStep(e, player, dt)) {
+          world.enemies.free(e);
+          return;
+        }
+        break;
+      case 'flanker':
+        flankerStep(e, player, dt);
+        break;
+      case 'suppressor':
+        suppressorStep(world, e, player, dt);
         break;
       case 'prop':
         break;

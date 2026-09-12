@@ -78,6 +78,10 @@ export function spawnEnemy(world: World, defId: string, o: SpawnOptions = {}): E
   e.aiTimer = 0;
   e.aiTimer2 = 0;
   e.aiTimer3 = 0;
+  e.aiTimer4 = 0;
+  e.aiTimer5 = 0;
+  e.aiState2 = 0;
+  e.aiAngle = 0;
   e.ageMs = 0;
   e.enraged = false;
   // a body that lands inside a wall is nudged out, so a wall is never a spawn cage

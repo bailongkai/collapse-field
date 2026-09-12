@@ -55,7 +55,7 @@ describe('stage progression', () => {
   });
 
   it('the campaign is a single chain in order', () => {
-    expect(STAGE_ORDER.map((s) => s.order)).toEqual([0, 1, 2, 3]);
+    expect(STAGE_ORDER.map((s) => s.order)).toEqual(STAGE_ORDER.map((_, i) => i));
     const last = STAGE_ORDER[STAGE_ORDER.length - 1];
     expect(stageUnlockedBySurviving(fresh(), last.id)).toBeNull();
   });

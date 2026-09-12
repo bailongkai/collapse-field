@@ -289,6 +289,253 @@ export const ENEMIES = {
       final: { enrageAfterMs: 90000, enrageSpeedMult: 1.6, enrageDmgMult: 2, gold: 300 },
     },
   },
+  // ===== 熔毁反应层 / Meltdown Deck =====
+  slagger: {
+    id: 'slagger', nameKey: 'enemy.slagger.name', frame: 'enemy_slagger', faceTarget: true,
+    hp: 40, damage: 9, speed: 130, radius: 18, gemTier: 'green', knockbackResist: 0.25,
+    behavior: 'chase', deathFx: 'small', split: { enemy: 'slagPool', count: 1 },
+  },
+  slagPool: {
+    id: 'slagPool', nameKey: 'enemy.slagPool.name', frame: 'enemy_slagPool', faceTarget: false,
+    hp: 26, damage: 0, speed: 0, radius: 56, gemTier: 'none', knockbackResist: 1,
+    behavior: 'mire', deathFx: 'small',
+    mire: { radius: 78, dragPxPerSec: 84, ttlMs: 6500, fadeMs: 1000 },
+  },
+  bombard: {
+    id: 'bombard', nameKey: 'enemy.bombard.name', frame: 'enemy_bombard', faceTarget: false,
+    hp: 76, damage: 8, speed: 46, radius: 21, gemTier: 'green', knockbackResist: 0.5,
+    behavior: 'mortar', deathFx: 'big',
+    mortar: { standRange: 520, retreatRange: 400, retreatSpeedMult: 0.7, windupMs: 800, salvo: 2, salvoGapMs: 280, intervalMs: 4800, leadPx: 150, spreadPx: 46, shell: 'bombardShell', maxShells: 6 },
+  },
+  bombardShell: {
+    id: 'bombardShell', nameKey: 'enemy.bombardShell.name', frame: 'enemy_bombardShell', faceTarget: false,
+    hp: 20, damage: 0, speed: 0, radius: 16, gemTier: 'none', knockbackResist: 1,
+    behavior: 'bomber', deathFx: 'big',
+    explode: { triggerRange: 9999, fuseMs: 1150, radius: 120, damage: 22 },
+  },
+  pinner: {
+    id: 'pinner', nameKey: 'enemy.pinner.name', frame: 'enemy_pinner', faceTarget: true,
+    hp: 60, damage: 6, speed: 60, radius: 19, gemTier: 'green', knockbackResist: 0.4,
+    behavior: 'suppressor', deathFx: 'small',
+    suppress: { armRange: 300, windupMs: 1300, tellAt: 0.55, decayMult: 2.2, count: 5, spreadDeg: 34, boltSpeed: 300, boltDamage: 13, cooldownMs: 3400, advanceSpeedMult: 0.55 },
+  },
+  coolantTank: {
+    id: 'coolantTank', nameKey: 'enemy.coolantTank.name', frame: 'enemy_coolantTank', faceTarget: false,
+    hp: 32, damage: 0, speed: 0, radius: 22, gemTier: 'none', knockbackResist: 1,
+    behavior: 'prop', deathFx: 'big', drops: [{ pickup: 'coin', chance: 0.65 }, { pickup: 'heal', chance: 0.15 }], split: { enemy: 'slagPool', count: 1 },
+  },
+  siegeShell: {
+    id: 'siegeShell', nameKey: 'enemy.siegeShell.name', frame: 'enemy_siegeShell', faceTarget: false,
+    hp: 34, damage: 0, speed: 0, radius: 18, gemTier: 'none', knockbackResist: 1,
+    behavior: 'bomber', deathFx: 'big',
+    explode: { triggerRange: 9999, fuseMs: 1300, radius: 150, damage: 30 },
+  },
+  slagmaw: {
+    id: 'slagmaw', nameKey: 'enemy.slagmaw.name', frame: 'enemy_slagmaw', faceTarget: false,
+    hp: 760, damage: 26, speed: 46, radius: 64, gemTier: 'red', gemCount: 12, knockbackResist: 1,
+    behavior: 'boss', deathFx: 'big', bossBar: true, drops: [{ pickup: 'bossChest', chance: 1 }],
+    boss: { chargeEveryMs: 6500, telegraphMs: 1000, chargeMs: 700, chargeSpeedMult: 5, summon: 'slagPool', summonCount: 3, summonEveryMs: 7000 },
+  },
+  cannonade: {
+    id: 'cannonade', nameKey: 'enemy.cannonade.name', frame: 'enemy_cannonade', faceTarget: false,
+    hp: 700, damage: 28, speed: 40, radius: 66, gemTier: 'red', gemCount: 12, knockbackResist: 1,
+    behavior: 'boss', deathFx: 'big', bossBar: true, drops: [{ pickup: 'bossChest', chance: 1 }],
+    boss: { chargeEveryMs: 1e+09, telegraphMs: 700, chargeMs: 500, chargeSpeedMult: 1, summon: 'pinner', summonCount: 2, summonEveryMs: 11000, mortar: { windupMs: 900, salvo: 4, salvoGapMs: 260, intervalMs: 5000, leadPx: 150, spreadPx: 70, shell: 'siegeShell', maxShells: 10 } },
+  },
+  meltdown: {
+    id: 'meltdown', nameKey: 'enemy.meltdown.name', frame: 'enemy_meltdown', faceTarget: false,
+    hp: 3400, damage: 48, speed: 105, radius: 76, gemTier: 'none', knockbackResist: 1,
+    behavior: 'boss', deathFx: 'big', bossBar: true,
+    boss: { chargeEveryMs: 4600, telegraphMs: 800, chargeMs: 700, chargeSpeedMult: 4.5, summon: 'slagPool', summonCount: 3, summonEveryMs: 7000, pulse: { everyMs: 5200, telegraphMs: 1000, radius: 240, damage: 32 }, final: { enrageAfterMs: 90000, enrageSpeedMult: 2.3, enrageDmgMult: 2, gold: 300 } },
+  },
+  // ===== 漂流残骸舰 / Derelict Hulk =====
+  crewHusk: {
+    id: 'crewHusk', nameKey: 'enemy.crewHusk.name', frame: 'enemy_crewHusk', faceTarget: true,
+    hp: 20, damage: 7, speed: 74, radius: 16, gemTier: 'blue', knockbackResist: 0.15,
+    behavior: 'chase', deathFx: 'small',
+  },
+  ventCrawler: {
+    id: 'ventCrawler', nameKey: 'enemy.ventCrawler.name', frame: 'enemy_ventCrawler', faceTarget: false,
+    hp: 24, damage: 10, speed: 95, radius: 15, gemTier: 'green', knockbackResist: 0.25,
+    behavior: 'flanker', deathFx: 'small',
+    flank: { hoverRange: 160, columnHalfWidth: 56, columnJitterPx: 34, arcSpeedMult: 2.6, settleMs: 450, diveSpeedMult: 4.2, diveMs: 340, recoverMs: 900 },
+  },
+  plateWelder: {
+    id: 'plateWelder', nameKey: 'enemy.plateWelder.name', frame: 'enemy_plateWelder', faceTarget: false,
+    hp: 105, damage: 15, speed: 55, radius: 24, gemTier: 'green', gemCount: 2, knockbackResist: 0.85,
+    behavior: 'bulwark', deathFx: 'big',
+    bulwark: { arcDeg: 150, frontScale: 0.3, turnDegPerSec: 32, walkFacing: true, tellEveryMs: 600 },
+  },
+  deckGun: {
+    id: 'deckGun', nameKey: 'enemy.deckGun.name', frame: 'enemy_deckGun', faceTarget: false,
+    hp: 76, damage: 8, speed: 46, radius: 20, gemTier: 'green', gemCount: 2, knockbackResist: 0.5,
+    behavior: 'mortar', deathFx: 'big',
+    mortar: { standRange: 520, retreatRange: 400, retreatSpeedMult: 0.7, windupMs: 800, salvo: 2, salvoGapMs: 280, intervalMs: 4600, leadPx: 150, spreadPx: 46, shell: 'deckShell', maxShells: 6 },
+  },
+  deckShell: {
+    id: 'deckShell', nameKey: 'enemy.deckShell.name', frame: 'enemy_deckShell', faceTarget: false,
+    hp: 20, damage: 0, speed: 0, radius: 16, gemTier: 'none', knockbackResist: 1,
+    behavior: 'bomber', deathFx: 'big',
+    explode: { triggerRange: 9999, fuseMs: 1150, radius: 120, damage: 22 },
+  },
+  cableRig: {
+    id: 'cableRig', nameKey: 'enemy.cableRig.name', frame: 'enemy_cableRig', faceTarget: false,
+    hp: 78, damage: 10, speed: 68, radius: 20, gemTier: 'green', knockbackResist: 0.45,
+    behavior: 'tether', deathFx: 'small',
+    tether: { linkRange: 300, breakRange: 420, relinkMs: 400, beamHalfWidth: 24, push: 320, approachSpeedMult: 0.85 },
+  },
+  cryopod: {
+    id: 'cryopod', nameKey: 'enemy.cryopod.name', frame: 'enemy_cryopod', faceTarget: false,
+    hp: 34, damage: 0, speed: 0, radius: 22, gemTier: 'none', knockbackResist: 1,
+    behavior: 'prop', deathFx: 'small', drops: [{ pickup: 'coin', chance: 0.65 }, { pickup: 'heal', chance: 0.18 }, { pickup: 'vacuum', chance: 0.04 }],
+  },
+  salvageArm: {
+    id: 'salvageArm', nameKey: 'enemy.salvageArm.name', frame: 'enemy_salvageArm', faceTarget: false,
+    hp: 540, damage: 26, speed: 48, radius: 58, gemTier: 'red', gemCount: 12, knockbackResist: 1,
+    behavior: 'boss', deathFx: 'big', bossBar: true, drops: [{ pickup: 'bossChest', chance: 1 }],
+    boss: { chargeEveryMs: 5200, telegraphMs: 900, chargeMs: 700, chargeSpeedMult: 4.2, summon: 'plateWelder', summonCount: 2, summonEveryMs: 15000, shield: { arcDeg: 160, frontScale: 0.3, turnDegPerSec: 26, tellEveryMs: 600, chargeAlongFacing: true } },
+  },
+  anchorWinch: {
+    id: 'anchorWinch', nameKey: 'enemy.anchorWinch.name', frame: 'enemy_anchorWinch', faceTarget: false,
+    hp: 680, damage: 28, speed: 62, radius: 64, gemTier: 'red', gemCount: 13, knockbackResist: 1,
+    behavior: 'boss', deathFx: 'big', bossBar: true, drops: [{ pickup: 'bossChest', chance: 1 }],
+    boss: { chargeEveryMs: 1e+09, telegraphMs: 700, chargeMs: 400, chargeSpeedMult: 1, summon: 'cableRig', summonCount: 4, summonEveryMs: 5000, harpoon: { everyMs: 5200, telegraphMs: 700, range: 900, pull: 300, durationMs: 1100, damage: 14 }, mortar: { windupMs: 900, salvo: 4, salvoGapMs: 260, intervalMs: 5000, leadPx: 150, spreadPx: 70, shell: 'deckShell', maxShells: 10 } },
+  },
+  sleeper: {
+    id: 'sleeper', nameKey: 'enemy.sleeper.name', frame: 'enemy_sleeper', faceTarget: false,
+    hp: 3200, damage: 48, speed: 92, radius: 72, gemTier: 'none', knockbackResist: 1,
+    behavior: 'boss', deathFx: 'big', bossBar: true,
+    boss: { chargeEveryMs: 5000, telegraphMs: 800, chargeMs: 700, chargeSpeedMult: 4, summon: 'ventCrawler', summonCount: 5, summonEveryMs: 8000, rotor: { arcDeg: 150, frontScale: 0.18, spinDegPerSec: 42, reverseEveryMs: 6500, tellEveryMs: 500, enrageSpinMult: 1.8, chargeAlongFacing: true }, mortar: { windupMs: 800, salvo: 3, salvoGapMs: 240, intervalMs: 4200, leadPx: 150, spreadPx: 80, shell: 'deckShell', maxShells: 12 }, final: { enrageAfterMs: 90000, enrageSpeedMult: 2.3, enrageDmgMult: 2, gold: 300 } },
+  },
+  // ===== 战争铸造厂 / War Foundry =====
+  blank: {
+    id: 'blank', nameKey: 'enemy.blank.name', frame: 'enemy_blank', faceTarget: true,
+    hp: 14, damage: 6, speed: 86, radius: 15, gemTier: 'blue', knockbackResist: 0.1,
+    behavior: 'chase', deathFx: 'small',
+  },
+  assembler: {
+    id: 'assembler', nameKey: 'enemy.assembler.name', frame: 'enemy_assembler', faceTarget: false,
+    hp: 150, damage: 5, speed: 0, radius: 28, gemTier: 'red', gemCount: 3, knockbackResist: 1,
+    behavior: 'nest', deathFx: 'big', drops: [{ pickup: 'coin', chance: 0.35 }],
+    nest: { summon: 'blank', count: 3, intervalMs: 3400 },
+  },
+  castwall: {
+    id: 'castwall', nameKey: 'enemy.castwall.name', frame: 'enemy_castwall', faceTarget: false,
+    hp: 120, damage: 18, speed: 54, radius: 25, gemTier: 'green', knockbackResist: 0.85,
+    behavior: 'bulwark', deathFx: 'big',
+    bulwark: { arcDeg: 110, frontScale: 0.22, turnDegPerSec: 45, walkFacing: true, tellEveryMs: 600 },
+  },
+  rivetgun: {
+    id: 'rivetgun', nameKey: 'enemy.rivetgun.name', frame: 'enemy_rivetgun', faceTarget: true,
+    hp: 58, damage: 6, speed: 62, radius: 18, gemTier: 'green', knockbackResist: 0.4,
+    behavior: 'suppressor', deathFx: 'small',
+    suppress: { armRange: 300, windupMs: 1300, tellAt: 0.55, decayMult: 2.2, count: 3, spreadDeg: 26, boltSpeed: 300, boltDamage: 26, cooldownMs: 3600, advanceSpeedMult: 0.55 },
+  },
+  arcwelder: {
+    id: 'arcwelder', nameKey: 'enemy.arcwelder.name', frame: 'enemy_arcwelder', faceTarget: true,
+    hp: 34, damage: 4, speed: 72, radius: 16, gemTier: 'green', knockbackResist: 0.25,
+    behavior: 'healer', deathFx: 'small',
+    heal: { range: 300, intervalMs: 1300, amount: 16, keepDistance: 200 },
+  },
+  reclaimer: {
+    id: 'reclaimer', nameKey: 'enemy.reclaimer.name', frame: 'enemy_reclaimer', faceTarget: false,
+    hp: 48, damage: 5, speed: 116, radius: 16, gemTier: 'red', gemCount: 10, knockbackResist: 0.1,
+    behavior: 'scavenger', deathFx: 'small',
+    scavenge: { fleeRange: 260, fleeSpeedMult: 1.15, seekRange: 280, eatRadius: 30, eatPauseMs: 260, maxGemValue: 12, gemsMax: 20, scanMs: 150, escapeMs: 18000, escapeTellMs: 900 },
+  },
+  ingotstack: {
+    id: 'ingotstack', nameKey: 'enemy.ingotstack.name', frame: 'enemy_ingotstack', faceTarget: false,
+    hp: 38, damage: 0, speed: 0, radius: 22, gemTier: 'none', knockbackResist: 1,
+    behavior: 'prop', deathFx: 'small', drops: [{ pickup: 'coin', chance: 0.65 }, { pickup: 'heal', chance: 0.15 }],
+  },
+  forgepress: {
+    id: 'forgepress', nameKey: 'enemy.forgepress.name', frame: 'enemy_forgepress', faceTarget: false,
+    hp: 700, damage: 26, speed: 50, radius: 62, gemTier: 'red', gemCount: 12, knockbackResist: 1,
+    behavior: 'boss', deathFx: 'big', bossBar: true, drops: [{ pickup: 'bossChest', chance: 1 }], split: { enemy: 'castwall', count: 4 },
+    boss: { chargeEveryMs: 5200, telegraphMs: 1200, chargeMs: 600, chargeSpeedMult: 7, summon: 'castwall', summonCount: 2, summonEveryMs: 8500, pull: { range: 240, strength: 95 } },
+  },
+  proliferator: {
+    id: 'proliferator', nameKey: 'enemy.proliferator.name', frame: 'enemy_proliferator', faceTarget: false,
+    hp: 720, damage: 30, speed: 52, radius: 64, gemTier: 'red', gemCount: 14, knockbackResist: 1,
+    behavior: 'boss', deathFx: 'big', bossBar: true, drops: [{ pickup: 'bossChest', chance: 1 }], split: { enemy: 'assembler', count: 3 },
+    boss: { chargeEveryMs: 7000, telegraphMs: 900, chargeMs: 900, chargeSpeedMult: 5, summon: 'assembler', summonCount: 2, summonEveryMs: 8000 },
+  },
+  foundrycore: {
+    id: 'foundrycore', nameKey: 'enemy.foundrycore.name', frame: 'enemy_foundrycore', faceTarget: false,
+    hp: 3400, damage: 48, speed: 120, radius: 76, gemTier: 'none', knockbackResist: 1,
+    behavior: 'boss', deathFx: 'big', bossBar: true,
+    boss: { chargeEveryMs: 4600, telegraphMs: 800, chargeMs: 800, chargeSpeedMult: 4.5, summon: 'arcwelder', summonCount: 2, summonEveryMs: 7000, volley: { everyMs: 3000, count: 6, spreadDeg: 52, boltSpeed: 280, boltDamage: 18 }, final: { enrageAfterMs: 90000, enrageSpeedMult: 2, enrageDmgMult: 2, gold: 300 } },
+  },
+  // ===== 塌缩带 / The Collapse Field =====
+  collapser: {
+    id: 'collapser', nameKey: 'enemy.collapser.name', frame: 'enemy_collapser', faceTarget: true,
+    hp: 44, damage: 9, speed: 76, radius: 18, gemTier: 'green', knockbackResist: 0.2,
+    behavior: 'chase', deathFx: 'small', split: { enemy: 'gravwell', count: 1 },
+  },
+  gravwell: {
+    id: 'gravwell', nameKey: 'enemy.gravwell.name', frame: 'enemy_gravwell', faceTarget: false,
+    hp: 12, damage: 0, speed: 0, radius: 56, gemTier: 'none', knockbackResist: 1,
+    behavior: 'mire', deathFx: 'small',
+    mire: { radius: 96, dragPxPerSec: 84, ttlMs: 8000, fadeMs: 1200 },
+  },
+  voidTug: {
+    id: 'voidTug', nameKey: 'enemy.voidTug.name', frame: 'enemy_voidTug', faceTarget: true,
+    hp: 95, damage: 8, speed: 58, radius: 22, gemTier: 'green', knockbackResist: 0.6,
+    behavior: 'tractor', deathFx: 'big',
+    tractor: { range: 320, pull: 110, keepDistance: 240 },
+  },
+  riftAnchor: {
+    id: 'riftAnchor', nameKey: 'enemy.riftAnchor.name', frame: 'enemy_riftAnchor', faceTarget: false,
+    hp: 88, damage: 11, speed: 70, radius: 20, gemTier: 'green', knockbackResist: 0.45,
+    behavior: 'tether', deathFx: 'small',
+    tether: { linkRange: 300, breakRange: 420, relinkMs: 400, beamHalfWidth: 24, push: 240, approachSpeedMult: 0.85 },
+  },
+  imploder: {
+    id: 'imploder', nameKey: 'enemy.imploder.name', frame: 'enemy_imploder', faceTarget: false,
+    hp: 82, damage: 8, speed: 50, radius: 20, gemTier: 'green', knockbackResist: 0.5,
+    behavior: 'mortar', deathFx: 'big',
+    mortar: { standRange: 520, retreatRange: 400, retreatSpeedMult: 0.7, windupMs: 800, salvo: 2, salvoGapMs: 280, intervalMs: 4600, leadPx: 150, spreadPx: 46, shell: 'implodeShell', maxShells: 6 },
+  },
+  implodeShell: {
+    id: 'implodeShell', nameKey: 'enemy.implodeShell.name', frame: 'enemy_implodeShell', faceTarget: false,
+    hp: 20, damage: 0, speed: 0, radius: 16, gemTier: 'none', knockbackResist: 1,
+    behavior: 'bomber', deathFx: 'big',
+    explode: { triggerRange: 9999, fuseMs: 1150, radius: 120, damage: 22 },
+  },
+  riftShard: {
+    id: 'riftShard', nameKey: 'enemy.riftShard.name', frame: 'enemy_riftShard', faceTarget: false,
+    hp: 48, damage: 0, speed: 80, radius: 22, gemTier: 'none', knockbackResist: 1,
+    behavior: 'prop', deathFx: 'big', drops: [{ pickup: 'coin', chance: 0.7 }, { pickup: 'heal', chance: 0.12 }, { pickup: 'vacuum', chance: 0.04 }],
+  },
+  accretionMass: {
+    id: 'accretionMass', nameKey: 'enemy.accretionMass.name', frame: 'enemy_accretionMass', faceTarget: false,
+    hp: 90, damage: 20, speed: 0, radius: 22, gemTier: 'none', knockbackResist: 1,
+    behavior: 'chase', deathFx: 'small',
+  },
+  tideShell: {
+    id: 'tideShell', nameKey: 'enemy.tideShell.name', frame: 'enemy_tideShell', faceTarget: false,
+    hp: 30, damage: 0, speed: 0, radius: 18, gemTier: 'none', knockbackResist: 1,
+    behavior: 'bomber', deathFx: 'big',
+    explode: { triggerRange: 9999, fuseMs: 1300, radius: 140, damage: 30 },
+  },
+  accretor: {
+    id: 'accretor', nameKey: 'enemy.accretor.name', frame: 'enemy_accretor', faceTarget: false,
+    hp: 880, damage: 28, speed: 48, radius: 58, gemTier: 'red', gemCount: 12, knockbackResist: 1,
+    behavior: 'boss', deathFx: 'big', bossBar: true, drops: [{ pickup: 'bossChest', chance: 1 }],
+    boss: { chargeEveryMs: 5200, telegraphMs: 800, chargeMs: 700, chargeSpeedMult: 4.5, summon: 'collapser', summonCount: 4, summonEveryMs: 9000, pull: { range: 320, strength: 115 }, accretion: { enemy: 'accretionMass', count: 10, radius: 170, degPerSec: 18, refillMs: 2600 } },
+  },
+  tidalhulk: {
+    id: 'tidalhulk', nameKey: 'enemy.tidalhulk.name', frame: 'enemy_tidalhulk', faceTarget: false,
+    hp: 780, damage: 32, speed: 44, radius: 68, gemTier: 'red', gemCount: 14, knockbackResist: 1,
+    behavior: 'boss', deathFx: 'big', bossBar: true, drops: [{ pickup: 'bossChest', chance: 1 }],
+    boss: { chargeEveryMs: 1e+09, telegraphMs: 700, chargeMs: 400, chargeSpeedMult: 1, summon: 'voidTug', summonCount: 3, summonEveryMs: 10000, tide: { everyMs: 5600, telegraphMs: 700, inhaleMs: 1300, range: 640, pullStrength: 300, pushMs: 350, pushStrength: 420 }, mortar: { windupMs: 700, salvo: 4, salvoGapMs: 260, intervalMs: 5600, leadPx: 120, spreadPx: 110, shell: 'tideShell', maxShells: 10 } },
+  },
+  eventhorizon: {
+    id: 'eventhorizon', nameKey: 'enemy.eventhorizon.name', frame: 'enemy_eventhorizon', faceTarget: false,
+    hp: 3550, damage: 52, speed: 120, radius: 78, gemTier: 'none', knockbackResist: 1,
+    behavior: 'boss', deathFx: 'big', bossBar: true,
+    boss: { chargeEveryMs: 6500, telegraphMs: 700, chargeMs: 700, chargeSpeedMult: 5, summon: 'riftAnchor', summonCount: 4, summonEveryMs: 8500, pull: { range: 520, strength: 130 }, collapse: { everyMs: 12000, telegraphMs: 1400, drawMs: 800, drawSpeed: 300, radius: 240, damage: 58 }, final: { enrageAfterMs: 90000, enrageSpeedMult: 1.7, enrageDmgMult: 2, gold: 300 } },
+  },
 } as const satisfies Record<string, EnemyDef>;
 
 export type EnemyId = keyof typeof ENEMIES;

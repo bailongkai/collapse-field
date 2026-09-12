@@ -65,7 +65,8 @@ export interface PassiveDef {
   readonly perLevel: StatBlock;
 }
 
-export type EnemyBehaviorId = 'chase' | 'line' | 'boss'  | 'ranged' | 'dasher' | 'bomber' | 'healer' | 'tractor' | 'nest' | 'blink' | 'layer' | 'prop';
+export type EnemyBehaviorId = 'chase' | 'line' | 'boss'  | 'ranged' | 'dasher' | 'bomber' | 'healer' | 'tractor' | 'nest' | 'blink' | 'layer' | 'prop'
+  | 'mortar' | 'bulwark' | 'scavenger' | 'tether' | 'mire' | 'flanker' | 'suppressor';
 export type GemTier = 'blue' | 'green' | 'red' | 'none';
 export interface EnemyDef {
   readonly id: string;
@@ -103,6 +104,20 @@ export interface EnemyDef {
   readonly blink?: { readonly everyMs: number; readonly distance: number; readonly telegraphMs: number };
   /** layer behavior: circles the player at `keepDistance`, leaving a `mine` behind every `intervalMs` */
   readonly layer?: { readonly mine: string; readonly intervalMs: number; readonly keepDistance: number; readonly maxMines: number };
+  /** mortar behavior: stands off and lobs `shell` bodies ahead of where the player is walking */
+  readonly mortar?: { readonly standRange: number; readonly retreatRange: number; readonly retreatSpeedMult: number; readonly windupMs: number; readonly salvo: number; readonly salvoGapMs: number; readonly intervalMs: number; readonly leadPx: number; readonly spreadPx: number; readonly shell: string; readonly maxShells: number };
+  /** bulwark behavior: a shield across `arcDeg` in front that scales incoming damage to `frontScale` */
+  readonly bulwark?: { readonly arcDeg: number; readonly frontScale: number; readonly turnDegPerSec: number; readonly walkFacing: boolean; readonly tellEveryMs: number };
+  /** scavenger behavior: eats gems off the floor, flees the player, and leaves after `escapeMs` */
+  readonly scavenge?: { readonly fleeRange: number; readonly fleeSpeedMult: number; readonly seekRange: number; readonly eatRadius: number; readonly eatPauseMs: number; readonly maxGemValue: number; readonly gemsMax: number; readonly scanMs: number; readonly escapeMs: number; readonly escapeTellMs: number };
+  /** tether behavior: pairs of them are joined by a beam that shoves the player out of it */
+  readonly tether?: { readonly linkRange: number; readonly breakRange: number; readonly relinkMs: number; readonly beamHalfWidth: number; readonly push: number; readonly approachSpeedMult: number };
+  /** mire behavior: a pool that deals no damage and takes `dragPxPerSec` off the player's speed */
+  readonly mire?: { readonly radius: number; readonly dragPxPerSec: number; readonly ttlMs: number; readonly fadeMs: number };
+  /** flanker behavior: hovers on the vertical axis, then dives down the line weapons do not cover */
+  readonly flank?: { readonly hoverRange: number; readonly columnHalfWidth: number; readonly columnJitterPx: number; readonly arcSpeedMult: number; readonly settleMs: number; readonly diveSpeedMult: number; readonly diveMs: number; readonly recoverMs: number };
+  /** suppressor behavior: charges a fan of bolts while far away and is disarmed up close */
+  readonly suppress?: { readonly armRange: number; readonly windupMs: number; readonly tellAt: number; readonly decayMult: number; readonly count: number; readonly spreadDeg: number; readonly boltSpeed: number; readonly boltDamage: number; readonly cooldownMs: number; readonly advanceSpeedMult: number };
   /** on death, this many of that enemy appear where it fell */
   readonly split?: { readonly enemy: string; readonly count: number };
   /** boss behavior: periodic charge plus reinforcements, and whichever extras give this boss its own fight */
@@ -125,7 +140,23 @@ export interface BossConfig {
   readonly pull?: { readonly range: number; readonly strength: number };
   /** fades out and reappears `distance` from the player, then charges at once */
   readonly blink?: { readonly everyMs: number; readonly distance: number; readonly telegraphMs: number };
-  /** the run's last boss: killing it is how a stage is cleared; after `enrageAfterMs` it stops being fair */
+  /** lobs `shell` bodies onto the floor ahead of the player, like the mortar skiff but on a boss */
+  readonly mortar?: { readonly windupMs: number; readonly salvo: number; readonly salvoGapMs: number; readonly intervalMs: number; readonly leadPx: number; readonly spreadPx: number; readonly shell: string; readonly maxShells: number };
+  /** a ring of damage expanding from the boss itself, telegraphed; the room is the attack */
+  readonly pulse?: { readonly everyMs: number; readonly telegraphMs: number; readonly radius: number; readonly damage: number };
+  /** a shell of orbiting bodies that has to be opened before the boss can be reached */
+  readonly accretion?: { readonly enemy: string; readonly count: number; readonly radius: number; readonly degPerSec: number; readonly refillMs: number };
+  /** breathes: pulls everything in, then shoves it back out */
+  readonly tide?: { readonly everyMs: number; readonly telegraphMs: number; readonly inhaleMs: number; readonly range: number; readonly pullStrength: number; readonly pushMs: number; readonly pushStrength: number };
+  /** hauls the player in along a lane and hurts them for being on the end of it */
+  readonly harpoon?: { readonly everyMs: number; readonly telegraphMs: number; readonly range: number; readonly pull: number; readonly durationMs: number; readonly damage: number };
+  /** draws everything towards itself and then detonates: the one attack answered by standing far away */
+  readonly collapse?: { readonly everyMs: number; readonly telegraphMs: number; readonly drawMs: number; readonly drawSpeed: number; readonly radius: number; readonly damage: number };
+  /** an armoured arc that spins on its own clock, so the safe side keeps moving */
+  readonly rotor?: { readonly arcDeg: number; readonly frontScale: number; readonly spinDegPerSec: number; readonly reverseEveryMs: number; readonly tellEveryMs: number; readonly enrageSpinMult: number; readonly chargeAlongFacing?: boolean };
+  /** a shield across the front, as the bulwark has, plus the option of charging along it */
+  readonly shield?: { readonly arcDeg: number; readonly frontScale: number; readonly turnDegPerSec: number; readonly tellEveryMs: number; readonly chargeAlongFacing?: boolean };
+  /** the run's last boss: killing is how a stage is cleared; after `enrageAfterMs` it stops being fair */
   readonly final?: { readonly enrageAfterMs: number; readonly enrageSpeedMult: number; readonly enrageDmgMult: number; readonly gold: number };
 }
 

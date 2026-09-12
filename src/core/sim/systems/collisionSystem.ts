@@ -53,7 +53,9 @@ export function stepContact(world: World, stats: PlayerStats, god: boolean): Con
   let hitEnemyIndex = -1;
   for (let i = 0; i < n; i++) {
     const e = world.enemies.items[world.queryBuf[i]];
-    if (!e.active || !e.def || e.def.behavior === 'prop') continue; // scenery does not bite
+    // scenery does not bite, and neither does a pool of corrosion: a damage-0 body that took the
+    // contact would still burn an i-frame window, which is a stealth buff to everything near it
+    if (!e.active || !e.def || e.def.behavior === 'prop' || e.def.damage === 0) continue;
     const rr = e.radius + playerRadius + CONTACT_SLACK;
     const dx = e.x - p.x;
     const dy = e.y - p.y;

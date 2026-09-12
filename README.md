@@ -24,7 +24,7 @@ changing what art the game uses.
 
 ## The game
 
-Fifteen minutes on one map. Enemies arrive in waves that thicken every minute,
+Eight stages, fifteen minutes each.  Enemies arrive in waves that thicken every minute,
 a boss comes at 5:00, a different one at 10:00, and at 15:00 the stage's own
 final boss with about three times the health of the last one: the Annihilator on
 the station, the Juggernaut on the cargo deck, the Hive Queen in the lab, the

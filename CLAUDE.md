@@ -67,6 +67,22 @@ like a run that simply ended. Enemy behaviour is a per-instance state machine on
 `aiState` / `aiTimer` / `aiTimer2`, which is how the ranged, dashing and boss
 enemies telegraph before they act.
 
+Eight stages, four of them added at once, each with its own enemies and its own three bosses. The
+seven attack patterns those stages brought — `mortar`, `bulwark`, `scavenger`, `tether`, `mire`,
+`flanker`, `suppressor` — are one file each under `src/core/enemies/behaviors/`, and each asks a
+question the earlier table never asked: where you will be rather than where you are, what angle
+you are hitting from, whether you will leave the crowd to chase something, the space between two
+bodies, the ground you are standing on, the vertical axis the blade misses, and whether you dare
+close the distance. A behaviour that changes the player (`mire`'s drag, `tether`'s push) writes
+through a field the player system clears each tick, and area damage is queued on `world.blasts`
+for the simulation to resolve, because armor, i-frames and god mode are its to apply.
+
+Boss identity lives in `BossConfig` extras, implemented in `bossExtras.ts`: one armour arc
+(`rotor` or `shield`, both read by `bossArmourScale`), one set piece (`pulse`, `tide`, `harpoon`,
+`collapse`, `accretion`) and one gun (`mortar`, `volley` or `mine`), so a boss is the shared
+skeleton plus the two or three its definition turns on. They share `aiTimer3/4/5` and `aiState2`
+by that rule; do not give one boss two set pieces.
+
 Every stage has three different bosses: its own at 5:00, a second one at 10:00 and the
 Annihilator at 15:00 (`WaveEvent` kind `'final'`, the only event of its kind, enforced by
 `validate.ts`). All of them share `bossStep`; what tells them apart is the extras in

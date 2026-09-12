@@ -27,7 +27,7 @@ describe('one final boss per stage', () => {
       s.damageEnemy(boss, 1e9, 1, 0, 0);
       expect(s.run.ended).toBe('survived');
     }
-    expect(seen.size).toBe(4);
+    expect(seen.size).toBe(STAGE_ORDER.length);
   });
 
   it('the juggernaut leaves a minefield behind it', () => {

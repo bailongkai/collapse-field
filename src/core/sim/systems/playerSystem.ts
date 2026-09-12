@@ -6,13 +6,17 @@ import type { Player } from '../entities/player';
 export function stepPlayer(player: Player, stats: PlayerStats, dt: number): void {
   const { inputX, inputY } = player;
   if (inputX !== 0 || inputY !== 0) {
-    const speed = PLAYER_BASE_SPEED * stats.moveSpeed;
+    // corrosive ground subtracts from the move rather than shoving: standing still in it is free,
+    // and it can never reverse a player who is walking out
+    const speed = Math.max(40, PLAYER_BASE_SPEED * stats.moveSpeed - player.drag);
     player.x += inputX * speed * dt;
     player.y += inputY * speed * dt;
     // left or right only, and vertical movement leaves it alone, so turning is one deliberate input
     if (inputX > 0) player.facing = 0;
     else if (inputX < 0) player.facing = Math.PI;
   }
+  // the pools re-apply it every tick they are stood in, so clearing it here is what ends it
+  player.drag = 0;
   if (player.iframesMs > 0) player.iframesMs = Math.max(0, player.iframesMs - dt * 1000);
   if (stats.recovery > 0 && player.hp < stats.maxHealth) {
     player.healFraction += stats.recovery * dt;

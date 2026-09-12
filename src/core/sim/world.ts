@@ -18,6 +18,16 @@ const MAX_TARGET_RANK = 12;
 const rankDist = new Float64Array(MAX_TARGET_RANK);
 const rankId = new Int32Array(MAX_TARGET_RANK);
 
+/**
+ * Whether a weapon that picks its own target may pick this one. Terrain — a corrosive pool, a
+ * gravity well — is a body so that it can be shot away on purpose, but a guided laser that spends
+ * a whole volley on a puddle looks broken rather than clever.
+ */
+function targetable(e: Enemy): boolean {
+  const def = e.def;
+  return !!def && !def.invulnerable && def.behavior !== 'mire';
+}
+
 export class World {
   readonly enemies = new Pool<Enemy>(ENEMY_CAP, createEnemy);
   readonly projectiles = new Pool<Projectile>(PROJECTILE_CAP, createProjectile);
@@ -36,6 +46,12 @@ export class World {
   readonly lastDropMs: Record<string, number> = {};
   readonly queryBuf = new Int32Array(ENEMY_CAP);
   readonly queryBuf2 = new Int32Array(ENEMY_CAP);
+  /**
+   * Area damage a behaviour wants applied to the player this step. Behaviours never damage the
+   * player themselves — the simulation owns armor, i-frames and god mode — so they queue here and
+   * it resolves them in tick order, the way the bomber's blast already does.
+   */
+  readonly blasts: { x: number; y: number; radius: number; damage: number; id: string }[] = [];
   private serialCounter = 1;
   /** weapon instances that must have their per-enemy hit timers reset when a slot is reused */
   weaponInstances: WeaponInstance[] = [];
@@ -47,6 +63,7 @@ export class World {
   reset(seed: number): void {
     this.enemies.clear();
     this.projectiles.clear();
+    this.blasts.length = 0;
     this.gems.clear();
     this.pickups.clear();
     this.events.clear();
@@ -102,7 +119,7 @@ export class World {
     for (let i = 0; i < n; i++) {
       const id = this.queryBuf[i];
       const e = this.enemies.items[id];
-      if (!e.active || e.def?.invulnerable) continue;
+      if (!e.active || !targetable(e)) continue;
       const dx = e.x - x;
       const dy = e.y - y;
       const d = dx * dx + dy * dy;
@@ -129,7 +146,7 @@ export class World {
     let bestD = r * r;
     for (let i = 0; i < n; i++) {
       const e = this.enemies.items[this.queryBuf[i]];
-      if (!e.active || e.def?.invulnerable) continue;
+      if (!e.active || !targetable(e)) continue;
       const dx = e.x - x;
       const dy = e.y - y;
       const d = dx * dx + dy * dy;

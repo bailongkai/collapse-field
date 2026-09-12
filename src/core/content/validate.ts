@@ -52,6 +52,18 @@ export function validateContent(frames?: ReadonlySet<string>): string[] {
     check(d.behavior !== 'blink' || d.blink, `enemy ${key}: blink behavior needs a blink config`);
     check(d.behavior !== 'layer' || d.layer, `enemy ${key}: layer behavior needs a layer config`);
     check(d.behavior !== 'prop' || d.damage === 0, `enemy ${key}: scenery must not bite`);
+    check(d.behavior !== 'mortar' || !!d.mortar, `enemy ${key}: mortar behavior needs a mortar config`);
+    check(d.behavior !== 'bulwark' || !!d.bulwark, `enemy ${key}: bulwark behavior needs a bulwark config`);
+    check(d.behavior !== 'scavenger' || !!d.scavenge, `enemy ${key}: scavenger behavior needs a scavenge config`);
+    check(d.behavior !== 'tether' || !!d.tether, `enemy ${key}: tether behavior needs a tether config`);
+    check(d.behavior !== 'mire' || !!d.mire, `enemy ${key}: mire behavior needs a mire config`);
+    check(d.behavior !== 'flanker' || !!d.flank, `enemy ${key}: flanker behavior needs a flank config`);
+    check(d.behavior !== 'suppressor' || !!d.suppress, `enemy ${key}: suppressor behavior needs a suppress config`);
+    // a pool that bites would burn the player's i-frames without ever being a threat they can read
+    check(d.behavior !== 'mire' || d.damage === 0, `enemy ${key}: a mire must deal no contact damage`);
+    // the shield reads off the sprite's rotation, which only a non-faceTarget body has
+    check(d.behavior !== 'bulwark' || d.faceTarget === false, `enemy ${key}: a bulwark must not be faceTarget, its front has to be visible`);
+    if (d.mortar) check(CONTENT.enemies[d.mortar.shell]?.behavior === 'bomber', `enemy ${key}: mortar must lob a bomber, got "${d.mortar.shell}"`);
     if (d.nest) check(CONTENT.enemies[d.nest.summon], `enemy ${key}: nest hatches unknown enemy "${d.nest.summon}"`);
     if (d.layer) check(CONTENT.enemies[d.layer.mine]?.behavior === 'bomber', `enemy ${key}: layer must lay a bomber, got "${d.layer.mine}"`);
     if (d.split) check(CONTENT.enemies[d.split.enemy] && !CONTENT.enemies[d.split.enemy]?.split, `enemy ${key}: split spawns "${d.split.enemy}", which must exist and not itself split`);

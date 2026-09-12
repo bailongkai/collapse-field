@@ -792,6 +792,475 @@
       "size": 180,
       "pack": "space-shooter-extension",
       "file": "PNG/Sprites/Ships/spaceShips_007.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_slagger",
+      "size": 38,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_06.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_slagPool",
+      "size": 156,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_03.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_bombard",
+      "size": 44,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Meteors/meteorGrey_med2.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_bombardShell",
+      "size": 34,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_06.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_pinner",
+      "size": 40,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_03.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_coolantTank",
+      "size": 46,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Meteors/meteorGrey_med2.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_siegeShell",
+      "size": 38,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_06.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_slagmaw",
+      "size": 154,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_03.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_cannonade",
+      "size": 158,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Meteors/meteorGrey_med2.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_meltdown",
+      "size": 182,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_06.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "decor_reactor_0",
+      "size": 72,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_03.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "decor_reactor_1",
+      "size": 64,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Meteors/meteorGrey_med2.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "decor_reactor_2",
+      "size": 56,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_06.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "decor_reactor_3",
+      "size": 68,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_03.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "decor_reactor_4",
+      "size": 48,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Meteors/meteorGrey_med2.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "decor_reactor_5",
+      "size": 44,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_06.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_crewHusk",
+      "size": 34,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_03.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_ventCrawler",
+      "size": 32,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Meteors/meteorGrey_med2.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_plateWelder",
+      "size": 50,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_06.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_deckGun",
+      "size": 42,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_03.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_deckShell",
+      "size": 34,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Meteors/meteorGrey_med2.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_cableRig",
+      "size": 42,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_06.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_cryopod",
+      "size": 46,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_03.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_salvageArm",
+      "size": 140,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Meteors/meteorGrey_med2.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_anchorWinch",
+      "size": 154,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_06.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_sleeper",
+      "size": 173,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_03.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "decor_derelict_0",
+      "size": 72,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Meteors/meteorGrey_med2.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "decor_derelict_1",
+      "size": 64,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_06.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "decor_derelict_2",
+      "size": 64,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_03.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "decor_derelict_3",
+      "size": 56,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Meteors/meteorGrey_med2.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "decor_derelict_4",
+      "size": 64,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_06.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "decor_derelict_5",
+      "size": 56,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_03.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_blank",
+      "size": 32,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Meteors/meteorGrey_med2.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_assembler",
+      "size": 59,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_06.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_castwall",
+      "size": 52,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_03.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_rivetgun",
+      "size": 38,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Meteors/meteorGrey_med2.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_arcwelder",
+      "size": 34,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_06.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_reclaimer",
+      "size": 34,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_03.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_ingotstack",
+      "size": 46,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Meteors/meteorGrey_med2.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_forgepress",
+      "size": 149,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_06.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_proliferator",
+      "size": 154,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_03.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_foundrycore",
+      "size": 182,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Meteors/meteorGrey_med2.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "decor_foundry_0",
+      "size": 72,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_06.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "decor_foundry_1",
+      "size": 64,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_03.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "decor_foundry_2",
+      "size": 64,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Meteors/meteorGrey_med2.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "decor_foundry_3",
+      "size": 56,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_06.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "decor_foundry_4",
+      "size": 56,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_03.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "decor_foundry_5",
+      "size": 48,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Meteors/meteorGrey_med2.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "decor_foundry_6",
+      "size": 64,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_06.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_collapser",
+      "size": 38,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_03.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_gravwell",
+      "size": 192,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Meteors/meteorGrey_med2.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_voidTug",
+      "size": 46,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_06.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_riftAnchor",
+      "size": 42,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_03.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_imploder",
+      "size": 42,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Meteors/meteorGrey_med2.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_implodeShell",
+      "size": 34,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_06.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_riftShard",
+      "size": 46,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_03.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_accretionMass",
+      "size": 46,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Meteors/meteorGrey_med2.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_tideShell",
+      "size": 38,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_06.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_accretor",
+      "size": 140,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_03.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_tidalhulk",
+      "size": 163,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Meteors/meteorGrey_med2.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_eventhorizon",
+      "size": 187,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_06.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "decor_singularity_0",
+      "size": 76,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_03.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "decor_singularity_1",
+      "size": 68,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Meteors/meteorGrey_med2.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "decor_singularity_2",
+      "size": 64,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_06.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "decor_singularity_3",
+      "size": 72,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Structure/scifiStructure_03.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "decor_singularity_4",
+      "size": 46,
+      "pack": "space-shooter-remastered",
+      "file": "PNG/Meteors/meteorGrey_med2.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "decor_singularity_5",
+      "size": 58,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_06.png"
     }
   ],
   "font": {
@@ -906,6 +1375,38 @@
       ],
       "tileSize": 256,
       "grid": 1
+    },
+    "reactor": {
+      "pack": "top-down-shooter",
+      "tiles": [
+        "PNG/Tiles/tile_87.png"
+      ],
+      "tileSize": 64,
+      "grid": 4
+    },
+    "derelict": {
+      "pack": "top-down-shooter",
+      "tiles": [
+        "PNG/Tiles/tile_87.png"
+      ],
+      "tileSize": 64,
+      "grid": 4
+    },
+    "foundry": {
+      "pack": "top-down-shooter",
+      "tiles": [
+        "PNG/Tiles/tile_87.png"
+      ],
+      "tileSize": 64,
+      "grid": 4
+    },
+    "singularity": {
+      "pack": "top-down-shooter",
+      "tiles": [
+        "PNG/Tiles/tile_87.png"
+      ],
+      "tileSize": 64,
+      "grid": 4
     }
   }
 }

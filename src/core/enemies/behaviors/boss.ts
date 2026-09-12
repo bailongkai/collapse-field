@@ -4,6 +4,7 @@ import type { World } from '../../sim/world';
 import { spawnEnemy, spawnRing } from '../../sim/systems/spawnSystem';
 import { chaseStep } from './chase';
 import { spawnHostileBolt } from './ranged';
+import { bossAccretion, bossCollapse, bossHarpoon, bossMortar, bossPulse, bossRotor, bossShield, bossTide } from './bossExtras';
 
 const CHASE = 0;
 const TELEGRAPH = 1;
@@ -51,8 +52,20 @@ export function bossStep(world: World, e: Enemy, player: Player, dt: number): vo
   const nx = dx / dist;
   const ny = dy / dist;
 
-  // the extras that run alongside the movement states
-  if (cfg.volley || cfg.mine) {
+  // the armour arcs own e.aiAngle and turn on their own clock
+  if (cfg.rotor) bossRotor(e, dt, ms);
+  else if (cfg.shield) bossShield(e, player, dt, ms);
+
+  // the set piece on aiTimer4/aiTimer5/aiState2: one per boss
+  if (cfg.pulse) bossPulse(world, e, ms);
+  else if (cfg.tide) bossTide(world, e, player, dt, ms);
+  else if (cfg.harpoon) bossHarpoon(world, e, player, dt, ms);
+  else if (cfg.collapse) bossCollapse(world, e, player, dt, ms);
+  else if (cfg.accretion) bossAccretion(world, e, dt, ms);
+
+  // the gun on aiTimer3: one per boss, which is why these share a clock
+  if (cfg.mortar) bossMortar(world, e, player, ms);
+  else if (cfg.volley || cfg.mine) {
     e.aiTimer3 -= ms;
     if (e.aiTimer3 <= 0) {
       if (cfg.volley) {
@@ -132,8 +145,11 @@ export function bossStep(world: World, e: Enemy, player: Player, dt: number): vo
       }
       e.lifeMs -= ms;
       if (e.lifeMs > 0) return;
-      e.dirX = nx;
-      e.dirY = ny;
+      // a boss that charges along its armour makes standing in the shielded arc the punished
+      // choice, rather than two separate things to read at once
+      const along = cfg.rotor?.chargeAlongFacing ?? cfg.shield?.chargeAlongFacing;
+      e.dirX = along ? Math.cos(e.aiAngle) : nx;
+      e.dirY = along ? Math.sin(e.aiAngle) : ny;
       e.aiState = TELEGRAPH;
       e.aiTimer = cfg.telegraphMs;
       world.events.push('telegraph', e.x, e.y, 0, e.defId, true);

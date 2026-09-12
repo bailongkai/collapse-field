@@ -20,6 +20,8 @@ import { rollChestRewards, type ChestGrade } from '../levelup/chest';
 import { CHEST_CONSOLATION_GOLD } from '../../config';
 import { driveAutopilot } from './autopilot';
 import { resolveCircle } from './obstacles';
+import { bulwarkScale } from '../enemies/behaviors/bulwark';
+import { bossArmourScale } from '../enemies/behaviors/bossExtras';
 import { inBlast } from '../enemies/behaviors/bomber';
 import { createSignature, signatureBonus, signatureStep, onSignatureChest, onSignatureHurt, onSignatureKill, type SignatureState } from './signature';
 import { auraRadius } from '../weapons/behaviors/aura';
@@ -297,6 +299,15 @@ export class Simulation {
     if (this.events.step(world, stage, run.timeMs, this.viewW, this.viewH)) run.finalSpawned = true;
     stepEnemies(world, world.player, dt, this.detonated);
     for (const b of this.detonated) this.detonate(b);
+    // set pieces queue their area damage rather than dealing it: armor, i-frames and god mode are
+    // the simulation's to apply, and a boss that bypassed them would be a bug nobody could see
+    for (const blast of world.blasts) {
+      const bx = world.player.x - blast.x;
+      const by = world.player.y - blast.y;
+      if (bx * bx + by * by > blast.radius * blast.radius) continue;
+      if (applyPlayerDamage(world, stats, run.god, blast.damage, blast.id) > 0) this.onPlayerHurt(false);
+    }
+    world.blasts.length = 0;
     world.rebuildGrid();
     stepSeparation(world, world.rng, this.viewW, this.viewH);
     if (world.obstacles.length > 0) this.keepEnemiesOutOfWalls();
@@ -381,7 +392,8 @@ export class Simulation {
   damageEnemy(e: Enemy, dmg: number, dirX: number, dirY: number, knockback: number, slot = -1): void {
     const def = e.def;
     if (!def || def.invulnerable) return;
-    const rounded = Math.max(1, Math.round(dmg));
+    // a shield in the way takes almost all of it; the answer to a bulwark is an angle, not a number
+    const rounded = Math.max(1, Math.round(dmg * bulwarkScale(e, dirX, dirY) * bossArmourScale(e, dirX, dirY)));
     e.hp -= rounded;
     // credited to the weapon slot that landed it, for the results screen; overkill counts, the
     // way it does in the reference game, so the tally is what was dealt and not what was needed

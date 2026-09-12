@@ -17,8 +17,13 @@ export interface Player {
   healFraction: number;
   /** hits the signature shield will still negate outright */
   shieldCharges: number;
+  /**
+   * px/s taken off this step's movement by whatever floor the player is standing on. Set by the
+   * mire pools each tick and consumed by `stepPlayer`, so nothing has to remember to clear it.
+   */
+  drag: number;
 }
 
 export function createPlayer(): Player {
-  return { x: 0, y: 0, hp: 100, facing: 0, inputX: 0, inputY: 0, iframesMs: 0, healFraction: 0, shieldCharges: 0 };
+  return { x: 0, y: 0, hp: 100, facing: 0, inputX: 0, inputY: 0, iframesMs: 0, healFraction: 0, shieldCharges: 0, drag: 0 };
 }
