@@ -14,9 +14,22 @@ for (const [stage, { pack, tiles, tileSize, grid }] of Object.entries(manifest.f
   // a generated seamless texture replaces the composed Kenney tiles
   const custom = join(ROOT, 'art', 'generated', `floor_${stage}.png`);
   if (existsSync(custom)) {
-    const img = await Jimp.read(custom);
+    // A diffusion model does not make seamless tiles: it frames the texture with a bevel. Cut
+    // that margin off and mirror the middle into a 2x2, which wraps perfectly by construction
+    // and, at floor contrast, reads as panel seams rather than a kaleidoscope.
+    const src = await Jimp.read(custom);
+    const m = Math.round(src.width * 0.1);
+    src.crop({ x: m, y: m, w: src.width - 2 * m, h: src.height - 2 * m });
     const side = tileSize * grid;
-    if (img.width !== side || img.height !== side) img.resize({ w: side, h: side });
+    const half = side / 2;
+    src.resize({ w: half, h: half });
+    const img = new Jimp({ width: side, height: side, color: 0x000000ff });
+    for (const [fx, fy] of [[false, false], [true, false], [false, true], [true, true]]) {
+      const q = src.clone();
+      if (fx) q.flip({ horizontal: true, vertical: false });
+      if (fy) q.flip({ horizontal: false, vertical: true });
+      img.composite(q, fx ? half : 0, fy ? half : 0);
+    }
     await img.write(join(outDir, `floor_${stage}.png`));
     console.log(`floor_${stage}.png ${side}x${side} from art/generated (custom)`);
     continue;

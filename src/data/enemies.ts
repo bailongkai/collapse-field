@@ -8,7 +8,7 @@ export const ENEMIES = {
     behavior: 'chase', deathFx: 'small',
   },
   infected: {
-    id: 'infected', nameKey: 'enemy.infected.name', frame: 'enemy_infected', tint: 0x88ff88, faceTarget: true,
+    id: 'infected', nameKey: 'enemy.infected.name', frame: 'enemy_infected', faceTarget: true,
     hp: 12, damage: 6, speed: 80, radius: 16, gemTier: 'blue', knockbackResist: 0.1,
     behavior: 'chase', deathFx: 'small',
   },
@@ -30,7 +30,7 @@ export const ENEMIES = {
    * ignored: the decision it asks for is whether to stop and deal with it.
    */
   sentinel: {
-    id: 'sentinel', nameKey: 'enemy.sentinel.name', frame: 'enemy_sentinel', tint: 0xffd166, faceTarget: true,
+    id: 'sentinel', nameKey: 'enemy.sentinel.name', frame: 'enemy_sentinel', faceTarget: true,
     hp: 160, damage: 8, speed: 52, radius: 30, gemTier: 'red', gemCount: 6, knockbackResist: 0.95,
     behavior: 'chase', drops: [{ pickup: 'chest', chance: 1 }], deathFx: 'big',
   },
@@ -46,7 +46,7 @@ export const ENEMIES = {
     ranged: { range: 260, intervalMs: 2400, boltSpeed: 240, boltDamage: 8 },
   },
   dasher: {
-    id: 'dasher', nameKey: 'enemy.dasher.name', frame: 'enemy_dasher', tint: 0xff9966, faceTarget: true,
+    id: 'dasher', nameKey: 'enemy.dasher.name', frame: 'enemy_dasher', faceTarget: true,
     hp: 18, damage: 12, speed: 75, radius: 16, gemTier: 'green', knockbackResist: 0.2,
     behavior: 'dasher', deathFx: 'small',
     dash: { triggerRange: 240, telegraphMs: 500, durationMs: 450, speedMult: 5, cooldownMs: 2200 },
@@ -65,7 +65,7 @@ export const ENEMIES = {
   },
   /** 自爆无人机: a drone that arms inside arm's reach and detonates after a fuse. Run, or kill it first. */
   bomber: {
-    id: 'bomber', nameKey: 'enemy.bomber.name', frame: 'enemy_bomber', tint: 0xff6b5a, faceTarget: false,
+    id: 'bomber', nameKey: 'enemy.bomber.name', frame: 'enemy_bomber', faceTarget: false,
     hp: 6, damage: 0, speed: 95, radius: 14, gemTier: 'blue', knockbackResist: 0.2,
     behavior: 'bomber', deathFx: 'big',
     // the fuse is what makes it fair: from arming range a player who runs at once clears the
@@ -74,7 +74,7 @@ export const ENEMIES = {
   },
   /** 维修工兵: hangs back and repairs the bodies around it. Kill it first or fight a crowd that heals. */
   medic: {
-    id: 'medic', nameKey: 'enemy.medic.name', frame: 'enemy_medic', tint: 0x7fe07f, faceTarget: true,
+    id: 'medic', nameKey: 'enemy.medic.name', frame: 'enemy_medic', faceTarget: true,
     hp: 24, damage: 4, speed: 65, radius: 16, gemTier: 'green', knockbackResist: 0.3,
     behavior: 'healer', deathFx: 'small',
     heal: { range: 150, intervalMs: 2000, amount: 8, keepDistance: 220 },
@@ -85,34 +85,34 @@ export const ENEMIES = {
    * reaper; from the ninth minute this is what catches it.
    */
   hound: {
-    id: 'hound', nameKey: 'enemy.hound.name', frame: 'enemy_hound', tint: 0xff5577, faceTarget: false,
+    id: 'hound', nameKey: 'enemy.hound.name', frame: 'enemy_hound', faceTarget: false,
     hp: 14, damage: 7, speed: 215, radius: 13, gemTier: 'blue', knockbackResist: 0.3,
     behavior: 'chase', deathFx: 'small',
   },
   // ---- 货运甲板 ----
   /** 牵引车: holds its distance and drags the player towards the heavy bodies. Does nothing else, needs nothing else. */
   tractor: {
-    id: 'tractor', nameKey: 'enemy.tractor.name', frame: 'enemy_tractor', tint: 0x9fd2ff, faceTarget: true,
+    id: 'tractor', nameKey: 'enemy.tractor.name', frame: 'enemy_tractor', faceTarget: true,
     hp: 60, damage: 8, speed: 50, radius: 24, gemTier: 'green', knockbackResist: 0.7,
     behavior: 'tractor', deathFx: 'big',
     tractor: { range: 260, pull: 130, keepDistance: 200 },
   },
   /** 维修无人机: the cargo deck's healer, tuned for the mechs it flies with. */
   repairDrone: {
-    id: 'repairDrone', nameKey: 'enemy.repairDrone.name', frame: 'enemy_repairDrone', tint: 0xffe08a, faceTarget: false,
+    id: 'repairDrone', nameKey: 'enemy.repairDrone.name', frame: 'enemy_repairDrone', faceTarget: false,
     hp: 20, damage: 3, speed: 80, radius: 13, gemTier: 'green', knockbackResist: 0.1,
     behavior: 'healer', deathFx: 'small',
     heal: { range: 170, intervalMs: 1800, amount: 20, keepDistance: 240 },
   },
   /** 装卸机甲: slow, wide and heavily armoured; the cargo deck's whole point is that the bodies are big. */
   loader: {
-    id: 'loader', nameKey: 'enemy.loader.name', frame: 'enemy_loader', tint: 0xff9a4a, faceTarget: true,
+    id: 'loader', nameKey: 'enemy.loader.name', frame: 'enemy_loader', faceTarget: true,
     hp: 220, damage: 22, speed: 40, radius: 30, gemTier: 'red', knockbackResist: 0.9,
     behavior: 'chase', deathFx: 'big',
   },
   /** 重型运输舰: the cargo boss. Charges harder and more often, and calls loaders instead of drones. */
   hauler: {
-    id: 'hauler', nameKey: 'enemy.hauler.name', frame: 'enemy_hauler', tint: 0xffb070, faceTarget: false,
+    id: 'hauler', nameKey: 'enemy.hauler.name', frame: 'enemy_hauler', faceTarget: false,
     hp: 520, damage: 30, speed: 50, radius: 64, gemTier: 'red', gemCount: 10, knockbackResist: 1,
     behavior: 'boss', bossBar: true, drops: [{ pickup: 'bossChest', chance: 1 }], deathFx: 'big',
     boss: { chargeEveryMs: 4500, telegraphMs: 800, chargeMs: 800, chargeSpeedMult: 5.5, summon: 'loader', summonCount: 2, summonEveryMs: 12000 },
@@ -120,27 +120,27 @@ export const ENEMIES = {
   // ---- 生物实验舱 ----
   /** 孢子: tiny, fast to spawn, dies to anything. There are a great many of them. */
   spore: {
-    id: 'spore', nameKey: 'enemy.spore.name', frame: 'enemy_spore', tint: 0xc07cff, faceTarget: false,
+    id: 'spore', nameKey: 'enemy.spore.name', frame: 'enemy_spore', faceTarget: false,
     hp: 2, damage: 2, speed: 85, radius: 11, gemTier: 'blue', knockbackResist: 0,
     behavior: 'chase', deathFx: 'small',
   },
   /** 分裂体: an infected that comes apart into spores when it dies. Killing it near you is the mistake. */
   splitter: {
-    id: 'splitter', nameKey: 'enemy.splitter.name', frame: 'enemy_splitter', tint: 0xd08cff, faceTarget: true,
+    id: 'splitter', nameKey: 'enemy.splitter.name', frame: 'enemy_splitter', faceTarget: true,
     hp: 28, damage: 7, speed: 70, radius: 18, gemTier: 'green', knockbackResist: 0.2,
     behavior: 'chase', deathFx: 'small',
     split: { enemy: 'spore', count: 3 },
   },
   /** 孵化囊: stands where it was planted and hatches spores until someone comes over and stops it. */
   hatchery: {
-    id: 'hatchery', nameKey: 'enemy.hatchery.name', frame: 'enemy_hatchery', tint: 0xc07cff, faceTarget: false,
+    id: 'hatchery', nameKey: 'enemy.hatchery.name', frame: 'enemy_hatchery', faceTarget: false,
     hp: 140, damage: 5, speed: 0, radius: 30, gemTier: 'red', gemCount: 3, knockbackResist: 1,
     behavior: 'nest', deathFx: 'big',
     nest: { summon: 'spore', count: 4, intervalMs: 3500 },
   },
   /** 母巢: the lab boss. It does not charge at all; it sits and pours spores out, which is the fight. */
   broodmother: {
-    id: 'broodmother', nameKey: 'enemy.broodmother.name', frame: 'enemy_broodmother', tint: 0xb066e0, faceTarget: false,
+    id: 'broodmother', nameKey: 'enemy.broodmother.name', frame: 'enemy_broodmother', faceTarget: false,
     hp: 700, damage: 20, speed: 30, radius: 66, gemTier: 'red', gemCount: 12, knockbackResist: 1,
     behavior: 'boss', bossBar: true, drops: [{ pickup: 'bossChest', chance: 1 }], deathFx: 'big',
     boss: { chargeEveryMs: 1e9, telegraphMs: 600, chargeMs: 400, chargeSpeedMult: 1, summon: 'spore', summonCount: 10, summonEveryMs: 4000 },
@@ -168,14 +168,14 @@ export const ENEMIES = {
   },
   /** 感应雷: a bomber that cannot move. It waits. */
   mine: {
-    id: 'mine', nameKey: 'enemy.mine.name', frame: 'enemy_mine', tint: 0xff8866, faceTarget: false,
+    id: 'mine', nameKey: 'enemy.mine.name', frame: 'enemy_mine', faceTarget: false,
     hp: 4, damage: 0, speed: 0, radius: 12, gemTier: 'none', knockbackResist: 1,
     behavior: 'bomber', deathFx: 'big',
     explode: { triggerRange: 44, fuseMs: 350, radius: 100, damage: 16 },
   },
   /** 相位艇: reappears a short way from the player, in a direction of its own choosing. */
   phaser: {
-    id: 'phaser', nameKey: 'enemy.phaser.name', frame: 'enemy_phaser', tint: 0x8ff0ff, faceTarget: false,
+    id: 'phaser', nameKey: 'enemy.phaser.name', frame: 'enemy_phaser', faceTarget: false,
     hp: 30, damage: 9, speed: 90, radius: 16, gemTier: 'green', knockbackResist: 0.3,
     behavior: 'blink', deathFx: 'small',
     blink: { everyMs: 5000, distance: 150, telegraphMs: 500 },
@@ -194,7 +194,7 @@ export const ENEMIES = {
     behavior: 'prop', deathFx: 'small', drops: [{ pickup: 'coin', chance: 0.6 }, { pickup: 'heal', chance: 0.12 }],
   },
   canister: {
-    id: 'canister', nameKey: 'enemy.canister.name', frame: 'decor_lab_5', tint: 0xc8ffd8, faceTarget: false,
+    id: 'canister', nameKey: 'enemy.canister.name', frame: 'decor_lab_5', faceTarget: false,
     hp: 24, damage: 0, speed: 0, radius: 20, gemTier: 'none', knockbackResist: 1,
     behavior: 'prop', deathFx: 'small', drops: [{ pickup: 'coin', chance: 0.5 }, { pickup: 'heal', chance: 0.2 }],
   },
@@ -204,7 +204,7 @@ export const ENEMIES = {
     behavior: 'prop', deathFx: 'big', drops: [{ pickup: 'coin', chance: 0.7 }, { pickup: 'vacuum', chance: 0.03 }],
   },
   annihilator: {
-    id: 'annihilator', nameKey: 'enemy.annihilator.name', frame: 'enemy_annihilator', tint: 0x883355, faceTarget: false,
+    id: 'annihilator', nameKey: 'enemy.annihilator.name', frame: 'enemy_annihilator', faceTarget: false,
     hp: 1e9, damage: 9999, speed: 220, radius: 50, gemTier: 'none', knockbackResist: 1,
     behavior: 'reaper', invulnerable: true, deathFx: 'big',
   },
