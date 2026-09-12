@@ -534,11 +534,13 @@ export class GameScene extends Phaser.Scene {
           sfx.play('hit');
           break;
         case 'bossSpawned':
+          music.setMood('boss');
           this.toast(t('toast.boss', { name: this.enemyName(e.id) }));
           this.cameras.main.shake(400, 0.008);
           sfx.play('boss');
           break;
         case 'final':
+          music.setMood('final');
           this.toast(t('toast.final', { name: this.enemyName(e.id) }), 3600);
           this.cameras.main.shake(600, 0.01);
           sfx.play('boss');
@@ -566,6 +568,8 @@ export class GameScene extends Phaser.Scene {
           break;
         }
         case 'bossKilled':
+          // the final boss ends the run; any other one hands the field back to the ordinary fight
+          if (!this.sim.reg.enemies[e.id]?.boss?.final) music.setMood('battle');
           haptic('heavy');
           this.toast(t('toast.bossKilled', { name: this.enemyName(e.id) }), 3000);
           this.cameras.main.flash(400, 255, 255, 255);
@@ -819,6 +823,7 @@ export class GameScene extends Phaser.Scene {
       profileStop: (): FrameStats => this.profiler.stop(),
       getPerf: () => ({
         musicPlaying: music.isPlaying(),
+        musicMood: music.currentMood(),
         stickHeld: this.joystick.isActive(),
         fps: this.game.loop.actualFps,
         stepMs: this.profiler.lastSimMs,

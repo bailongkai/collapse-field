@@ -84,7 +84,10 @@ both subset in `public/assets/fonts` and loaded in `BootScene`. `textStyle` rout
 `bold: true` is a heading unless it says `plain`.
 
 Presentation that is not simulation belongs on the view side: the score in
-`src/game/audio/music.ts` is synthesised from the Web Audio clock, and the
+`src/game/audio/music.ts` is synthesised from the Web Audio clock over the arrangement in
+`audio/score.ts` (pure data, unit-tested), with a mood per situation — menu, battle, boss,
+final — that lands on the next bar so nothing is cut off. The menu takes the browser's required
+first gesture, so the score is playing before a run starts, and the
 ground shadows in `src/game/view/shadowView.ts` are a single Blitter. Shadows do
 more work than they look like: they are what makes sprites drawn from three
 different art packs read as standing on the same floor.

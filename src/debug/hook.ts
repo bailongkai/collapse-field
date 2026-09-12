@@ -6,6 +6,7 @@ import type { Locale } from '../i18n';
 import { getLocale, setLocale, tDynamic } from '../i18n';
 import { listButtons, pressButton } from '../game/ui/buttonRegistry';
 import { sfx } from '../game/audio/sfx';
+import { music } from '../game/audio/music';
 import { app } from '../game/app';
 import { loadSave, writeSave } from '../core/save/saveData';
 import { VERSION } from '../config';
@@ -106,7 +107,7 @@ export interface RunHandlers {
   getState(): HookRunState;
   profileStart(): void;
   profileStop(): FrameStats;
-  getPerf(): { fps: number; stepMs: number; syncMs: number; renderMs: number; renderer: string; activeSounds: number; musicPlaying?: boolean; stickHeld?: boolean };
+  getPerf(): { fps: number; stepMs: number; syncMs: number; renderMs: number; renderer: string; activeSounds: number; musicPlaying?: boolean; musicMood?: string; stickHeld?: boolean };
   toggleOverlay(): void;
 }
 
@@ -124,7 +125,7 @@ export interface GameDebugApi extends Omit<RunHandlers, 'profileStart' | 'profil
   screenshot(): Promise<string>;
   content(): { weapons: string[]; passives: string[]; enemies: string[]; pickups: string[]; characters: string[]; stages: string[] };
   i18n: { setLocale(l: Locale): void; getLocale(): Locale; t(k: string): string };
-  save: { get(): SaveData; reset(): void; addGold(n: number): void };
+  save: { get(): SaveData; set(s: SaveData): void; reset(): void; addGold(n: number): void };
   /** what the game reported about itself, for the tests */
   analytics(): readonly { name: string }[];
   mute(on: boolean): void;
@@ -219,6 +220,14 @@ export function installHook(game: Phaser.Game, contentProvider: () => GameDebugA
     },
     save: {
       get: () => loadSave(app().storage),
+      set: (next) => {
+        const ctx = app();
+        ctx.save = next;
+        writeSave(ctx.storage, next);
+        sfx.setVolume(next.settings.sfxVolume);
+        music.setVolume(next.settings.musicVolume);
+        music.setEnabled(!ctx.testMode && next.settings.musicVolume > 0);
+      },
       reset: () => app().storage.clear(),
       addGold: (n) => {
         const ctx = app();
@@ -284,7 +293,7 @@ export function installHook(game: Phaser.Game, contentProvider: () => GameDebugA
     getState: () => requireRun().getState(),
     getPerf: () => {
       if (run) return run.getPerf();
-      return { fps: game.loop.actualFps, stepMs: 0, syncMs: 0, renderMs: 0, renderer: rendererString(game), activeSounds: sfx.activeCount() };
+      return { fps: game.loop.actualFps, stepMs: 0, syncMs: 0, renderMs: 0, renderer: rendererString(game), activeSounds: sfx.activeCount(), musicPlaying: music.isPlaying(), musicMood: music.currentMood() };
     },
     toggleOverlay: () => requireRun().toggleOverlay(),
   };

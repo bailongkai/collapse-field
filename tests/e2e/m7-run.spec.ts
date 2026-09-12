@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openGame, snap, startRun, state, stepResolving, events, waitScene, expectScenes, press, realWait } from './helpers';
+import { openGame, snap, startRun, state, stepResolving, settleOverlays, events, waitScene, expectScenes, press, realWait } from './helpers';
 
 test('M7: the boss arrives, drops a chest and the chest upgrades a weapon', async ({ page }) => {
   const errors = await openGame(page, '?test=1&seed=31');
@@ -81,7 +81,9 @@ test('M7: fifteen minutes brings the final boss, and killing it is the clear', a
   await snap(page, 'm7-final');
 
   // the boss does not end the run by arriving: god mode holds, the fight goes on
+  // the blade keeps killing the boss's escorts, and a wreck chest can open over the fight
   await stepResolving(page, 60 * 5);
+  await settleOverlays(page);
   expect((await state(page)).phase).toBe('running');
   await page.evaluate(() => window.__game.killAll());
   await stepResolving(page, 2);

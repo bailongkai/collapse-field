@@ -74,6 +74,23 @@ export async function stepResolving(page: Page, ticks: number): Promise<number> 
   return done;
 }
 
+/**
+ * Clears whatever overlay is up — a chest reveal, a level-up offer — until the run is running
+ * again. Anything that kills enemies can drop a wreck chest, which pauses the run, so a test that
+ * asserts the clock is moving has to be willing to deal with one.
+ */
+export async function settleOverlays(page: Page, tries = 20): Promise<void> {
+  for (let i = 0; i < tries; i++) {
+    if (!(await page.evaluate(() => window.__game.hasRun()))) return;
+    const phase = (await state(page)).phase;
+    if (phase === 'running' || phase === 'ended' || phase === 'revivePrompt') return;
+    if (phase === 'levelup') await page.evaluate(() => window.__game.pickChoice(0));
+    else if (await page.evaluate(() => window.__game.activeScenes().includes('Chest'))) await press(page, 'chest.continue');
+    else return;
+    await realWait(60);
+  }
+}
+
 export function ff(page: Page, sec: number): Promise<void> {
   return page.evaluate((s) => window.__game.fastForward(s, { levelUpPolicy: 'first' }), sec);
 }

@@ -1,21 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { openGame, startRun, waitScene, state, events, step, press, snap, realWait } from './helpers';
-
-/** Presses through whatever overlay is up (a chest reveal, a level-up) until the run is running. */
-async function settle(page: Page): Promise<void> {
-  for (let i = 0; i < 20; i++) {
-    if (!(await page.evaluate(() => window.__game.hasRun()))) return;
-    const phase = (await state(page)).phase;
-    if (phase === 'running') return;
-    if (phase === 'levelup') {
-      await page.evaluate(() => window.__game.pickChoice(0));
-    } else if (await page.evaluate(() => window.__game.activeScenes().includes('Chest'))) {
-      // a revive's clear can drop a wreck chest, which opens its reveal over the run
-      await press(page, 'chest.continue');
-    }
-    await realWait(60);
-  }
-}
+import { openGame, startRun, waitScene, state, events, step, press, settleOverlays, snap, realWait } from './helpers';
 
 /** Surrounds the player with heavies and steps until the run is no longer running. */
 async function die(page: Page): Promise<void> {
@@ -32,7 +16,7 @@ async function die(page: Page): Promise<void> {
       continue;
     }
     if (phase === 'revivePrompt' || phase === 'ended') return;
-    await settle(page);
+    await settleOverlays(page);
   }
 }
 
@@ -49,7 +33,7 @@ test('revive: death opens the ad offer, and watching the ad puts the player back
   // the fake ad resolves at once under test; the overlay closes on its own once it has
   await press(page, 'revive.accept');
   await page.waitForFunction(() => window.__game.getState().adRevived === true);
-  await settle(page);
+  await settleOverlays(page);
   await waitScene(page, 'game');
   const s = await state(page);
   expect(s.adRevived).toBe(true);

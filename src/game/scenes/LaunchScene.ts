@@ -213,6 +213,7 @@ export class LaunchScene extends Phaser.Scene {
     // able to stop a run from starting
     try {
       music.start(() => audioContextOf(this.sound));
+      music.setMood('battle');
       music.setIntensity(0.15);
     } catch (error) {
       console.warn('music failed to start', error);

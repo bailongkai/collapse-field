@@ -9,6 +9,7 @@ import { IconRow } from '../ui/iconRow';
 import { commitRun, awardAchievements, grantGold, interstitialDue } from '../../core/save/saveData';
 import { analytics, getPlatform } from '../../platform';
 import { sfx } from '../audio/sfx';
+import { music } from '../audio/music';
 import { ACHIEVEMENTS as CONTENT_ACHIEVEMENTS, type AchievementDef } from '../../data/achievements';
 import { stageUnlockedBySurviving } from '../../core/save/unlocks';
 import { CONTENT } from '../../core/content/registry';
@@ -40,6 +41,8 @@ export class ResultsScene extends Phaser.Scene {
   }
 
   create(data: ResultsData): void {
+    music.setMood('menu');
+    music.setIntensity(0);
     const cx = this.scale.width / 2;
     const survived = data.ended === 'survived';
     const ctx = app();

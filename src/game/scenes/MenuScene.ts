@@ -6,6 +6,8 @@ import { UiButton } from '../ui/button';
 import { restartOnResize } from '../ui/responsive';
 import { isPortraitScene } from '../layout';
 import { app } from '../app';
+import { music } from '../audio/music';
+import { audioContextOf } from '../audio/context';
 
 export class MenuScene extends Phaser.Scene {
   private title!: Phaser.GameObjects.Text;
@@ -107,6 +109,12 @@ export class MenuScene extends Phaser.Scene {
     this.input.keyboard?.on('keydown-ENTER', () => this.startGame());
     this.input.keyboard?.on('keydown-SPACE', () => this.startGame());
 
+    // Browsers will not start audio before a gesture, so the menu takes the first one it gets —
+    // a press anywhere, a key, or the Start button on its way through startGame().
+    music.setMood('menu');
+    this.input.once('pointerdown', () => this.unlockAudio());
+    this.input.keyboard?.once('keydown', () => this.unlockAudio());
+
     if (window.__game) window.__game.ready = true;
   }
 
@@ -206,6 +214,15 @@ export class MenuScene extends Phaser.Scene {
     this.best.setText(save.bestTimeSec > 0 ? t('menu.best', { t: formatTime(save.bestTimeSec) }) : '');
   }
 
+  /** Starts the score if it is not already running; safe to call more than once. */
+  private unlockAudio(): void {
+    try {
+      music.start(() => audioContextOf(this.sound));
+    } catch (error) {
+      console.warn('music failed to start', error);
+    }
+  }
+
   private startGame(): void {
     if (!this.scene.get('Game')) {
       console.warn('Game scene not registered yet');
@@ -214,6 +231,7 @@ export class MenuScene extends Phaser.Scene {
     // the shop and settings are overlays on top of this scene, which still has the keyboard: Enter
     // would otherwise start a run underneath an open panel
     if (this.scene.isActive('Shop') || this.scene.isActive('Settings') || this.scene.isActive('Launch') || this.scene.isActive('Achievements') || this.scene.isActive('Bestiary')) return;
+    this.unlockAudio();
     this.scene.launch('Launch');
     this.scene.bringToTop('Launch');
   }
