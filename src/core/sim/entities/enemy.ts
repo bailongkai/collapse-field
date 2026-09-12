@@ -35,6 +35,11 @@ export interface Enemy {
   aiTimer: number;
   /** ms until the behavior's secondary timer fires (summons, shots) */
   aiTimer2: number;
+  /** ms since spawn; bosses read it for their enrage */
+  ageMs: number;
+  /** ms until the next volley or mine; the boss extras have their own clock */
+  aiTimer3: number;
+  enraged: boolean;
 }
 
 export function createEnemy(id: number): Enemy {
@@ -42,6 +47,6 @@ export function createEnemy(id: number): Enemy {
     id, serial: 0, active: false, defId: '', def: null, behavior: 'chase',
     x: 0, y: 0, hp: 0, maxHp: 0, radius: 0, kbx: 0, kby: 0, flashMs: 0,
     dirX: 0, dirY: 0, lineSpeed: 0, speedMult: 1, lifeMs: 0, isEvent: false, dmgMult: 1, facing: 0,
-    aiState: 0, aiTimer: 0, aiTimer2: 0,
+    aiState: 0, aiTimer: 0, aiTimer2: 0, ageMs: 0, aiTimer3: 0, enraged: false,
   };
 }

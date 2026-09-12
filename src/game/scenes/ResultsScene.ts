@@ -90,7 +90,7 @@ export class ResultsScene extends Phaser.Scene {
     const stage = data.stageId ? CONTENT.stages[data.stageId] : undefined;
     const rows: [string, string][] = [
       [t('results.stage'), (stage ? t(stage.nameKey) : '—') + (data.curse > 0 ? ` · ${t('results.challenge', { n: Math.round(data.curse * 100) })}` : '')],
-      [t('results.time'), formatTime(data.timeSec ?? 0)],
+      [t('results.time'), formatTime(data.timeSec ?? 0) + (!survived && (data.timeSec ?? 0) >= 900 ? ` · ${t('results.final_reached')}` : '')],
       [t('results.level'), String(data.level ?? 1)],
       [t('results.kills'), String(data.kills ?? 0)],
       [t('results.gold'), doubled ? t('results.doubled', { n: data.gold ?? 0 }) : String(data.gold ?? 0)],

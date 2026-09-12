@@ -568,6 +568,34 @@
       "zh": "轨道背景",
       "kind": "floor",
       "prompt": "Seamless tileable top-down floor texture for a 2D sci-fi game, 512x512, edges wrap perfectly, subtle low-contrast detail so sprites stay readable on top, muted colours, no objects, no text. Deep space: near-black with faint distant stars and a very subtle nebula haze, no bright objects."
+    },
+    {
+      "frame": "enemy_warden",
+      "size": 150,
+      "zh": "哨戒炮舰（Boss）",
+      "kind": "sprite",
+      "prompt": "Boss enemy, seen from directly above: a wide armoured gunship, dark grey hull with orange hazard trim, four cannon barrels arranged in a fan at the front, a red sensor dome on top, rear thrusters glowing. FACING RIGHT. 2D game sprite for a top-down sci-fi survivor game, BIRD'S-EYE VIEW: the camera looks straight down from directly above, like a top-down shooter sprite, so we see the top of the head or hull and the shoulders, never a front or side view, no horizon. Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, compact chunky proportions with a strong silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "enemy_crusher",
+      "size": 150,
+      "zh": "拆解机甲（Boss）",
+      "kind": "sprite",
+      "prompt": "Boss enemy, seen from directly above, FACING RIGHT: a massive industrial wrecker mech on four heavy treads, yellow-and-black hazard paint, one huge hydraulic claw and one drum-shaped crusher arm, mine dispensers on its back, red warning beacon. 2D game sprite for a top-down sci-fi survivor game, BIRD'S-EYE VIEW: the camera looks straight down from directly above, like a top-down shooter sprite, so we see the top of the head or hull and the shoulders, never a front or side view, no horizon. Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, compact chunky proportions with a strong silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "enemy_abomination",
+      "size": 150,
+      "zh": "畸变体（Boss）",
+      "kind": "sprite",
+      "prompt": "Boss enemy, seen from directly above: a grotesque mutant mass of purple and green alien flesh, several half-formed heads with orange eyes, tendrils spreading outward like a tractor beam, glowing green pustules, oozing. 2D game sprite for a top-down sci-fi survivor game, BIRD'S-EYE VIEW: the camera looks straight down from directly above, like a top-down shooter sprite, so we see the top of the head or hull and the shoulders, never a front or side view, no horizon. Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, compact chunky proportions with a strong silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "enemy_phantom",
+      "size": 150,
+      "zh": "幽灵巡洋舰（Boss）",
+      "kind": "sprite",
+      "prompt": "Boss enemy, seen from directly above, FACING RIGHT: a sleek long phantom cruiser, pale pink-magenta hull that looks half transparent with ghostly duplicate afterimages trailing behind it, glowing cyan seams, three engine flares. 2D game sprite for a top-down sci-fi survivor game, BIRD'S-EYE VIEW: the camera looks straight down from directly above, like a top-down shooter sprite, so we see the top of the head or hull and the shoulders, never a front or side view, no horizon. Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, compact chunky proportions with a strong silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
     }
   ]
 }

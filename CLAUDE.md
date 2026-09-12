@@ -66,6 +66,15 @@ like a run that simply ended. Enemy behaviour is a per-instance state machine on
 `aiState` / `aiTimer` / `aiTimer2`, which is how the ranged, dashing and boss
 enemies telegraph before they act.
 
+Every stage has three different bosses: its own at 5:00, a second one at 10:00 and the
+Annihilator at 15:00 (`WaveEvent` kind `'final'`, the only event of its kind, enforced by
+`validate.ts`). All of them share `bossStep`; what tells them apart is the extras in
+`BossConfig` (volley, mines, pull, blink) and, for the final, `final` with an enrage. Killing the
+final boss is what clears a stage — the timer never ends a run on its own, and a death after
+15:00 is a death. A screen clear (EMP pickup, revive) spares every boss; the debug hook's
+`killAll` does not, which is how tests finish a run. The old invulnerable reaper is gone: an
+ending nobody could fight felt like a bug to the player who reached it.
+
 Presentation that is not simulation belongs on the view side: the score in
 `src/game/audio/music.ts` is synthesised from the Web Audio clock, and the
 ground shadows in `src/game/view/shadowView.ts` are a single Blitter. Shadows do

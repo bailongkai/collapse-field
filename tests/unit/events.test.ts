@@ -120,45 +120,62 @@ describe('boss', () => {
   });
 });
 
-describe('reaper', () => {
-  it('spawns at the end of the run and is flagged', () => {
+describe('the final boss', () => {
+  it('spawns at fifteen minutes with a bar, and is flagged', () => {
     const s = newSim();
     s.setStatOverride('moveSpeed', 0);
     s.setTime(899.5);
     s.stepMany(60);
-    expect(s.run.reaperSpawned).toBe(true);
-    expect(byBehavior(s, 'reaper').length).toBe(1);
+    expect(s.run.finalSpawned).toBe(true);
+    expect(s.bossStatus()?.name).toBe('enemy.annihilator.name');
   });
 
-  it('always closes on the player, however fast they run', () => {
-    const s = newSim();
-    s.spawnReaper();
-    const reaper = byBehavior(s, 'reaper')[0];
-    reaper.x = s.world.player.x + 900;
-    reaper.y = s.world.player.y;
-    s.setStatOverride('moveSpeed', 4); // 800 px/s
-    s.setInput(1, 0);
-    const gap = () => Math.hypot(reaper.x - s.world.player.x, reaper.y - s.world.player.y);
-    const before = gap();
-    s.stepMany(120);
-    expect(gap()).toBeLessThan(before);
-  });
-
-  it('cannot be killed, ignores screen clears, and kills through god mode', () => {
+  it('killing it is the clear, and pays out gold', () => {
     const s = newSim();
     s.setStatOverride('moveSpeed', 0);
-    s.spawnReaper();
-    const reaper = byBehavior(s, 'reaper')[0];
-    s.damageEnemy(reaper, 1e9, 1, 0, 5);
-    expect(reaper.active).toBe(true);
-    s.killAllOnScreen();
-    expect(byBehavior(s, 'reaper').length).toBe(1);
-
-    reaper.x = s.world.player.x;
-    reaper.y = s.world.player.y;
-    s.run.god = true;
-    s.stepMany(2);
+    s.spawnFinal();
+    const boss = s.world.enemies.items.find((e) => e.active && e.def?.boss?.final)!;
+    const gold = s.run.gold;
+    s.damageEnemy(boss, 1e9, 1, 0, 0);
     expect(s.run.phase).toBe('ended');
+    expect(s.run.ended).toBe('survived');
+    expect(s.run.gold).toBeGreaterThan(gold);
+    expect(s.run.bossKills).toBe(1);
+  });
+
+  it('dying to it after the mark is still dying', () => {
+    const s = newSim();
+    s.setStatOverride('moveSpeed', 0);
+    s.setStatOverride('growth', 0); // no level-up offer may freeze the run on the way
+    s.run.god = false;
+    s.setTime(899.9);
+    s.stepMany(30);
+    s.spawn('mech', 30, { ring: true, radius: 40 });
+    s.stepMany(60 * 20);
+    expect(s.run.phase).toBe('ended');
+    expect(s.run.ended).toBe('died');
+  });
+
+  it('enrages after ninety seconds: faster than the player, twice the damage', () => {
+    const s = newSim();
+    s.spawnFinal();
+    const boss = s.world.enemies.items.find((e) => e.active && e.def?.boss?.final)!;
+    boss.x = s.world.player.x + 3000;
+    const dmg = boss.dmgMult;
+    s.run.god = true;
+    s.stepMany(60 * 91);
+    expect(boss.enraged).toBe(true);
+    expect(boss.dmgMult).toBeCloseTo(dmg * 2);
+    expect(boss.def!.speed * boss.speedMult).toBeGreaterThan(200 * 1.15);
+  });
+
+  it('a screen clear spares it, the way it spares every boss', () => {
+    const s = newSim();
+    s.spawn('drone', 40, { radius: 200 });
+    s.spawnFinal();
+    expect(s.killAllOnScreen()).toBe(40);
+    expect(s.bossStatus()).not.toBeNull();
+    expect(s.killAllOnScreen(true)).toBe(1);
   });
 });
 
@@ -193,14 +210,14 @@ describe('pickups', () => {
     for (const g of gems) expect(g.attracted).toBe(true);
   });
 
-  it('the EMP burst clears the screen but spares the reaper', () => {
+  it('the EMP burst clears the screen but spares a boss', () => {
     const s = newSim();
     s.spawn('drone', 40, { radius: 200 });
-    s.spawnReaper();
+    s.spawnBoss();
     s.spawnPickup('nuke', s.world.player.x, s.world.player.y);
     s.stepMany(2);
     expect(byBehavior(s, 'chase')).toHaveLength(0);
-    expect(byBehavior(s, 'reaper')).toHaveLength(1);
+    expect(byBehavior(s, 'boss')).toHaveLength(1);
   });
 
   it('the supply chest raises what the player already owns', () => {

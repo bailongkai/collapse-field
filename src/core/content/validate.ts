@@ -56,6 +56,8 @@ export function validateContent(frames?: ReadonlySet<string>): string[] {
     if (d.layer) check(CONTENT.enemies[d.layer.mine]?.behavior === 'bomber', `enemy ${key}: layer must lay a bomber, got "${d.layer.mine}"`);
     if (d.split) check(CONTENT.enemies[d.split.enemy] && !CONTENT.enemies[d.split.enemy]?.split, `enemy ${key}: split spawns "${d.split.enemy}", which must exist and not itself split`);
     if (d.boss) check(CONTENT.enemies[d.boss.summon], `enemy ${key}: boss summons unknown enemy "${d.boss.summon}"`);
+    if (d.boss?.mine) check(CONTENT.enemies[d.boss.mine.enemy]?.behavior === 'bomber', `enemy ${key}: boss must lay a bomber, got "${d.boss.mine.enemy}"`);
+    if (d.boss?.final) check(d.bossBar === true && d.behavior === 'boss', `enemy ${key}: a final boss must be a boss with a bar`);
     for (const drop of d.drops ?? []) check(CONTENT.pickups[drop.pickup], `enemy ${key}: unknown drop "${drop.pickup}"`);
   }
   for (const [key, d] of Object.entries(CONTENT.pickups)) {
@@ -96,7 +98,13 @@ export function validateContent(frames?: ReadonlySet<string>): string[] {
       prev = e.at;
       check(CONTENT.enemies[e.enemy], `stage ${key}: event ${i} references unknown enemy "${e.enemy}"`);
     });
-    check(s.events.some((e) => e.kind === 'reaper'), `stage ${key}: no reaper event`);
+    const finals = s.events.filter((e) => e.kind === 'final');
+    check(finals.length === 1, `stage ${key}: expected exactly one final boss event, got ${finals.length}`);
+    for (const f of finals) check(!!CONTENT.enemies[f.enemy]?.boss?.final, `stage ${key}: final boss "${f.enemy}" has no final config`);
+    // three different bosses at 5:00, 10:00 and 15:00, on every stage
+    const bossIds = s.events.filter((e) => e.kind === 'boss' || e.kind === 'final').map((e) => e.enemy);
+    check(new Set(bossIds).size === bossIds.length, `stage ${key}: a boss appears twice (${bossIds.join(', ')})`);
+    check(bossIds.length >= 3, `stage ${key}: fewer than three bosses`);
     if (s.props) check(CONTENT.enemies[s.props.enemy]?.behavior === 'prop', `stage ${key}: props must be a prop enemy, got "${s.props.enemy}"`);
     for (const o of s.obstacles ?? []) {
       check(o.w > 0 && o.h > 0, `stage ${key}: obstacle with a non-positive size`);

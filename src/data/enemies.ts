@@ -203,10 +203,55 @@ export const ENEMIES = {
     hp: 40, damage: 0, speed: 60, radius: 20, gemTier: 'none', knockbackResist: 1,
     behavior: 'prop', deathFx: 'big', drops: [{ pickup: 'coin', chance: 0.7 }, { pickup: 'vacuum', chance: 0.03 }],
   },
+  // ---- the second boss of each stage, at ten minutes ----
+  warden: {
+    id: 'warden', nameKey: 'enemy.warden.name', frame: 'enemy_warden', faceTarget: false,
+    hp: 520, damage: 26, speed: 45, radius: 62, gemTier: 'red', gemCount: 12, knockbackResist: 1,
+    behavior: 'boss', bossBar: true, drops: [{ pickup: 'bossChest', chance: 1 }], deathFx: 'big',
+    boss: {
+      chargeEveryMs: 9000, telegraphMs: 900, chargeMs: 600, chargeSpeedMult: 4, summon: 'interceptor', summonCount: 6, summonEveryMs: 10000,
+      volley: { everyMs: 2600, count: 5, spreadDeg: 44, boltSpeed: 260, boltDamage: 12 },
+    },
+  },
+  crusher: {
+    id: 'crusher', nameKey: 'enemy.crusher.name', frame: 'enemy_crusher', faceTarget: false,
+    hp: 640, damage: 34, speed: 55, radius: 62, gemTier: 'red', gemCount: 12, knockbackResist: 1,
+    behavior: 'boss', bossBar: true, drops: [{ pickup: 'bossChest', chance: 1 }], deathFx: 'big',
+    boss: {
+      chargeEveryMs: 3500, telegraphMs: 700, chargeMs: 800, chargeSpeedMult: 6, summon: 'loader', summonCount: 2, summonEveryMs: 14000,
+      mine: { enemy: 'mine', everyMs: 1800, max: 12 },
+    },
+  },
+  abomination: {
+    id: 'abomination', nameKey: 'enemy.abomination.name', frame: 'enemy_abomination', faceTarget: false,
+    hp: 760, damage: 22, speed: 40, radius: 66, gemTier: 'red', gemCount: 12, knockbackResist: 1,
+    behavior: 'boss', bossBar: true, drops: [{ pickup: 'bossChest', chance: 1 }], deathFx: 'big',
+    split: { enemy: 'spore', count: 12 },
+    boss: {
+      chargeEveryMs: 1e9, telegraphMs: 600, chargeMs: 400, chargeSpeedMult: 1, summon: 'splitter', summonCount: 3, summonEveryMs: 7000,
+      pull: { range: 280, strength: 110 },
+    },
+  },
+  phantom: {
+    id: 'phantom', nameKey: 'enemy.phantom.name', frame: 'enemy_phantom', faceTarget: false,
+    hp: 820, damage: 30, speed: 80, radius: 60, gemTier: 'red', gemCount: 14, knockbackResist: 1,
+    behavior: 'boss', bossBar: true, drops: [{ pickup: 'bossChest', chance: 1 }], deathFx: 'big',
+    boss: {
+      chargeEveryMs: 1e9, telegraphMs: 500, chargeMs: 500, chargeSpeedMult: 5, summon: 'phaser', summonCount: 3, summonEveryMs: 9000,
+      blink: { everyMs: 5000, distance: 280, telegraphMs: 500 },
+    },
+  },
+  // ---- the final boss, at fifteen minutes on every stage ----
   annihilator: {
     id: 'annihilator', nameKey: 'enemy.annihilator.name', frame: 'enemy_annihilator', faceTarget: false,
-    hp: 1e9, damage: 9999, speed: 220, radius: 50, gemTier: 'none', knockbackResist: 1,
-    behavior: 'reaper', invulnerable: true, deathFx: 'big',
+    hp: 3000, damage: 45, speed: 150, radius: 50, gemTier: 'none', knockbackResist: 1,
+    behavior: 'boss', bossBar: true, deathFx: 'big',
+    boss: {
+      chargeEveryMs: 5000, telegraphMs: 800, chargeMs: 600, chargeSpeedMult: 3.5, summon: 'interceptor', summonCount: 6, summonEveryMs: 8000,
+      volley: { everyMs: 3200, count: 7, spreadDeg: 70, boltSpeed: 300, boltDamage: 16 },
+      // ninety seconds of a fair fight; after that it outruns anyone and hits twice as hard
+      final: { enrageAfterMs: 90000, enrageSpeedMult: 1.6, enrageDmgMult: 2, gold: 300 },
+    },
   },
 } as const satisfies Record<string, EnemyDef>;
 

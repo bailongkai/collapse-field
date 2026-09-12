@@ -743,6 +743,34 @@
       "size": 30,
       "pack": "sci-fi-rts",
       "file": "PNG/Default size/Unit/scifiUnit_06.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_warden",
+      "size": 150,
+      "pack": "space-shooter-extension",
+      "file": "PNG/Sprites/Ships/spaceShips_004.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_crusher",
+      "size": 150,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_33.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_abomination",
+      "size": 150,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Environment/scifiEnvironment_02.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_phantom",
+      "size": 150,
+      "pack": "space-shooter-extension",
+      "file": "PNG/Sprites/Ships/spaceShips_006.png"
     }
   ],
   "font": {

@@ -25,17 +25,17 @@ export class EventScheduler {
     return this.next;
   }
 
-  /** Returns true when a reaper event fired this step. */
+  /** Returns true when the final boss event fired this step. */
   step(world: World, stage: StageDef, timeMs: number, viewW: number, viewH: number): boolean {
     const sec = timeMs / 1000;
-    let reaper = false;
+    let final = false;
     while (this.next < stage.events.length && stage.events[this.next].at <= sec) {
       const event = stage.events[this.next];
       this.fire(world, stage, event, viewW, viewH);
-      if (event.kind === 'reaper') reaper = true;
+      if (event.kind === 'final') final = true;
       this.next++;
     }
-    return reaper;
+    return final;
   }
 
   /** Fires one event by index regardless of the clock; used by the debug hook. */
@@ -99,13 +99,17 @@ export class EventScheduler {
         if (elite) world.events.push('elite', elite.x, elite.y, elite.maxHp, event.enemy, true);
         break;
       }
-      case 'reaper': {
-        const reaper = spawnEnemy(world, event.enemy, {
+      case 'final': {
+        const boss = spawnEnemy(world, event.enemy, {
           x: world.player.x + ring * 0.8,
           y: world.player.y - ring * 0.4,
           isEvent: true,
+          hpMult: event.hpMult,
         });
-        if (reaper) world.events.push('reaper', reaper.x, reaper.y, 0, event.enemy, true);
+        if (boss) {
+          world.events.push('bossSpawned', boss.x, boss.y, boss.maxHp, event.enemy, true);
+          world.events.push('final', boss.x, boss.y, 0, event.enemy, true);
+        }
         break;
       }
     }

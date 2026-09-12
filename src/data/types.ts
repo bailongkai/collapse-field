@@ -65,7 +65,7 @@ export interface PassiveDef {
   readonly perLevel: StatBlock;
 }
 
-export type EnemyBehaviorId = 'chase' | 'line' | 'boss' | 'reaper' | 'ranged' | 'dasher' | 'bomber' | 'healer' | 'tractor' | 'nest' | 'blink' | 'layer' | 'prop';
+export type EnemyBehaviorId = 'chase' | 'line' | 'boss'  | 'ranged' | 'dasher' | 'bomber' | 'healer' | 'tractor' | 'nest' | 'blink' | 'layer' | 'prop';
 export type GemTier = 'blue' | 'green' | 'red' | 'none';
 export interface EnemyDef {
   readonly id: string;
@@ -105,8 +105,28 @@ export interface EnemyDef {
   readonly layer?: { readonly mine: string; readonly intervalMs: number; readonly keepDistance: number; readonly maxMines: number };
   /** on death, this many of that enemy appear where it fell */
   readonly split?: { readonly enemy: string; readonly count: number };
-  /** boss behavior: periodic charge plus reinforcements */
-  readonly boss?: { readonly chargeEveryMs: number; readonly telegraphMs: number; readonly chargeMs: number; readonly chargeSpeedMult: number; readonly summon: string; readonly summonCount: number; readonly summonEveryMs: number };
+  /** boss behavior: periodic charge plus reinforcements, and whichever extras give this boss its own fight */
+  readonly boss?: BossConfig;
+}
+
+export interface BossConfig {
+  readonly chargeEveryMs: number;
+  readonly telegraphMs: number;
+  readonly chargeMs: number;
+  readonly chargeSpeedMult: number;
+  readonly summon: string;
+  readonly summonCount: number;
+  readonly summonEveryMs: number;
+  /** a fan of hostile bolts at the player on an interval */
+  readonly volley?: { readonly everyMs: number; readonly count: number; readonly spreadDeg: number; readonly boltSpeed: number; readonly boltDamage: number };
+  /** drops a `mine` (a bomber with no speed) where it stands, on an interval, up to `max` alive */
+  readonly mine?: { readonly enemy: string; readonly everyMs: number; readonly max: number };
+  /** drags the player towards itself inside `range` at up to `strength` px/s */
+  readonly pull?: { readonly range: number; readonly strength: number };
+  /** fades out and reappears `distance` from the player, then charges at once */
+  readonly blink?: { readonly everyMs: number; readonly distance: number; readonly telegraphMs: number };
+  /** the run's last boss: killing it is how a stage is cleared; after `enrageAfterMs` it stops being fair */
+  readonly final?: { readonly enrageAfterMs: number; readonly enrageSpeedMult: number; readonly enrageDmgMult: number; readonly gold: number };
 }
 
 export interface WaveEntry {
@@ -129,7 +149,7 @@ export type WaveEvent = { readonly at: number } & (
   | { readonly kind: 'swarm'; readonly enemy: string; readonly count: number; readonly pattern: 'hLine' | 'vLine' | 'diag'; readonly speedMult?: number }
   | { readonly kind: 'boss'; readonly enemy: string; readonly hpMult: number }
   | { readonly kind: 'ring'; readonly enemy: string; readonly count: number; readonly radius: number }
-  | { readonly kind: 'reaper'; readonly enemy: string }
+  | { readonly kind: 'final'; readonly enemy: string; readonly hpMult: number }
   /** One tough enemy carrying a reward, on its own: the run's punctuation between boss fights. */
   | { readonly kind: 'elite'; readonly enemy: string; readonly hpMult: number }
   /**

@@ -477,8 +477,11 @@ export class GameScene extends Phaser.Scene {
         case 'levelUp':
           hook?.pushEvent(`levelup:${e.n}`);
           break;
-        case 'reaper':
-          hook?.pushEvent('reaper');
+        case 'final':
+          hook?.pushEvent('final');
+          break;
+        case 'enrage':
+          hook?.pushEvent('enrage');
           break;
         case 'rush':
           hook?.pushEvent('rush');
@@ -532,9 +535,15 @@ export class GameScene extends Phaser.Scene {
           this.cameras.main.shake(400, 0.008);
           sfx.play('boss');
           break;
-        case 'reaper':
-          this.toast(t('toast.reaper'));
+        case 'final':
+          this.toast(t('toast.final', { name: this.enemyName(e.id) }), 3600);
           this.cameras.main.shake(600, 0.01);
+          sfx.play('boss');
+          break;
+        case 'enrage':
+          this.toast(t('toast.enrage', { name: this.enemyName(e.id) }), 3000);
+          this.cameras.main.flash(300, 255, 60, 60);
+          this.cameras.main.shake(500, 0.01);
           sfx.play('boss');
           break;
         case 'chest':
@@ -614,7 +623,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private emptyBehaviorCounts(): Record<EnemyBehaviorId, number> {
-    return { chase: 0, line: 0, boss: 0, reaper: 0, ranged: 0, dasher: 0, bomber: 0, healer: 0, tractor: 0, nest: 0, blink: 0, layer: 0, prop: 0 };
+    return { chase: 0, line: 0, boss: 0, ranged: 0, dasher: 0, bomber: 0, healer: 0, tractor: 0, nest: 0, blink: 0, layer: 0, prop: 0 };
   }
 
   private getState(): HookRunState {
@@ -662,7 +671,7 @@ export class GameScene extends Phaser.Scene {
       stats: sim.stats,
       choices: run.choices,
       god: run.god,
-      reaperSpawned: run.reaperSpawned,
+      finalSpawned: run.finalSpawned,
       ended: run.ended,
     };
   }
@@ -748,10 +757,10 @@ export class GameScene extends Phaser.Scene {
       },
       spawn: (id: string, n: number, o) => this.sim.spawn(id, n, o),
       spawnBoss: () => this.sim.spawnBoss(),
-      spawnReaper: () => this.sim.spawnReaper(),
-      despawnReaper: () => this.sim.despawnReaper(),
+      spawnFinal: () => this.sim.spawnFinal(),
+      despawnFinal: () => this.sim.despawnFinal(),
       killAll: () => {
-        this.sim.killAllOnScreen();
+        this.sim.killAllOnScreen(true);
       },
       clearEnemies: () => this.sim.world.enemies.clear(),
       triggerEvent: (i: number) => {

@@ -81,17 +81,20 @@ describe('Simulation', () => {
     expect(s.world.player.hp).toBe(52);
   });
 
-  it('does not end the run on the timer alone: the reaper is what closes it', () => {
+  it('does not end the run on the timer alone: the final boss is what closes it', () => {
     const s = newSim();
     s.setStatOverride('moveSpeed', 0);
+    s.setStatOverride('growth', 0); // its summons would level the player and freeze the run on an offer
     s.setTime(899.9);
     s.stepMany(30);
     expect(s.run.phase).toBe('running');
-    expect(s.run.reaperSpawned).toBe(true);
+    expect(s.run.finalSpawned).toBe(true);
 
-    // the reaper kills through everything, and reaching fifteen minutes counts as surviving
+    // it is a boss like the others: god mode holds, and only its death ends the run
     s.run.god = true;
     s.stepMany(60 * 20);
+    expect(s.run.phase).toBe('running');
+    s.killAllOnScreen(true);
     expect(s.run.phase).toBe('ended');
     expect(s.run.ended).toBe('survived');
   });

@@ -7,7 +7,7 @@ export interface ContactResult {
   damage: number;
   /** the enemy that made contact, hit or not; -1 when nothing touched */
   enemyId: number;
-  /** true when the contact was the reaper, which ignores armor, i-frames and god mode */
+  /** true for a contact nothing mitigates; no enemy deals one now, the flag stays for the revive rules */
   fatal: boolean;
 }
 
@@ -20,7 +20,7 @@ const CONTACT_SLACK = 14;
 
 /**
  * Enemy-versus-player contact. One damage instance per step at most: the first overlapping enemy
- * lands the hit and starts the i-frame window. The reaper is exempt from every mitigation.
+ * lands the hit and starts the i-frame window. Nothing is exempt from mitigation any more; the final boss is a boss like the others.
  */
 /**
  * Applies one instance of damage to the player with armor, i-frames and god mode, and reports the
@@ -51,7 +51,6 @@ export function stepContact(world: World, stats: PlayerStats, god: boolean): Con
   const playerRadius = 16;
 
   let hitEnemyIndex = -1;
-  let reaperHit = false;
   for (let i = 0; i < n; i++) {
     const e = world.enemies.items[world.queryBuf[i]];
     if (!e.active || !e.def || e.def.behavior === 'prop') continue; // scenery does not bite
@@ -59,21 +58,9 @@ export function stepContact(world: World, stats: PlayerStats, god: boolean): Con
     const dx = e.x - p.x;
     const dy = e.y - p.y;
     if (dx * dx + dy * dy > rr * rr) continue;
-    if (e.behavior === 'reaper') {
-      reaperHit = true;
-      break;
-    }
     // a bomber that is touched takes priority over a body that merely bites: standing on a mine
     // while a drone chews on you is still standing on a mine
     if (hitEnemyIndex < 0 || (e.behavior === 'bomber' && world.enemies.items[hitEnemyIndex].behavior !== 'bomber')) hitEnemyIndex = e.id;
-  }
-
-  if (reaperHit) {
-    p.hp = 0;
-    out.damage = 9999;
-    out.fatal = true;
-    world.events.push('hurt', p.x, p.y, 9999, 'annihilator', true);
-    return out;
   }
 
   if (hitEnemyIndex < 0) return out;

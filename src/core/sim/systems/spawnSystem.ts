@@ -77,6 +77,9 @@ export function spawnEnemy(world: World, defId: string, o: SpawnOptions = {}): E
   e.aiState = 0;
   e.aiTimer = 0;
   e.aiTimer2 = 0;
+  e.aiTimer3 = 0;
+  e.ageMs = 0;
+  e.enraged = false;
   // a body that lands inside a wall is nudged out, so a wall is never a spawn cage
   if (world.obstacles.length > 0 && resolveCircle(world.obstacles, e.x, e.y, e.radius, scratch)) {
     e.x = scratch.x;
@@ -136,7 +139,7 @@ export class Spawner {
 
   /**
    * Tops the field up to the wave row's minimum, then relocates enemies that have fallen far
-   * behind the player back onto the ring. Line, boss and reaper enemies are exempt from that
+   * behind the player back onto the ring. Line and boss enemies are exempt from that
    * relocation: a swarm must be allowed to cross the screen and a boss must never teleport.
    */
   private propMs = 0;
@@ -185,7 +188,7 @@ export class Spawner {
         if (along > halfSpan + 200 || e.lifeMs <= 0) world.enemies.free(e);
         return;
       }
-      if (e.behavior === 'boss' || e.behavior === 'reaper') return;
+      if (e.behavior === 'boss') return;
       const dx = e.x - world.player.x;
       const dy = e.y - world.player.y;
       if (dx * dx + dy * dy <= far2) return;

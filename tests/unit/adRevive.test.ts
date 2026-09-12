@@ -58,12 +58,14 @@ describe('the ad revive offer', () => {
     expect(s.run.phase).toBe('ended');
   });
 
-  it('is not offered against the reaper', () => {
+  it('is offered in the final fight too: the last boss is a boss like the others', () => {
     const s = new Simulation({ seed: 5, characterId: 'survivor', stageId: 'station', adRevive: true });
-    s.setTime(899);
-    s.stepMany(60 * 30);
-    // the reaper spawns and catches a standing player; that death is fatal
-    expect(s.run.phase).toBe('ended');
+    s.setStatOverride('growth', 0);
+    s.setTime(899.9);
+    s.stepMany(30);
+    s.spawn('mech', 30, { ring: true, radius: 40 });
+    s.stepMany(60 * 20);
+    expect(s.run.phase).toBe('revivePrompt');
   });
 
   it('cannot be accepted or declined at any other time', () => {

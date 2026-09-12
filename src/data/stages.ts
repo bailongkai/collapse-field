@@ -46,7 +46,7 @@ const EVENTS: readonly WaveEvent[] = byTime([
   { at: 390, kind: 'swarm', enemy: 'interceptor', count: 35, pattern: 'diag' },
   { at: 510, kind: 'elite', enemy: 'sentinel', hpMult: 3.2 },
   { at: 540, kind: 'encircle', enemy: 'interceptor', count: 16, gapEvery: 5 },
-  { at: 600, kind: 'boss', enemy: 'mothership', hpMult: 5.5 }, // 2200 hp: about 13 s, on a build ten times stronger
+  { at: 600, kind: 'boss', enemy: 'warden', hpMult: 4.2 }, // 2180 hp: about 13 s, on a build ten times stronger
   { at: 690, kind: 'ring', enemy: 'robot', count: 40, radius: 520 },
   { at: 660, kind: 'encircle', enemy: 'robot', count: 16, gapEvery: 5 },
   { at: 700, kind: 'elite', enemy: 'sentinel', hpMult: 4.5 },
@@ -54,7 +54,7 @@ const EVENTS: readonly WaveEvent[] = byTime([
   { at: 810, kind: 'swarm', enemy: 'interceptor', count: 50, pattern: 'hLine', speedMult: 1.2 },
   { at: 850, kind: 'elite', enemy: 'sentinel', hpMult: 5.5 },
   { at: 870, kind: 'encircle', enemy: 'hound', count: 18, gapEvery: 5 },
-  { at: 900, kind: 'reaper', enemy: 'annihilator' },
+  { at: 900, kind: 'final', enemy: 'annihilator', hpMult: 2.2 },
 ]);
 
 /** 货运甲板: fewer, harder bodies. The density is low so every hit lands on something that matters. */
@@ -85,13 +85,13 @@ const CARGO_EVENTS: readonly WaveEvent[] = byTime([
   { at: 510, kind: 'elite', enemy: 'sentinel', hpMult: 3.6 },
   { at: 540, kind: 'encircle', enemy: 'robot', count: 12, gapEvery: 4 },
   { at: 570, kind: 'swarm', enemy: 'dasher', count: 24, pattern: 'diag' },
-  { at: 600, kind: 'boss', enemy: 'hauler', hpMult: 4.5 },
+  { at: 600, kind: 'boss', enemy: 'crusher', hpMult: 3.5 },
   { at: 660, kind: 'encircle', enemy: 'hound', count: 12, gapEvery: 4 },
   { at: 700, kind: 'elite', enemy: 'sentinel', hpMult: 5 },
   { at: 750, kind: 'ring', enemy: 'loader', count: 12, radius: 520 },
   { at: 780, kind: 'encircle', enemy: 'hound', count: 12, gapEvery: 4 },
   { at: 850, kind: 'elite', enemy: 'sentinel', hpMult: 6 },
-  { at: 900, kind: 'reaper', enemy: 'annihilator' },
+  { at: 900, kind: 'final', enemy: 'annihilator', hpMult: 2.4 },
 ]);
 
 /** 生物实验舱: numbers. Weak bodies in great quantity, with the swarm events doubled. */
@@ -126,7 +126,7 @@ const LAB_EVENTS: readonly WaveEvent[] = byTime([
   { at: 560, kind: 'hatchAll', enemy: 'spore', count: 10 },
   { at: 510, kind: 'elite', enemy: 'sentinel', hpMult: 3.2 },
   { at: 540, kind: 'encircle', enemy: 'infected', count: 18, gapEvery: 6, speedMult: 1.1 },
-  { at: 600, kind: 'boss', enemy: 'broodmother', hpMult: 4 },
+  { at: 600, kind: 'boss', enemy: 'abomination', hpMult: 3 },
   { at: 690, kind: 'swarm', enemy: 'infected', count: 70, pattern: 'diag' },
   { at: 700, kind: 'elite', enemy: 'sentinel', hpMult: 4.5 },
   { at: 720, kind: 'ring', enemy: 'hatchery', count: 5, radius: 440 },
@@ -134,7 +134,7 @@ const LAB_EVENTS: readonly WaveEvent[] = byTime([
   { at: 780, kind: 'ring', enemy: 'spitter', count: 40, radius: 520 },
   { at: 810, kind: 'encircle', enemy: 'hound', count: 12, gapEvery: 4 },
   { at: 850, kind: 'elite', enemy: 'sentinel', hpMult: 5.5 },
-  { at: 900, kind: 'reaper', enemy: 'annihilator' },
+  { at: 900, kind: 'final', enemy: 'annihilator', hpMult: 2.5 },
 ]);
 
 /**
@@ -168,13 +168,13 @@ const ORBIT_EVENTS: readonly WaveEvent[] = byTime([
   { at: 420, kind: 'swarm', enemy: 'asteroid', count: 22, pattern: 'hLine', speedMult: 1.6 },
   { at: 510, kind: 'elite', enemy: 'sentinel', hpMult: 3.2 },
   { at: 540, kind: 'ring', enemy: 'escort', count: 24, radius: 520 },
-  { at: 600, kind: 'boss', enemy: 'flagship', hpMult: 4 },
+  { at: 600, kind: 'boss', enemy: 'phantom', hpMult: 2.8 },
   { at: 690, kind: 'ring', enemy: 'raider', count: 50, radius: 520 },
   { at: 740, kind: 'swarm', enemy: 'asteroid', count: 28, pattern: 'diag', speedMult: 1.8 },
   { at: 700, kind: 'elite', enemy: 'sentinel', hpMult: 4.5 },
   { at: 810, kind: 'swarm', enemy: 'interceptor', count: 60, pattern: 'hLine', speedMult: 1.4 },
   { at: 850, kind: 'elite', enemy: 'sentinel', hpMult: 5.5 },
-  { at: 900, kind: 'reaper', enemy: 'annihilator' },
+  { at: 900, kind: 'final', enemy: 'annihilator', hpMult: 2.7 },
 ]);
 
 export const STAGES = {

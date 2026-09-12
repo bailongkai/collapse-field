@@ -21,7 +21,7 @@ import type { World } from '../world';
  * Moves every enemy, and reports the bombers whose fuse ran out this step so the simulation, which
  * owns player damage and enemy death, can resolve the blasts.
  */
-export function stepEnemies(world: World, player: Player, dt: number, playerSpeed: number, detonated: Enemy[]): void {
+export function stepEnemies(world: World, player: Player, dt: number, detonated: Enemy[]): void {
   detonated.length = 0;
   world.enemies.forEach((e) => {
     switch (e.behavior) {
@@ -50,19 +50,6 @@ export function stepEnemies(world: World, player: Player, dt: number, playerSpee
         e.y += e.dirY * e.lineSpeed * dt;
         e.lifeMs -= dt * 1000;
         break;
-      case 'reaper': {
-        // always closes on the player, whatever their move speed
-        const speed = Math.max(e.def!.speed, 1.15 * playerSpeed);
-        const dx = player.x - e.x;
-        const dy = player.y - e.y;
-        const len = Math.hypot(dx, dy);
-        if (len > 0.001) {
-          e.x += (dx / len) * speed * dt;
-          e.y += (dy / len) * speed * dt;
-          e.facing = Math.atan2(dy, dx);
-        }
-        break;
-      }
       case 'ranged':
         rangedStep(world, e, player, dt);
         break;

@@ -25,9 +25,11 @@ changing what art the game uses.
 ## The game
 
 Fifteen minutes on one map. Enemies arrive in waves that thicken every minute,
-the mothership comes at 5:00 and 10:00, and at 15:00 an invulnerable reaper
-arrives and ends the run however strong you are. Killing enemies drops XP; each
-level offers three upgrades to pick from.
+a boss comes at 5:00 and a different one at 10:00, and at 15:00 the final boss
+arrives: the Annihilator, with three times the health of the last one. Killing
+it clears the stage; dying after the mark is still dying, and after ninety
+seconds it enrages and outruns anyone. Killing enemies drops XP; each level
+offers three upgrades to pick from.
 
 | | Desktop | Touch |
 |---|---|---|

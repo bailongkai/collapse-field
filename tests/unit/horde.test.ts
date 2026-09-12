@@ -213,25 +213,25 @@ describe('kills and drops', () => {
     expect(total).toBe(cap + 20);
   });
 
-  it('the invulnerable reaper cannot be damaged or killed', () => {
+  it('the final boss can be damaged and killed like any boss', () => {
     const s = newSim();
     s.run.god = true;
     s.spawn('annihilator', 1, { x: 400, y: 0 });
     const e = s.world.enemies.items[s.world.enemies.aliveList()[0]];
-    s.damageEnemy(e, 1e9, 1, 0, 5);
-    expect(e.active).toBe(true);
-    expect(s.killAllOnScreen()).toBe(0);
-    expect(s.world.enemies.count).toBe(1);
+    s.damageEnemy(e, 10, 1, 0, 0);
+    expect(e.hp).toBe(e.maxHp - 10);
+    expect(s.killAllOnScreen()).toBe(0); // a screen clear spares bosses
+    expect(s.killAllOnScreen(true)).toBe(1);
   });
 
-  it('the reaper kills through god mode', () => {
+  it('god mode holds against the final boss', () => {
     const s = newSim();
     s.run.god = true;
     s.setStatOverride('moveSpeed', 0);
     s.spawn('annihilator', 1, { x: 0, y: 0 });
-    s.stepMany(2);
-    expect(s.run.phase).toBe('ended');
-    expect(s.run.ended).toBe('died');
+    s.stepMany(60);
+    expect(s.run.phase).toBe('running');
+    expect(s.run.hp).toBe(s.stats.maxHealth);
   });
 });
 

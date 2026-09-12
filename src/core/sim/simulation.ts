@@ -1,4 +1,4 @@
-import { FIXED_DT, FIXED_DT_MS, REF_AREA, REF_H, REF_W, RUN_SECONDS } from '../../config';
+import { FIXED_DT, FIXED_DT_MS, REF_AREA, REF_H, REF_W } from '../../config';
 import type { PlayerStats, StatBlock, StatKey } from '../../data/types';
 import { CONTENT, characterDef, stageDef, type ContentRegistry } from '../content/registry';
 import { composeStats } from '../stats/composeStats';
@@ -29,7 +29,7 @@ import type { GemTier } from '../../data/types';
 import type { WeaponContext, WeaponInstance } from '../weapons/types';
 import { ENEMY_CAP, WEAPON_SLOTS, PASSIVE_SLOTS } from '../../config';
 import type { Enemy } from './entities/enemy';
-import { PLAYER_BASE_SPEED, PLAYER_RADIUS } from '../../config';
+import { PLAYER_RADIUS } from '../../config';
 import type { ChestResult, LevelUpChoice, OwnedItem, RunEnd, RunPhase } from './runState';
 
 export interface SimulationOptions {
@@ -98,7 +98,7 @@ export interface RunState {
   chestQueue: ChestResult[];
   /** how many chests this run has opened, for the results screen */
   chestsOpened: number;
-  reaperSpawned: boolean;
+  finalSpawned: boolean;
   ended?: RunEnd;
   god: boolean;
 }
@@ -175,7 +175,7 @@ export class Simulation {
       adRevived: false,
       chestQueue: [],
       chestsOpened: 0,
-      reaperSpawned: false,
+      finalSpawned: false,
       god: false,
     };
     this.signature = createSignature(ch.signature);
@@ -294,8 +294,8 @@ export class Simulation {
       world.player.y = this.scratch.y;
     }
     this.spawner.step(world, stage, run.timeMs, stats.curse, dt, this.viewW, this.viewH);
-    if (this.events.step(world, stage, run.timeMs, this.viewW, this.viewH)) run.reaperSpawned = true;
-    stepEnemies(world, world.player, dt, PLAYER_BASE_SPEED * stats.moveSpeed, this.detonated);
+    if (this.events.step(world, stage, run.timeMs, this.viewW, this.viewH)) run.finalSpawned = true;
+    stepEnemies(world, world.player, dt, this.detonated);
     for (const b of this.detonated) this.detonate(b);
     world.rebuildGrid();
     stepSeparation(world, world.rng, this.viewW, this.viewH);
@@ -343,8 +343,9 @@ export class Simulation {
   }
 
   /**
-   * Death check. Reaching the fifteen-minute mark counts as surviving even though the reaper is
-   * what finally kills you, which is how the timer resolves: it never ends the run on its own.
+   * Death check. The timer never ends a run on its own: fifteen minutes brings the final boss, and
+   * only its death is a clear. Dying after the mark is still dying, with the results saying how
+   * far that was.
    */
   private onPlayerHurt(fatal: boolean): void {
     const { run, world } = this;
@@ -372,9 +373,8 @@ export class Simulation {
       return;
     }
     run.phase = 'ended';
-    const survived = run.timeMs >= RUN_SECONDS * 1000;
-    run.ended = survived ? 'survived' : 'died';
-    world.events.push(survived ? 'survived' : 'died', world.player.x, world.player.y, run.timeMs / 1000);
+    run.ended = 'died';
+    world.events.push('died', world.player.x, world.player.y, run.timeMs / 1000);
   }
 
   /** Damage entry point shared by every weapon; handles knockback, flash, death and drops. */
@@ -394,13 +394,13 @@ export class Simulation {
 
   private scratch = { x: 0, y: 0 };
 
-  /** Ground bodies slide around walls; rushes cross over, scenery sits where it is, the reaper cares about nothing. */
+  /** Ground bodies slide around walls; rushes cross over, scenery sits where it is. */
   private keepEnemiesOutOfWalls(): void {
     const world = this.world;
     const alive = world.enemies.aliveList();
     for (let i = 0; i < world.enemies.count; i++) {
       const e = world.enemies.items[alive[i]];
-      if (e.behavior === 'line' || e.behavior === 'reaper' || e.behavior === 'prop') continue;
+      if (e.behavior === 'line' || e.behavior === 'prop') continue;
       if (resolveCircle(world.obstacles, e.x, e.y, e.radius, this.scratch)) {
         e.x = this.scratch.x;
         e.y = this.scratch.y;
@@ -439,17 +439,30 @@ export class Simulation {
       this.run.bossKills++;
       this.world.events.push('bossKilled', e.x, e.y, 0, e.defId, true);
     }
+    const final = e.def.boss?.final;
+    if (final) {
+      // the stage is cleared the moment it dies; the gold stands in for the chest a run that is
+      // over could never open
+      this.run.gold += Math.round(final.gold * this.cachedStats.greed);
+      this.world.enemies.free(e);
+      this.endRun('survived');
+      return;
+    }
     // the children are spawned before the parent's slot is freed, so a handle to the parent goes
     // dead instead of quietly becoming one of its own spores
     if (split) spawnRing(this.world, split.enemy, split.count, 18, { x: sx, y: sy, hpMult: 1, dmgMult: e.dmgMult, speedMult: e.speedMult });
     this.world.enemies.free(e);
   }
 
-  /** Kills every vulnerable enemy currently on screen (EMP pickup, revival). */
-  killAllOnScreen(): number {
+  /**
+   * Kills every enemy currently on screen. The EMP pickup and a revive spare the bosses: a boss
+   * is a fight, and a 0.2% drop deciding it would make the fight not matter.
+   */
+  killAllOnScreen(includeBosses = false): number {
     let killed = 0;
     this.world.enemies.forEach((e) => {
       if (e.def?.invulnerable) return;
+      if (!includeBosses && e.def?.bossBar) return;
       this.killEnemy(e);
       killed++;
     });
@@ -664,19 +677,19 @@ export class Simulation {
     if (index >= 0) this.events.fireIndex(this.world, this.stage, index, this.viewW, this.viewH);
   }
 
-  spawnReaper(): void {
-    const index = this.stage.events.findIndex((e) => e.kind === 'reaper');
+  spawnFinal(): void {
+    const index = this.stage.events.findIndex((e) => e.kind === 'final');
     if (index >= 0) {
       this.events.fireIndex(this.world, this.stage, index, this.viewW, this.viewH);
-      this.run.reaperSpawned = true;
+      this.run.finalSpawned = true;
     }
   }
 
-  despawnReaper(): void {
+  despawnFinal(): void {
     this.world.enemies.forEach((e) => {
-      if (e.behavior === 'reaper') this.world.enemies.free(e);
+      if (e.def?.boss?.final) this.world.enemies.free(e);
     });
-    this.run.reaperSpawned = false;
+    this.run.finalSpawned = false;
   }
 
   /** Grants XP, levelling as many times as it covers; each level queues one level-up offer. */

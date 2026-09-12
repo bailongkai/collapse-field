@@ -57,7 +57,7 @@ export interface HookRunState {
   stats: PlayerStats;
   choices: LevelUpChoice[] | null;
   god: boolean;
-  reaperSpawned: boolean;
+  finalSpawned: boolean;
   ended?: RunEnd;
 }
 
@@ -77,8 +77,8 @@ export interface RunHandlers {
   setPlayerPos(x: number, y: number): void;
   spawn(enemyId: string, n: number, o?: { ring?: boolean; radius?: number | 'offscreen'; x?: number; y?: number }): number;
   spawnBoss(): void;
-  spawnReaper(): void;
-  despawnReaper(): void;
+  spawnFinal(): void;
+  despawnFinal(): void;
   killAll(): void;
   clearEnemies(): void;
   triggerEvent(index: number): void;
@@ -256,8 +256,8 @@ export function installHook(game: Phaser.Game, contentProvider: () => GameDebugA
     setPlayerPos: (x, y) => requireRun().setPlayerPos(x, y),
     spawn: (id, n, o) => requireRun().spawn(id, n, o),
     spawnBoss: () => requireRun().spawnBoss(),
-    spawnReaper: () => requireRun().spawnReaper(),
-    despawnReaper: () => requireRun().despawnReaper(),
+    spawnFinal: () => requireRun().spawnFinal(),
+    despawnFinal: () => requireRun().despawnFinal(),
     killAll: () => requireRun().killAll(),
     clearEnemies: () => requireRun().clearEnemies(),
     triggerEvent: (i) => requireRun().triggerEvent(i),

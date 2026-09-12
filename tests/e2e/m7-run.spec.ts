@@ -63,7 +63,7 @@ test('M7: a swarm crosses the field', async ({ page }) => {
   expect(errors, errors.join('\n')).toEqual([]);
 });
 
-test('M7: surviving to fifteen minutes brings the reaper and the results screen', async ({ page }) => {
+test('M7: fifteen minutes brings the final boss, and killing it is the clear', async ({ page }) => {
   const errors = await openGame(page, '?test=1&seed=51');
   await startRun(page, 51);
   await waitScene(page, 'game');
@@ -76,17 +76,22 @@ test('M7: surviving to fifteen minutes brings the reaper and the results screen'
   });
 
   await stepResolving(page, 120);
-  expect(await events(page)).toContain('reaper');
-  expect((await state(page)).reaperSpawned).toBe(true);
+  expect(await events(page)).toContain('final');
+  expect((await state(page)).finalSpawned).toBe(true);
+  await snap(page, 'm7-final');
 
-  // the reaper kills through god mode, and reaching the mark counts as surviving
-  await stepResolving(page, 60 * 30);
+  // the boss does not end the run by arriving: god mode holds, the fight goes on
+  await stepResolving(page, 60 * 5);
+  expect((await state(page)).phase).toBe('running');
+  await page.evaluate(() => window.__game.killAll());
+  await stepResolving(page, 2);
   await waitScene(page, 'results');
   await snap(page, 'm7-results');
 
   const save = await page.evaluate(() => window.__game.save.get());
   expect(save.runsPlayed).toBe(1);
   expect(save.bestTimeSec).toBeGreaterThan(890);
+  expect(save.unlocks.stages).toContain('station');
 
   expect(errors, errors.join('\n')).toEqual([]);
 });
