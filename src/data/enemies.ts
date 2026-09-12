@@ -241,7 +241,43 @@ export const ENEMIES = {
       blink: { everyMs: 5000, distance: 280, telegraphMs: 500 },
     },
   },
-  // ---- the final boss, at fifteen minutes on every stage ----
+  // ---- the final bosses, at fifteen minutes: one per stage, each the stage's own idea taken to the end ----
+  juggernaut: {
+    id: 'juggernaut', nameKey: 'enemy.juggernaut.name', frame: 'enemy_juggernaut', faceTarget: false,
+    hp: 3600, damage: 55, speed: 110, radius: 74, gemTier: 'none', knockbackResist: 1,
+    behavior: 'boss', bossBar: true, deathFx: 'big',
+    boss: {
+      // the deck's answer: slow, enormous, and the floor behind it is a minefield
+      chargeEveryMs: 4000, telegraphMs: 900, chargeMs: 900, chargeSpeedMult: 6, summon: 'loader', summonCount: 3, summonEveryMs: 12000,
+      mine: { enemy: 'mine', everyMs: 1200, max: 20 },
+      final: { enrageAfterMs: 90000, enrageSpeedMult: 2.2, enrageDmgMult: 2, gold: 300 },
+    },
+  },
+  hivequeen: {
+    id: 'hivequeen', nameKey: 'enemy.hivequeen.name', frame: 'enemy_hivequeen', faceTarget: false,
+    hp: 3000, damage: 40, speed: 95, radius: 78, gemTier: 'none', knockbackResist: 1,
+    behavior: 'boss', bossBar: true, deathFx: 'big',
+    split: { enemy: 'spore', count: 20 },
+    boss: {
+      // the lab's answer: never charges, pulls you into the brood it keeps hatching
+      chargeEveryMs: 1e9, telegraphMs: 600, chargeMs: 400, chargeSpeedMult: 1, summon: 'spore', summonCount: 14, summonEveryMs: 3500,
+      pull: { range: 340, strength: 150 },
+      final: { enrageAfterMs: 90000, enrageSpeedMult: 2.5, enrageDmgMult: 2, gold: 300 },
+    },
+  },
+  voidship: {
+    id: 'voidship', nameKey: 'enemy.voidship.name', frame: 'enemy_voidship', faceTarget: false,
+    hp: 3200, damage: 45, speed: 170, radius: 64, gemTier: 'none', knockbackResist: 1,
+    behavior: 'boss', bossBar: true, deathFx: 'big',
+    boss: {
+      // the orbit's answer: it is already fast, and it does not need to cross the gap to reach you
+      chargeEveryMs: 1e9, telegraphMs: 450, chargeMs: 500, chargeSpeedMult: 4.5, summon: 'phaser', summonCount: 4, summonEveryMs: 8000,
+      blink: { everyMs: 4000, distance: 300, telegraphMs: 450 },
+      volley: { everyMs: 2800, count: 9, spreadDeg: 360, boltSpeed: 240, boltDamage: 14 },
+      final: { enrageAfterMs: 90000, enrageSpeedMult: 1.5, enrageDmgMult: 2, gold: 300 },
+    },
+  },
+  // the station's, and the first one a player meets
   annihilator: {
     id: 'annihilator', nameKey: 'enemy.annihilator.name', frame: 'enemy_annihilator', faceTarget: false,
     hp: 3000, damage: 45, speed: 150, radius: 50, gemTier: 'none', knockbackResist: 1,

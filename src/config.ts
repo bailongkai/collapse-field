@@ -93,7 +93,7 @@ export const HIT_FLASH_MS = 80;
  * the grid stores an enemy's centre: a body whose centre is outside the query box can still
  * overlap it. A content test keeps this in step with the data.
  */
-export const MAX_ENEMY_RADIUS = 72;
+export const MAX_ENEMY_RADIUS = 80;
 /** the player's body, for walls; contact uses its own slack */
 export const PLAYER_RADIUS = 16;
 

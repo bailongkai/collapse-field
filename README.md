@@ -25,10 +25,11 @@ changing what art the game uses.
 ## The game
 
 Fifteen minutes on one map. Enemies arrive in waves that thicken every minute,
-a boss comes at 5:00 and a different one at 10:00, and at 15:00 the final boss
-arrives: the Annihilator, with three times the health of the last one. Killing
-it clears the stage; dying after the mark is still dying, and after ninety
-seconds it enrages and outruns anyone. Killing enemies drops XP; each level
+a boss comes at 5:00, a different one at 10:00, and at 15:00 the stage's own
+final boss with about three times the health of the last one: the Annihilator on
+the station, the Juggernaut on the cargo deck, the Hive Queen in the lab, the
+Void Mothership in orbit. Killing it clears the stage; dying after the mark is
+still dying, and after ninety seconds it enrages and outruns anyone. Killing enemies drops XP; each level
 offers three upgrades to pick from.
 
 | | Desktop | Touch |

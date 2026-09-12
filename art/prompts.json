@@ -596,6 +596,27 @@
       "zh": "幽灵巡洋舰（Boss）",
       "kind": "sprite",
       "prompt": "Boss enemy, seen from directly above, FACING RIGHT: a sleek long phantom cruiser, pale pink-magenta hull that looks half transparent with ghostly duplicate afterimages trailing behind it, glowing cyan seams, three engine flares. 2D game sprite for a top-down sci-fi survivor game, BIRD'S-EYE VIEW: the camera looks straight down from directly above, like a top-down shooter sprite, so we see the top of the head or hull and the shoulders, never a front or side view, no horizon. Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, compact chunky proportions with a strong silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "enemy_juggernaut",
+      "size": 190,
+      "zh": "巨神机甲（最终Boss）",
+      "kind": "sprite",
+      "prompt": "Final boss enemy, seen from directly above, FACING RIGHT: a colossal industrial juggernaut mech, a walking fortress on six massive treads, thick rust-orange and black armour plates with dents and rivets, two giant hydraulic crushing arms, mine racks on the back, glowing red furnace vents. Overwhelming mass. 2D game sprite for a top-down sci-fi survivor game, BIRD'S-EYE VIEW: the camera looks straight down from directly above, like a top-down shooter sprite, so we see the top of the head or hull and the shoulders, never a front or side view, no horizon. Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, compact chunky proportions with a strong silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "enemy_hivequeen",
+      "size": 190,
+      "zh": "虫巢女王（最终Boss）",
+      "kind": "sprite",
+      "prompt": "Final boss enemy, seen from directly above: a monstrous alien hive queen, a vast bloated purple-and-green body ringed with pulsing yellow egg sacs, a crown of bone spikes, dozens of tendrils reaching outward, a glowing green core visible through translucent flesh. Regal and grotesque. 2D game sprite for a top-down sci-fi survivor game, BIRD'S-EYE VIEW: the camera looks straight down from directly above, like a top-down shooter sprite, so we see the top of the head or hull and the shoulders, never a front or side view, no horizon. Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, compact chunky proportions with a strong silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
+    },
+    {
+      "frame": "enemy_voidship",
+      "size": 180,
+      "zh": "虚空母舰（最终Boss）",
+      "kind": "sprite",
+      "prompt": "Final boss enemy, seen from directly above, FACING RIGHT: an enormous void mothership, a wide black crescent-shaped hull with violet energy veins, a ring of nine cannon ports around a glowing white-violet core, ghostly afterimages fading behind it, engines burning cyan. Alien, otherworldly. 2D game sprite for a top-down sci-fi survivor game, BIRD'S-EYE VIEW: the camera looks straight down from directly above, like a top-down shooter sprite, so we see the top of the head or hull and the shoulders, never a front or side view, no horizon. Clean cel-shaded vector look with bold dark outlines, flat colours with one shade of shadow, saturated palette: cyan accent #4fe0ff, warning orange #ff8a3d, dark navy metal #16243a, off-white #e8eef5. One single object, centred, filling the frame, compact chunky proportions with a strong silhouette that still reads at 48 pixels. No ground, no cast shadow, no text, no watermark, no border, fully transparent background."
     }
   ]
 }

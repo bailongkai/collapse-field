@@ -325,4 +325,7 @@ export const en: Partial<Record<I18nKey, string>> = {
   'toast.final': 'Final battle: {name} has come!',
   'toast.enrage': '{name} is enraged!',
   'results.final_reached': 'Reached the final battle',
+  'enemy.juggernaut.name': 'Juggernaut',
+  'enemy.hivequeen.name': 'Hive Queen',
+  'enemy.voidship.name': 'Void Mothership',
 };

@@ -91,7 +91,7 @@ const CARGO_EVENTS: readonly WaveEvent[] = byTime([
   { at: 750, kind: 'ring', enemy: 'loader', count: 12, radius: 520 },
   { at: 780, kind: 'encircle', enemy: 'hound', count: 12, gapEvery: 4 },
   { at: 850, kind: 'elite', enemy: 'sentinel', hpMult: 6 },
-  { at: 900, kind: 'final', enemy: 'annihilator', hpMult: 2.4 },
+  { at: 900, kind: 'final', enemy: 'juggernaut', hpMult: 2.0 },
 ]);
 
 /** 生物实验舱: numbers. Weak bodies in great quantity, with the swarm events doubled. */
@@ -134,7 +134,7 @@ const LAB_EVENTS: readonly WaveEvent[] = byTime([
   { at: 780, kind: 'ring', enemy: 'spitter', count: 40, radius: 520 },
   { at: 810, kind: 'encircle', enemy: 'hound', count: 12, gapEvery: 4 },
   { at: 850, kind: 'elite', enemy: 'sentinel', hpMult: 5.5 },
-  { at: 900, kind: 'final', enemy: 'annihilator', hpMult: 2.5 },
+  { at: 900, kind: 'final', enemy: 'hivequeen', hpMult: 2.5 },
 ]);
 
 /**
@@ -174,7 +174,7 @@ const ORBIT_EVENTS: readonly WaveEvent[] = byTime([
   { at: 700, kind: 'elite', enemy: 'sentinel', hpMult: 4.5 },
   { at: 810, kind: 'swarm', enemy: 'interceptor', count: 60, pattern: 'hLine', speedMult: 1.4 },
   { at: 850, kind: 'elite', enemy: 'sentinel', hpMult: 5.5 },
-  { at: 900, kind: 'final', enemy: 'annihilator', hpMult: 2.7 },
+  { at: 900, kind: 'final', enemy: 'voidship', hpMult: 2.6 },
 ]);
 
 export const STAGES = {

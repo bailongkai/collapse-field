@@ -771,6 +771,27 @@
       "size": 150,
       "pack": "space-shooter-extension",
       "file": "PNG/Sprites/Ships/spaceShips_006.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_juggernaut",
+      "size": 190,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Unit/scifiUnit_33.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_hivequeen",
+      "size": 190,
+      "pack": "sci-fi-rts",
+      "file": "PNG/Default size/Environment/scifiEnvironment_02.png"
+    },
+    {
+      "atlas": "game",
+      "frame": "enemy_voidship",
+      "size": 180,
+      "pack": "space-shooter-extension",
+      "file": "PNG/Sprites/Ships/spaceShips_007.png"
     }
   ],
   "font": {

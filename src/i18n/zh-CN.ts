@@ -323,4 +323,7 @@ export const zhCN = {
   'toast.final': '最终决战：{name}出现！',
   'toast.enrage': '{name}狂暴了！',
   'results.final_reached': '到达终局战',
+  'enemy.juggernaut.name': '巨神机甲',
+  'enemy.hivequeen.name': '虫巢女王',
+  'enemy.voidship.name': '虚空母舰',
 } as const;
