@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { getLocale, setLocale, t } from '../../i18n';
 import { COLORS, textStyle } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
+import { techPanel } from '../ui/panel';
 import { restartOnResize } from '../ui/responsive';
 import { fitPanel } from '../layout';
 import { sfx } from '../audio/sfx';
@@ -27,7 +28,7 @@ export class SettingsScene extends Phaser.Scene {
     this.add.rectangle(cx, cy, this.scale.width, this.scale.height, 0x05070c, 0.7);
     const panel = fitPanel(this, 560, 440);
     const col = Math.min(220, panel.w / 2 - 24);
-    this.add.nineslice(cx, cy, 'ui', 'panel_glass', panel.w, panel.h, 24, 24, 24, 24).setAlpha(0.97).setTint(0x16243a);
+    techPanel(this, cx, cy, panel.w, panel.h, { alpha: 0.97, tint: 0x16243a, rule: true });
     this.add.text(cx, cy - 170, t('settings.title'), textStyle(30, { bold: true, color: COLORS.accent })).setOrigin(0.5);
 
     this.add.text(cx - col, cy - 90, t('settings.language'), textStyle(18, { color: COLORS.dim })).setOrigin(0, 0.5);

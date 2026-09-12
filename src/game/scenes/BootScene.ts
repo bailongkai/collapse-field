@@ -27,15 +27,22 @@ export class BootScene extends Phaser.Scene {
    */
   private async loadFonts(): Promise<void> {
     if (typeof document === 'undefined' || !('fonts' in document)) return;
-    const timeout = new Promise<void>((r) => setTimeout(r, 2000));
+    const timeout = new Promise<void>((r) => setTimeout(r, 3000));
     const load = (async () => {
-      try {
-        const face = new FontFace('kenvector_future', "url('assets/fonts/kenvector_future.ttf')");
-        await face.load();
-        document.fonts.add(face);
-      } catch {
-        // the CJK stack is a system font and always available; the display font is decorative
-      }
+      const faces: [string, string][] = [
+        ['Smiley Sans', 'assets/fonts/SmileySans-subset.ttf'],
+        ['Orbitron', 'assets/fonts/Orbitron-subset.ttf'],
+        ['kenvector_future', 'assets/fonts/kenvector_future.ttf'],
+      ];
+      await Promise.all(faces.map(async ([family, url]) => {
+        try {
+          const face = new FontFace(family, `url('${url}')`);
+          await face.load();
+          document.fonts.add(face);
+        } catch {
+          // the CJK stack is a system font and always available; the display faces are decorative
+        }
+      }));
       await document.fonts.load('16px "PingFang SC"').catch(() => undefined);
     })();
     await Promise.race([load, timeout]);

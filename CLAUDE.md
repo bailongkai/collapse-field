@@ -76,6 +76,13 @@ final boss is what clears a stage — the timer never ends a run on its own, and
 `killAll` does not, which is how tests finish a run. The old invulnerable reaper is gone: an
 ending nobody could fight felt like a bug to the player who reached it.
 
+The interface has one look and one place to change it: `ui/panel.ts` draws every overlay (glass
+slab, hairline, corner brackets, heading rule) and `button_tech` in the ui atlas is every button,
+both generated in `build-atlas.mjs` rather than taken from an art pack. Two bundled faces carry
+the type: Smiley Sans for headings and anything bold, Orbitron for latin display and numbers,
+both subset in `public/assets/fonts` and loaded in `BootScene`. `textStyle` routes them, so
+`bold: true` is a heading unless it says `plain`.
+
 Presentation that is not simulation belongs on the view side: the score in
 `src/game/audio/music.ts` is synthesised from the Web Audio clock, and the
 ground shadows in `src/game/view/shadowView.ts` are a single Blitter. Shadows do

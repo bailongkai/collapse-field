@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { techPanel } from '../ui/panel';
 import { restartOnResize } from '../ui/responsive';
 import { fitPanel, minTouchUnits } from '../layout';
 import { t } from '../../i18n';
@@ -61,7 +62,7 @@ export class LevelUpScene extends Phaser.Scene {
     this.add.rectangle(this.scale.width / 2, this.scale.height / 2, this.scale.width, this.scale.height, 0x05070c, 0.6);
     const panelH = 140 + footer + choices.length * (this.cardH + gap);
     const panelW = this.cardW + 80;
-    this.add.nineslice(this.scale.width / 2, this.scale.height / 2, 'ui', 'panel_glass', panelW, panelH, 24, 24, 24, 24).setAlpha(0.96).setTint(PANEL_TINT);
+    techPanel(this, this.scale.width / 2, this.scale.height / 2, panelW, panelH, { alpha: 0.96, tint: PANEL_TINT, rule: false });
     this.add
       .text(this.scale.width / 2, this.scale.height / 2 - panelH / 2 + Math.round(42 * this.scaleUi), t('levelup.title'), textStyle(Math.round(32 * this.scaleUi), { bold: true, color: COLORS.accent }))
       .setOrigin(0.5);

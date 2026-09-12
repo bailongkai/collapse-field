@@ -1,7 +1,10 @@
 import type Phaser from 'phaser';
 
 export const FONT_CJK = '"PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif';
-export const FONT_DISPLAY = `"kenvector_future", ${FONT_CJK}`;
+/** headings and buttons: a condensed oblique CJK face with some speed in it, bundled and subset */
+export const FONT_TITLE = `"Smiley Sans", ${FONT_CJK}`;
+/** latin display: the wide geometric face for taglines, numbers and labels */
+export const FONT_DISPLAY = `"Orbitron", "kenvector_future", ${FONT_CJK}`;
 
 export const COLORS = {
   text: '#e8f1ff',
@@ -23,11 +26,15 @@ export interface StyleOpts {
   align?: 'left' | 'center' | 'right';
   stroke?: boolean;
   wrapWidth?: number;
+  /** the heading face; every bold text takes it unless `plain` says otherwise */
+  title?: boolean;
+  plain?: boolean;
+  letterSpacing?: number;
 }
 
 export function textStyle(size: number, o: StyleOpts = {}): Phaser.Types.GameObjects.Text.TextStyle {
   const s: Phaser.Types.GameObjects.Text.TextStyle = {
-    fontFamily: o.display ? FONT_DISPLAY : FONT_CJK,
+    fontFamily: o.display ? FONT_DISPLAY : o.title || (o.bold && !o.plain) ? FONT_TITLE : FONT_CJK,
     fontSize: `${size}px`,
     fontStyle: o.bold ? 'bold' : 'normal',
     color: o.color ?? COLORS.text,
@@ -40,5 +47,6 @@ export function textStyle(size: number, o: StyleOpts = {}): Phaser.Types.GameObj
     s.strokeThickness = Math.max(2, Math.round(size / 8));
   }
   if (o.wrapWidth) s.wordWrap = { width: o.wrapWidth, useAdvancedWrap: true };
+  if (o.letterSpacing) s.letterSpacing = o.letterSpacing;
   return s;
 }

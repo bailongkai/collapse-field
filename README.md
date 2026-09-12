@@ -111,6 +111,12 @@ and, on `main`, deploys the built game to GitHub Pages. Enable Pages with
 "GitHub Actions" as the source; the build uses relative asset paths, so it works
 from a repository subpath without configuration.
 
+## Fonts
+
+Headings use Smiley Sans (得意黑) and latin display uses Orbitron, both SIL OFL and subset to
+the game's strings in `public/assets/fonts`. Re-subset with `fontTools.subset` if new strings add
+characters; a missing glyph falls back to the system CJK stack, it never breaks the layout.
+
 ## Credits
 
 All art and sound effects by [Kenney](https://kenney.nl), CC0. See `CREDITS.md`.

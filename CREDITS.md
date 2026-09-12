@@ -52,3 +52,11 @@ The person who associated a work with this deed has dedicated the work to the pu
 You can copy, modify, distribute and perform the work, even for commercial purposes, all without asking permission.
 
 Full legal text: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+
+## Fonts
+
+- **Smiley Sans (得意黑)** by atelier Anchor — SIL Open Font License 1.1. Subset to the game's
+  strings; the full font and license are at https://github.com/atelier-anchor/smiley-sans.
+- **Orbitron** by Matt McInerney — SIL Open Font License 1.1, https://github.com/theleagueof/orbitron.
+  Subset to the game's strings.
+

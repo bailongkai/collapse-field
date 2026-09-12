@@ -3,6 +3,7 @@ import { formatTime, t } from '../../i18n';
 import { COLORS, textStyle } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
 import { registerButton } from '../ui/buttonRegistry';
+import { techPanel } from '../ui/panel';
 import { restartOnResize } from '../ui/responsive';
 import { fitPanel, isPortraitScene, minTouchUnits } from '../layout';
 import { app } from '../app';
@@ -72,7 +73,7 @@ export class LaunchScene extends Phaser.Scene {
     const top = cy - panel.h / 2;
 
     this.add.rectangle(cx, cy, this.scale.width, this.scale.height, 0x05070c, 0.85);
-    this.add.nineslice(cx, cy, 'ui', 'panel_glass', panel.w, panel.h, 24, 24, 24, 24).setAlpha(0.97).setTint(PANEL_TINT);
+    techPanel(this, cx, cy, panel.w, panel.h, { alpha: 0.97, tint: PANEL_TINT, rule: true });
     this.add.text(cx, top + 36 * k, t('launch.title'), textStyle(Math.round(28 * k), { bold: true, color: COLORS.accent })).setOrigin(0.5);
 
     const leftX = cx - panel.w / 2 + 24;

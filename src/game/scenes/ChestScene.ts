@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { techPanel } from '../ui/panel';
 import { restartOnResize } from '../ui/responsive';
 import { fitPanel, minTouchUnits } from '../layout';
 import { t } from '../../i18n';
@@ -105,7 +106,7 @@ export class ChestScene extends Phaser.Scene {
     const cy = this.scale.height / 2;
 
     this.add.rectangle(cx, cy, this.scale.width, this.scale.height, 0x05070c, 0.62);
-    this.add.nineslice(cx, cy, 'ui', 'panel_glass', panelW, panelH, 24, 24, 24, 24).setAlpha(0.96).setTint(PANEL_TINT);
+    techPanel(this, cx, cy, panelW, panelH, { alpha: 0.96, tint: PANEL_TINT, rule: false });
 
     const titleKey = result.grade === 'boss' ? 'chest.title_boss' : 'chest.title';
     this.add

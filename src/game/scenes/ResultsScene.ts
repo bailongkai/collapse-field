@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { formatTime, t } from '../../i18n';
 import { textStyle, COLORS } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
+import { techPanel } from '../ui/panel';
 import { restartOnResize } from '../ui/responsive';
 import { fitPanel } from '../layout';
 import { IconRow } from '../ui/iconRow';
@@ -82,7 +83,7 @@ export class ResultsScene extends Phaser.Scene {
     const cy = this.scale.height / 2;
     const panel = fitPanel(this, 720, 640);
     this.add.rectangle(cx, cy, this.scale.width, this.scale.height, 0x05070c, 0.93);
-    this.add.nineslice(cx, cy, 'ui', 'panel_glass', panel.w, panel.h, 24, 24, 24, 24).setAlpha(0.97).setTint(0x16243a);
+    techPanel(this, cx, cy, panel.w, panel.h, { alpha: 0.97, tint: 0x16243a, rule: true });
     this.add
       .text(cx, cy - panel.h / 2 + 52, survived ? t('results.survived') : t('results.died'), textStyle(Math.round(Math.min(44, panel.w * 0.075)), { bold: true, color: survived ? COLORS.good : COLORS.warn }))
       .setOrigin(0.5);

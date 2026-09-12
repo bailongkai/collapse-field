@@ -61,6 +61,27 @@ async function loadCustom(path, size) {
   return img;
 }
 
+/**
+ * A nine-sliced sci-fi button: dark glass with a thin cyan edge and clipped corners. Drawn here so
+ * the UI does not depend on a third art pack for its most-touched element.
+ */
+function drawTechButton(size = 48, edge = [0x4f, 0xe0, 0xff], fill = [0x10, 0x1c, 0x2e], edgeAlpha = 0.85) {
+  const img = new Jimp({ width: size, height: size, color: 0x00000000 });
+  const cut = 7; // clipped corner
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const dx = Math.min(x, size - 1 - x);
+    const dy = Math.min(y, size - 1 - y);
+    if (dx + dy < cut) continue; // outside the clipped corner
+    const onEdge = dx + dy < cut + 2 || dx < 2 || dy < 2;
+    // a faint vertical gradient so the face reads as glass
+    const g = 1 - (y / size) * 0.35;
+    const [r, gg, b] = onEdge ? edge : fill.map((c) => Math.round(c * g));
+    const a = onEdge ? Math.round(255 * edgeAlpha) : 235;
+    img.setPixelColor(((r << 24) | (gg << 16) | (b << 8) | a) >>> 0, x, y);
+  }
+  return img;
+}
+
 // --- procedural frames -------------------------------------------------------
 function drawSlash(w = 128, h = 48) {
   const img = new Jimp({ width: w, height: h, color: 0x00000000 });
@@ -269,6 +290,9 @@ async function main() {
     }
     groups[e.atlas].push({ path: e.frame + '.png', contents: await img.getBuffer('image/png') });
   }
+  groups.ui.push({ path: 'button_tech.png', contents: await drawTechButton().getBuffer('image/png') });
+  groups.ui.push({ path: 'button_tech_dim.png', contents: await drawTechButton(48, [0x3a, 0x4a, 0x60], [0x0c, 0x14, 0x20], 0.7).getBuffer('image/png') });
+  groups.ui.push({ path: 'panel_tech.png', contents: await drawTechButton(64, [0x4f, 0xe0, 0xff], [0x0b, 0x14, 0x22], 0.45).getBuffer('image/png') });
   const procedural = [
     ['fx_slash', drawSlash()],
     ['pk_chest', existsSync(join(CUSTOM, 'pk_chest.png')) ? await loadCustom(join(CUSTOM, 'pk_chest.png'), 48) : drawChest()],

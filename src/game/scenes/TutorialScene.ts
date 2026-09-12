@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { t } from '../../i18n';
 import { COLORS, textStyle } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
+import { techPanel } from '../ui/panel';
 import { restartOnResize } from '../ui/responsive';
 import { fitPanel } from '../layout';
 import { sfx } from '../audio/sfx';
@@ -36,7 +37,7 @@ export class TutorialScene extends Phaser.Scene {
     const panel = fitPanel(this, 600, 340);
     const k = Math.min(1, panel.w / 600);
     this.add.rectangle(cx, cy, this.scale.width, this.scale.height, 0x05070c, 0.7);
-    this.add.nineslice(cx, cy, 'ui', 'panel_glass', panel.w, panel.h, 24, 24, 24, 24).setAlpha(0.97).setTint(0x16243a);
+    techPanel(this, cx, cy, panel.w, panel.h, { alpha: 0.97, tint: 0x16243a, rule: false });
     this.add.text(cx, cy - panel.h / 2 + 40 * k, t('tutorial.title'), textStyle(Math.round(26 * k), { bold: true, color: COLORS.accent })).setOrigin(0.5);
     this.body = this.add
       .text(cx, cy - 10 * k, '', textStyle(Math.round(17 * k), { color: COLORS.text, wrapWidth: panel.w - 64, align: 'center' }))

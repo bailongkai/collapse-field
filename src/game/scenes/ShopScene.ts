@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { t, tDynamic } from '../../i18n';
 import { COLORS, textStyle } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
+import { techPanel } from '../ui/panel';
 import { restartOnResize } from '../ui/responsive';
 import { fitPanel, isPortraitScene } from '../layout';
 import { UPGRADE_LIST } from '../../data/upgrades';
@@ -47,7 +48,7 @@ export class ShopScene extends Phaser.Scene {
     const colW = wide ? (panel.w - 72) / 2 : panel.w - 48;
     const left = cx - panel.w / 2 + 24;
     this.add.rectangle(cx, cy, this.scale.width, this.scale.height, 0x05070c, 0.85);
-    this.add.nineslice(cx, cy, 'ui', 'panel_glass', panel.w, panel.h, 24, 24, 24, 24).setAlpha(0.97).setTint(0x16243a);
+    techPanel(this, cx, cy, panel.w, panel.h, { alpha: 0.97, tint: 0x16243a, rule: true });
     this.add.text(left, cy - panel.h / 2 + 36, t('shop.title'), textStyle(26, { bold: true, color: COLORS.accent })).setOrigin(0, 0.5);
     this.add
       .text(cx + panel.w / 2 - 24, cy - panel.h / 2 + 36, t('shop.gold', { n: ctx.save.gold }), textStyle(20, { bold: true, color: COLORS.gold }))

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { t } from '../../i18n';
 import { COLORS, textStyle } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
+import { techPanel } from '../ui/panel';
 import { restartOnResize } from '../ui/responsive';
 import { fitPanel, isPortraitScene } from '../layout';
 import { app } from '../app';
@@ -32,7 +33,7 @@ export class BestiaryScene extends Phaser.Scene {
     const met = ENEMY_LIST.filter((e) => save.seen.includes(e.id)).length;
 
     this.add.rectangle(cx, cy, this.scale.width, this.scale.height, 0x05070c, 0.85);
-    this.add.nineslice(cx, cy, 'ui', 'panel_glass', panel.w, panel.h, 24, 24, 24, 24).setAlpha(0.97).setTint(0x16243a);
+    techPanel(this, cx, cy, panel.w, panel.h, { alpha: 0.97, tint: 0x16243a, rule: true });
     this.add.text(cx - panel.w / 2 + 24, cy - panel.h / 2 + 36 * k, t('bestiary.title'), textStyle(Math.round(26 * k), { bold: true, color: COLORS.accent })).setOrigin(0, 0.5);
     this.add
       .text(cx + panel.w / 2 - 24, cy - panel.h / 2 + 36 * k, t('bestiary.progress', { a: met, b: ENEMY_LIST.length }), textStyle(Math.round(18 * k), { bold: true, color: COLORS.gold }))

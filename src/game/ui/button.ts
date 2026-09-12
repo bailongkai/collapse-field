@@ -34,9 +34,9 @@ export class UiButton extends Phaser.GameObjects.Container {
     const w = opts.width ?? 260;
     const h = opts.height ?? 56;
     this.onPress = opts.onPress;
-    this.bg = scene.add.nineslice(0, 0, 'ui', opts.frame ?? 'button_rect', w, h, 12, 12, 12, 12);
+    this.bg = scene.add.nineslice(0, 0, 'ui', opts.frame ?? 'button_tech', w, h, 12, 12, 12, 12);
     this.label = scene.add
-      .text(0, 0, opts.icon ? '' : opts.label, textStyle(opts.fontSize ?? 22, { bold: true, color: '#0b1a2a' }))
+      .text(0, 0, opts.icon ? '' : opts.label, textStyle(opts.fontSize ?? 22, { bold: true, color: COLORS.text, letterSpacing: 1 }))
       .setOrigin(0.5);
     this.add([this.bg, this.label]);
     if (opts.icon) this.add(scene.add.image(0, 0, 'game', opts.icon).setDisplaySize(Math.round(h * 0.55), Math.round(h * 0.55)));
@@ -58,7 +58,7 @@ export class UiButton extends Phaser.GameObjects.Container {
     });
     this.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       this.armedPointer = pointer.id;
-      this.bg.setTint(0xbfd9ff);
+      this.bg.setTint(0x9fd8ff);
     });
     this.on('pointerup', (pointer: Phaser.Input.Pointer) => {
       this.setHighlight(true);
@@ -81,13 +81,14 @@ export class UiButton extends Phaser.GameObjects.Container {
 
   setHighlight(on: boolean): void {
     if (!this.enabled) return;
-    this.bg.setTint(on ? 0xdff3ff : 0xffffff);
+    this.bg.setTint(on ? 0xcdeeff : 0xffffff);
     this.setScale(on ? 1.03 : 1);
   }
 
   setEnabled(on: boolean): this {
     this.enabled = on;
-    this.setAlpha(on ? 1 : 0.5);
+    this.setAlpha(on ? 1 : 0.55);
+    this.bg.setFrame(on ? 'button_tech' : 'button_tech_dim');
     return this;
   }
 
