@@ -25,7 +25,8 @@ never from `Date.now` or a Phaser timer.
   itself (`'hold'`, which is how the orbit weapon waits for its drones).
 - `src/data/` — all content. Balance changes belong here and nowhere else.
 - `src/game/view/` — pooled display objects. Views read simulation state; they
-  never write it.
+  never write it. Sprites are single frames; `anim.ts` gives them a walk, a recoil,
+  a hit squash and a dash stretch as pure functions of what the view already knows.
 - `src/debug/hook.ts` — `window.__game`, the only way the tests drive the game.
 
 ## The shape of a run

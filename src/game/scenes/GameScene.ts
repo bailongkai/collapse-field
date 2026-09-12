@@ -19,6 +19,7 @@ import { PickupView } from '../view/pickupView';
 import { ProjectileView } from '../view/projectileView';
 import { DamageNumbers } from '../view/damageNumbers';
 import { FxView } from '../view/fxView';
+import { recoilKindFor } from '../view/anim';
 import { Profiler } from '../../debug/profiler';
 import type { FrameStats, HookRunState, RunHandlers } from '../../debug/hook';
 import { rendererString } from '../../debug/hook';
@@ -423,7 +424,7 @@ export class GameScene extends Phaser.Scene {
     this.playerView.update(p, this.sim.run.hp, this.sim.stats.maxHealth, deltaMs);
     this.floorView.update(cam.midPoint.x, cam.midPoint.y, cam.scrollX, cam.scrollY, viewW, viewH);
     this.shadowView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH);
-    this.enemyView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH);
+    this.enemyView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH, deltaMs);
     this.carriedView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH, deltaMs);
     this.relicView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH, deltaMs);
     this.gemView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH);
@@ -521,8 +522,10 @@ export class GameScene extends Phaser.Scene {
           break;
         case 'shot': {
           // every weapon has its own voice; the bus rate-limits per key so a burst is one sound
-          const key = this.sim.reg.weapons[e.id]?.visual.sfx as Parameters<typeof sfx.play>[0] | undefined;
+          const wdef = this.sim.reg.weapons[e.id];
+          const key = wdef?.visual.sfx as Parameters<typeof sfx.play>[0] | undefined;
           if (key) sfx.play(key, { volume: 0.45 });
+          if (wdef) this.playerView.recoil(recoilKindFor(wdef.behavior));
           break;
         }
         case 'hit':
