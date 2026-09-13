@@ -7,12 +7,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: false
 
 jobs:
   verify:
@@ -33,6 +27,8 @@ jobs:
       - run: npm run test:mobile
       # timing-sensitive; runs on the shared runner for regressions in CPU cost, not frame time
       - run: npm run test:perf
+      # the site is published by pushing the built dist to the gh-pages branch, which is what
+      # Pages serves; this job only proves the build still compiles
       - run: npm run build
       - uses: actions/upload-artifact@v4
         if: always()
@@ -40,19 +36,3 @@ jobs:
           name: screenshots
           path: tests/e2e/screenshots
           if-no-files-found: ignore
-      - uses: actions/upload-pages-artifact@v3
-        if: github.ref == 'refs/heads/main'
-        with:
-          path: dist
-
-  deploy:
-    # publishes the built game to GitHub Pages; enable Pages with "GitHub Actions" as the source
-    needs: verify
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
