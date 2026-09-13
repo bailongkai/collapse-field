@@ -71,7 +71,10 @@ export class ProjectileView {
         const mid = p.rectLen * 0.5;
         img.setPosition(p.x + Math.cos(p.angle) * mid, p.y + Math.sin(p.angle) * mid);
         img.setRotation(p.angle - Math.PI / 2);
-        img.setScale(p.scale);
+        // a beam frame is authored upright at one fixed length and stretched along the shot to the
+        // hit rect, so the same picture is a lance from the body or an arc between two links
+        if (visual?.beam) img.setScale(p.scale, p.rectLen / img.frame.height);
+        else img.setScale(p.scale);
         img.setAlpha(Math.max(0, Math.min(1, p.ttlMs / 150)));
       } else {
         img.setRotation(p.angle + Math.PI / 2);

@@ -127,7 +127,7 @@ export const WEAPONS = {
       { damage: 3 },
       { amount: 1, cooldown: -150 },
     ],
-    visual: { frame: 'fx_arc', blend: 'add', tint: 0x4fe0ff, sfx: 'emp' },
+    visual: { frame: 'fx_arc', blend: 'add', tint: 0x4fe0ff, sfx: 'emp', beam: true },
     evolution: { requires: 'heatsink', into: 'stormLattice' },
   },
   /**
@@ -148,7 +148,7 @@ export const WEAPONS = {
       { amount: 1 },
       { damage: 19, area: 0.1 },
     ],
-    visual: { frame: 'fx_lance', blend: 'add', tint: 0xff8a3d, sfx: 'rail' },
+    visual: { frame: 'fx_lance', blend: 'add', tint: 0xff8a3d, sfx: 'rail', beam: true },
     evolution: { requires: 'railTuner', into: 'horizonWipe' },
   },
   // --- evolutions: reached only through a supply chest with the base weapon maxed and its passive owned
@@ -204,14 +204,14 @@ export const WEAPONS = {
     // twenty bodies, which is the archetype's promise finally paid out
     base: { damage: 20, cooldown: 900, amount: 3, area: 1.2, speed: 1, duration: 200, pierce: 14, knockback: 0.5, interval: 0, hitCooldown: 0 },
     levels: [{}, {}, {}, {}, {}, {}, {}],
-    visual: { frame: 'fx_arc', blend: 'add', tint: 0xfff0b0, sfx: 'emp' },
+    visual: { frame: 'fx_arc', blend: 'add', tint: 0xfff0b0, sfx: 'emp', beam: true },
   },
   horizonWipe: {
     id: 'horizonWipe', nameKey: 'weapon.horizonWipe.name', descKey: 'weapon.horizonWipe.desc',
     icon: 'icon_pivotCannon', iconTint: 0xfff2c4, rarity: 0, maxLevel: 8, behavior: 'pivot', evolvedOnly: true,
     base: { damage: 120, cooldown: 1200, amount: 5, area: 1.5, speed: 1.6, duration: 260, pierce: Infinity, knockback: 2, interval: 0, hitCooldown: 0 },
     levels: [{}, {}, {}, {}, {}, {}, {}],
-    visual: { frame: 'fx_lance', blend: 'add', tint: 0xfff2c4, sfx: 'rail' },
+    visual: { frame: 'fx_lance', blend: 'add', tint: 0xfff2c4, sfx: 'rail', beam: true },
   },
 } as const satisfies Record<string, WeaponDef>;
 

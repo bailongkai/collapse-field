@@ -1,6 +1,6 @@
 import { ENEMY_CAP, MAX_ENEMY_RADIUS } from '../../../config';
 import type { Enemy } from '../../sim/entities/enemy';
-import type { WeaponBehavior, WeaponContext } from '../types';
+import type { WeaponBehavior, WeaponContext, WeaponInstance } from '../types';
 
 /** How far the arc will reach for its first body, and how far it jumps between them. */
 const SEEK_RADIUS = 168;
@@ -68,7 +68,7 @@ export const chain: WeaponBehavior = {
         const hy = from.y - ctx.player.y;
         const hl = Math.hypot(hx, hy) || 1;
         ctx.hitEnemy(from, damage, hx / hl, hy / hl, eff.knockback, inst);
-        segment(ctx, fx, fy, from.x, from.y, eff.area);
+        segment(ctx, inst, fx, fy, from.x, from.y, eff.area);
         fired++;
         if (from.def?.behavior === 'prop') break; // scenery burns, but it does not carry the arc on
         fx = from.x;
@@ -86,15 +86,20 @@ export const chain: WeaponBehavior = {
   },
 };
 
-/** A drawn-only segment between two links, so the player can see the arc walk the crowd. */
-function segment(ctx: WeaponContext, ax: number, ay: number, bx: number, by: number, area: number): void {
+/**
+ * A drawn-only segment between two links, so the player can see the arc walk the crowd. It carries
+ * the weapon's slot so the view can pick its frame, and is anchored at the first link like every
+ * other slash: `pointInOrientedRect` measures forward from the origin and the view draws the frame
+ * half a length ahead of it, so the picture spans exactly the two bodies.
+ */
+function segment(ctx: WeaponContext, inst: WeaponInstance, ax: number, ay: number, bx: number, by: number, area: number): void {
   const p = ctx.spawnProjectile();
   if (!p) return;
   p.kind = 'slash';
   p.hostile = false;
-  p.weaponSlot = -1; // drawn, never hits: the behaviour has already dealt the damage
-  p.x = (ax + bx) / 2;
-  p.y = (ay + by) / 2;
+  p.weaponSlot = inst.slot;
+  p.x = ax;
+  p.y = ay;
   p.vx = 0;
   p.vy = 0;
   p.angle = Math.atan2(by - ay, bx - ax);

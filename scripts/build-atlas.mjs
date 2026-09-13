@@ -330,10 +330,12 @@ async function main() {
   groups.ui.push({ path: 'panel_tech.png', contents: await drawTechButton(64, [0x4f, 0xe0, 0xff], [0x0b, 0x14, 0x22], 0.45).getBuffer('image/png') });
   const procedural = [
     ['fx_slash', drawSlash()],
-    // a beam is long and thin, so it cannot be a manifest entry: those are fitted into a square box
-    ['fx_arc', drawBeam(192, 14, [0x4f, 0xe0, 0xff])],
+    // a beam is long and thin, so it cannot be a manifest entry: those are fitted into a square box.
     // slash-kind frames point up, and the view turns up into the direction of the shot (angle - 90°):
-    // authored on its side, the lance stood upright a beam's half-length from the character
+    // authored on its side, the lance stood upright a beam's half-length from the character, and the
+    // arc lay across its two links instead of between them. Both are `beam` visuals, stretched
+    // along that axis to the hit rect by the view.
+    ['fx_arc', drawBeam(192, 14, [0x4f, 0xe0, 0xff]).rotate(90)],
     ['fx_lance', drawBeam(448, 64, [0xff, 0x8a, 0x3d]).rotate(90)],
     ['pylon_stake', drawStake()],
     ['pk_chest', existsSync(join(CUSTOM, 'pk_chest.png')) ? await loadCustom(join(CUSTOM, 'pk_chest.png'), 48) : drawChest()],

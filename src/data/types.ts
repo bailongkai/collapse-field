@@ -47,7 +47,12 @@ export interface WeaponDef {
   readonly base: WeaponParams;
   /** length 7: additive deltas for L2..L8 */
   readonly levels: readonly Partial<WeaponParams>[];
-  readonly visual: { frame: string; blend?: 'add' | 'normal'; tint?: number; sfx?: string };
+  /**
+   * `beam`: the frame is authored upright at one fixed length and the view stretches it along the
+   * shot to the projectile's `rectLen`, so one picture is a lance from the body or an arc between
+   * two links. Other slash frames are drawn at `scale` as they are.
+   */
+  readonly visual: { frame: string; blend?: 'add' | 'normal'; tint?: number; sfx?: string; beam?: boolean };
   /** tint applied to the icon, used to mark an evolved weapon that shares its base's art */
   readonly iconTint?: number;
   /** at max level, owning this passive lets a supply chest evolve the weapon into `into` */
