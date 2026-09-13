@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const MANIFEST_PATH = join(ROOT, 'scripts', 'asset-manifest.json');
 const CACHE = join(ROOT, '.cache', 'kenney');
-const UA = 'star-survivors-asset-fetch/1.0 (+https://kenney.nl)';
+const UA = 'collapse-field-asset-fetch/1.0 (+https://kenney.nl)';
 
 const manifest = JSON.parse(readFileSync(MANIFEST_PATH, 'utf8'));
 manifest.resolvedUrls ??= {};

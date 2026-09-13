@@ -1,6 +1,6 @@
 /** Default locale. Every I18nKey is derived from this object; add strings here first. */
 export const zhCN = {
-  'menu.title': '星际幸存者',
+  'menu.title': '塌缩带',
   'menu.subtitle': '空间站失守，撑到救援抵达',
   'menu.start': '开始游戏',
   'menu.settings': '设置',
@@ -374,7 +374,7 @@ export const zhCN = {
   'enemy.accretor.name': '吸积体',
   'enemy.tidalhulk.name': '潮汐巨舰',
   'enemy.eventhorizon.name': '事件视界',
-  'stage.singularity.name': '塌缩带',
+  'stage.singularity.name': '恒星墓场',
   'stage.singularity.desc': '引力局：地面拖住你，空间把你推走，站在哪里才是这一局的问题',
   'achievement.clearReactor.name': '熔层幸存',
   'achievement.clearReactor.desc': '通关熔毁反应层',
@@ -383,7 +383,7 @@ export const zhCN = {
   'achievement.clearFoundry.name': '停产',
   'achievement.clearFoundry.desc': '通关战争铸造厂',
   'achievement.clearSingularity.name': '视界之外',
-  'achievement.clearSingularity.desc': '通关塌缩带，通关全部关卡',
+  'achievement.clearSingularity.desc': '通关恒星墓场，通关全部关卡',
   'passive.stabilizer.name': '稳定器',
   'passive.stabilizer.desc': '持续时间 +12%',
   'passive.heatsink.name': '散热片',

@@ -63,7 +63,7 @@ export class MenuScene extends Phaser.Scene {
 
     // --- the title: an English mark above, the Chinese name in the heading face with a glow ---
     const titleSize = Math.round(Math.min(72, W * 0.1));
-    this.mark = this.add.text(cx, titleY - titleSize * 0.85, 'STAR SURVIVORS', textStyle(Math.round(titleSize * 0.26), { display: true, color: COLORS.accent, letterSpacing: 6 })).setOrigin(0.5).setAlpha(0.9);
+    this.mark = this.add.text(cx, titleY - titleSize * 0.85, 'COLLAPSE FIELD', textStyle(Math.round(titleSize * 0.26), { display: true, color: COLORS.accent, letterSpacing: 6 })).setOrigin(0.5).setAlpha(0.9);
     this.titleGlow = this.add.text(cx, titleY, '', textStyle(titleSize, { title: true, color: COLORS.accent, letterSpacing: 4 })).setOrigin(0.5).setAlpha(0.35).setBlendMode(Phaser.BlendModes.ADD).setScale(1.06);
     this.title = this.add.text(cx, titleY, '', textStyle(titleSize, { title: true, color: '#ffffff', stroke: true, letterSpacing: 4 })).setOrigin(0.5);
     this.title.setShadow(0, 0, '#4fe0ff', 18, false, true);

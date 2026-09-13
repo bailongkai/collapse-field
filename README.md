@@ -1,4 +1,4 @@
-# 星际幸存者 (Star Survivors)
+# 塌缩带 (Collapse Field)
 
 A sci-fi bullet-heaven in the shape of Vampire Survivors: you hold position on a
 station overrun by alien swarms, your weapons fire themselves, and you live or
@@ -28,7 +28,7 @@ Eight stages, fifteen minutes each.  Enemies arrive in waves that thicken every 
 a boss comes at 5:00, a different one at 10:00, and at 15:00 the stage's own
 final boss with about three times the health of the last one: the Annihilator on
 the station, the Juggernaut on the cargo deck, the Hive Queen in the lab, the
-Void Mothership in orbit. Killing it clears the stage; dying after the mark is
+Void Mothership in orbit, and four more across the later stages. Killing it clears the stage; dying after the mark is
 still dying, and after ninety seconds it enrages and outruns anyone. Killing enemies drops XP; each level
 offers three upgrades to pick from.
 

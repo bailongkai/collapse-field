@@ -1,9 +1,9 @@
 {
-  "name": "star-survivors",
+  "name": "collapse-field",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "星际幸存者 — a sci-fi Vampire Survivors-like built with Phaser 4 + TypeScript",
+  "description": "塌缩带 Collapse Field — a sci-fi Vampire Survivors-like built with Phaser 4 + TypeScript",
   "scripts": {
     "dev": "vite",
     "dev:lan": "vite --host",

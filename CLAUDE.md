@@ -1,6 +1,6 @@
 # Working in this repository
 
-星际幸存者 is a Vampire Survivors-like in Phaser 4 + TypeScript. Read `README.md`
+塌缩带 is a Vampire Survivors-like in Phaser 4 + TypeScript. Read `README.md`
 first for what the game is and how to run it.
 
 ## The one rule that shapes everything

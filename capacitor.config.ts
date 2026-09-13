@@ -6,8 +6,8 @@ import type { CapacitorConfig } from '@capacitor/cli';
  * committed. See README "打包手机版".
  */
 const config: CapacitorConfig = {
-  appId: 'com.bailongkai.starsurvivors',
-  appName: 'Star Survivors',
+  appId: 'com.bailongkai.collapsefield',
+  appName: 'Collapse Field',
   webDir: 'dist',
   backgroundColor: '#05070c',
   ios: { contentInset: 'never', preferredContentMode: 'mobile' },

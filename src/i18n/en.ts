@@ -2,7 +2,7 @@ import type { I18nKey } from './types';
 
 /** English strings. Missing keys fall back to zh-CN. */
 export const en: Partial<Record<I18nKey, string>> = {
-  'menu.title': 'Star Survivors',
+  'menu.title': 'Collapse Field',
   'menu.subtitle': 'The station has fallen. Hold out until rescue arrives.',
   'menu.start': 'Start',
   'menu.settings': 'Settings',
@@ -376,7 +376,7 @@ export const en: Partial<Record<I18nKey, string>> = {
   'enemy.accretor.name': 'The Accretor',
   'enemy.tidalhulk.name': 'Tidal Hulk',
   'enemy.eventhorizon.name': 'The Event Horizon',
-  'stage.singularity.name': 'The Collapse Field',
+  'stage.singularity.name': 'The Stellar Graveyard',
   'stage.singularity.desc': 'Gravity: the floor drags, space shoves, and where you are allowed to stand is the whole fight',
   'achievement.clearReactor.name': 'Meltdown Survivor',
   'achievement.clearReactor.desc': 'Clear the Meltdown Deck',
@@ -385,7 +385,7 @@ export const en: Partial<Record<I18nKey, string>> = {
   'achievement.clearFoundry.name': 'Production Halted',
   'achievement.clearFoundry.desc': 'Clear the War Foundry',
   'achievement.clearSingularity.name': 'Beyond the Horizon',
-  'achievement.clearSingularity.desc': 'Clear the Collapse Field, the last stage in the game',
+  'achievement.clearSingularity.desc': 'Clear the Stellar Graveyard, the last stage in the game',
   'passive.stabilizer.name': 'Stabiliser',
   'passive.stabilizer.desc': 'Duration +12%',
   'passive.heatsink.name': 'Heat Sink',

@@ -115,7 +115,7 @@ export function posthogSink(): AnalyticsSink {
   }
 
   return (e) => {
-    const properties: Record<string, unknown> = { distinct_id: distinctId, $lib: 'star-survivors' };
+    const properties: Record<string, unknown> = { distinct_id: distinctId, $lib: 'collapse-field' };
     for (const [k, v] of Object.entries(e)) if (k !== 'name') properties[k] = v;
     pending.push({ event: e.name, properties, timestamp: new Date().toISOString() });
     queued = pending.length;
