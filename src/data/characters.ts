@@ -112,8 +112,8 @@ export const CHARACTERS = {
     signature: { kind: 'pressure', nameKey: 'signature.welder.name', descKey: 'signature.welder.desc', radius: 96, minEnemies: 8, maxStacks: 8, perEnemy: { armor: 1, recovery: 0.15 } },
     cost: 1500,
   },
-  // 炮长: eighty health, and a gun that only goes off when she turns. The most fragile character in
-  // the game and the only one whose damage is a matter of timing rather than position.
+  // 炮长: eighty health behind a beam that reaches half the screen down the side she faces. The most
+  // fragile character in the game, and the one whose whole game is which way she is looking.
   gunner: {
     id: 'gunner',
     nameKey: 'character.gunner.name',

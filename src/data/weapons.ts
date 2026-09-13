@@ -131,10 +131,9 @@ export const WEAPONS = {
     evolution: { requires: 'heatsink', into: 'stormLattice' },
   },
   /**
-   * 回身炮: it charges while a heading is held and then waits, firing nothing until the player
-   * turns. Every other weapon treats the turn as a consequence; this one makes it the trigger, so
-   * the question stops being where to stand and becomes when to turn. A turn spent early is a shot
-   * spent at half strength.
+   * 平射炮: a piercing beam from the character's own body down the side she faces, once per
+   * cooldown. The id still says pivot because it used to fire only on the turn; the name changed
+   * with the rule, the id stayed so saves and telemetry keep their history.
    */
   pivotCannon: {
     id: 'pivotCannon', nameKey: 'weapon.pivotCannon.name', descKey: 'weapon.pivotCannon.desc',

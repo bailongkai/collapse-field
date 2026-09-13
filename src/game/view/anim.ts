@@ -78,7 +78,7 @@ export function recoil(kind: RecoilKind, k: number, dir: number): { dx: number; 
 /** How a weapon archetype throws the body that fires it. */
 export function recoilKindFor(behavior: string): RecoilKind {
   if (behavior === 'slash') return 'lunge';
-  if (behavior === 'stream' || behavior === 'aimed') return 'kick';
+  if (behavior === 'stream' || behavior === 'aimed' || behavior === 'pivot') return 'kick';
   return 'pulse';
 }
 

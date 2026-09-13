@@ -120,7 +120,9 @@ Eight characters for eight starting weapons, and the three newest each brought a
 with them: `pylon` is placed rather than carried (stakes stay where they were driven and the arcs
 between them, and between each stake and the player, are the weapon), `chain` will not fire at all
 unless a body is close and then walks through the crowd losing a tenth of its bite per link, and
-`pivot` charges while a heading is held and fires only on the tick the player turns. Their
+`pivot` lays a piercing beam from the character's own body down the side she faces once per
+cooldown, its lanes stacked vertically. It used to fire only on the tick the player turned; that
+left it silent for most of a run, since the player kiting a crowd is the one who never turns. Their
 evolutions pair with `stabilizer`, `heatsink` and `railTuner`, which exist because the three
 passives that were still unpaired are all locked behind achievements — an evolution paired with a
 locked passive is content the player who just bought the character cannot reach, and

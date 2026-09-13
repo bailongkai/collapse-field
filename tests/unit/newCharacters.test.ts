@@ -118,41 +118,47 @@ describe('导体: the chain needs a crowd', () => {
   });
 });
 
-describe('回身炮: the pivot fires on the turn', () => {
-  it('holds its shot for as long as the heading is held', () => {
+describe('平射炮: a beam from her own body, down the side she faces', () => {
+  const mechAt = (s: Simulation, dx: number) => {
+    s.spawn('mech', 1, { x: s.world.player.x + dx, y: s.world.player.y });
+    return s.world.enemies.items[s.world.enemies.aliveList()[s.world.enemies.count - 1]];
+  };
+
+  it('fires on its own cooldown while a heading is held, ahead and never behind', () => {
     const s = sim('gunner');
     s.setInput(1, 0);
-    s.spawn('mech', 1, { x: 200, y: 0 });
-    const e = s.world.enemies.items[s.world.enemies.aliveList()[s.world.enemies.count - 1]];
-    const hp = e.hp;
-    s.stepMany(60 * 8);
-    expect(e.hp, 'it fired without a turn').toBe(hp);
+    const ahead = mechAt(s, 200);
+    const behind = mechAt(s, -200);
+    const hpAhead = ahead.hp;
+    const hpBehind = behind.hp;
+    s.stepMany(30);
+    expect(ahead.hp, 'holding a heading fired nothing').toBeLessThan(hpAhead);
+    expect(behind.hp, 'the beam reached behind her').toBe(hpBehind);
+    const afterOne = ahead.hp;
+    s.stepMany(60 * 3);
+    expect(ahead.hp, 'it fired once and went quiet').toBeLessThan(afterOne);
   });
 
-  it('lets go the instant the player turns, and a longer hold hits harder', () => {
-    // held in place: facing follows horizontal input whether or not the body moves, so this
-    // isolates the hold from the walk that would otherwise carry the target out of reach
-    const quick = (holdTicks: number): number => {
-      const s = sim('gunner');
-      s.setInput(1, 0);
-      s.stepMany(4);
-      // the gun starts loaded, so spend that shot first; the hold being measured is the next one
-      s.setInput(-1, 0);
-      s.stepMany(4);
-      s.setInput(1, 0);
-      s.stepMany(Math.round(2400 / (1000 / 60)) + 4); // one full recharge
-      s.spawn('mech', 1, { x: -200, y: 0 });
-      const e = s.world.enemies.items[s.world.enemies.aliveList()[s.world.enemies.count - 1]];
-      const hp = e.hp;
-      s.stepMany(holdTicks);
-      s.setInput(-1, 0); // the turn is the trigger
-      s.stepMany(3);
-      return hp - e.hp;
-    };
-    const short = quick(2);
-    const long = quick(90);
-    expect(short, 'the turn did not fire the gun').toBeGreaterThan(0);
-    expect(long, `held ${long} vs snapped ${short}`).toBeGreaterThan(short);
+  it('starts at the body: a mech standing on her is inside the beam', () => {
+    const s = sim('gunner');
+    s.setInput(1, 0);
+    const close = mechAt(s, 40);
+    const hp = close.hp;
+    s.stepMany(30);
+    expect(close.hp, 'the beam began a way out from the character').toBeLessThan(hp);
+  });
+
+  it('stacks its lanes vertically as amount grows, every one anchored at the body', () => {
+    const s = sim('gunner');
+    s.giveWeapon('pivotCannon', 8);
+    s.setInput(1, 0);
+    s.stepMany(2);
+    const lanes = s.world.projectiles.items.filter((p) => p.active && p.kind === 'slash' && !p.hostile);
+    expect(lanes.length).toBe(3);
+    expect(new Set(lanes.map((p) => Math.round(p.y))).size, 'the lanes lay on top of each other').toBe(3);
+    // the body walks on after the shot, so the anchor is compared to where it was, not where it is
+    expect(new Set(lanes.map((p) => p.x)).size, 'the lanes started from different points').toBe(1);
+    expect(Math.abs(lanes[0].x - s.world.player.x), 'a lane did not start at the body').toBeLessThan(4);
   });
 });
 

@@ -30,8 +30,6 @@ export interface WeaponInstance {
   activeCount: number;
   /** pylon: how many stakes have been planted, which is what spaces them round the player */
   plantSerial: number;
-  /** pivot: ms the shot has been held loaded, which is what the overcharge is paid out of */
-  holdMs: number;
   /** limit break: fractions added on top of the levelled params, with no ceiling */
   limit: { damage: number; area: number; cooldown: number; speed: number };
   /** tick of the last hit per enemy slot; -1e9 means "never" (reset when a slot is reused) */
