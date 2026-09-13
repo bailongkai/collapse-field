@@ -63,15 +63,24 @@ export function step(page: Page, ticks: number): Promise<number> {
 export async function stepResolving(page: Page, ticks: number): Promise<number> {
   let done = 0;
   for (let guard = 0; guard < 64 && done < ticks; guard++) {
-    done += await step(page, ticks - done);
+    // The run can end inside the batch, or on the call before it (killing the final boss clears
+    // the stage on the spot), and the scene change that unbinds the hook lands on a frame boundary.
+    // Two frames fit between two evaluates on a busy runner, so the check and the step have to
+    // share one, or the step throws on a run that was there a moment ago.
+    const ran = await page.evaluate((n) => (window.__game.hasRun() ? window.__game.step(n) : null), ticks - done);
+    if (ran === null) break;
+    done += ran;
     if (done >= ticks) break;
-    // the run can end inside the batch, which unbinds the hook: that is a normal outcome here
-    if (!(await page.evaluate(() => window.__game.hasRun()))) break;
-    const phase = (await state(page)).phase;
+    const phase = await livePhase(page);
     if (phase !== 'levelup') break;
     await page.evaluate(() => window.__game.pickChoice(0));
   }
   return done;
+}
+
+/** The run's phase, or null once the hook is unbound; read in one evaluate for the reason above. */
+function livePhase(page: Page): Promise<string | null> {
+  return page.evaluate(() => (window.__game.hasRun() ? window.__game.getState().phase : null));
 }
 
 /**
@@ -81,9 +90,8 @@ export async function stepResolving(page: Page, ticks: number): Promise<number> 
  */
 export async function settleOverlays(page: Page, tries = 20): Promise<void> {
   for (let i = 0; i < tries; i++) {
-    if (!(await page.evaluate(() => window.__game.hasRun()))) return;
-    const phase = (await state(page)).phase;
-    if (phase === 'running' || phase === 'ended' || phase === 'revivePrompt') return;
+    const phase = await livePhase(page);
+    if (phase === null || phase === 'running' || phase === 'ended' || phase === 'revivePrompt') return;
     if (phase === 'levelup') await page.evaluate(() => window.__game.pickChoice(0));
     else if (await page.evaluate(() => window.__game.activeScenes().includes('Chest'))) await press(page, 'chest.continue');
     else return;
