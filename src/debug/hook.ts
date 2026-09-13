@@ -129,7 +129,7 @@ export interface GameDebugApi extends Omit<RunHandlers, 'profileStart' | 'profil
   /** what the game reported about itself, for the tests */
   analytics(): readonly { name: string }[];
   /** whether the analytics sink is alive: a silent one is the failure mode this design invites */
-  analyticsHealth(): { sent: number; failures: number; enabled: boolean };
+  analyticsHealth(): { sent: number; failures: number; queued: number; enabled: boolean; keyRejected: boolean };
   mute(on: boolean): void;
   detach(): void;
   /** internal: used by scenes */
