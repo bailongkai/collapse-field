@@ -22,6 +22,7 @@ export class TutorialScene extends Phaser.Scene {
   private body?: Phaser.GameObjects.Text;
   private next?: UiButton;
   private dots: Phaser.GameObjects.Arc[] = [];
+  private openedAt = 0;
 
   constructor() {
     super('Tutorial');
@@ -32,6 +33,10 @@ export class TutorialScene extends Phaser.Scene {
     this.page = data?.page ?? 0;
     this.dots = [];
     window.__game?.pushEvent('tutorial:open');
+    if (this.page === 0) {
+      this.openedAt = Date.now();
+      analytics.track({ name: 'tutorial_begin' });
+    }
     const cx = this.scale.width / 2;
     const cy = this.scale.height / 2;
     const panel = fitPanel(this, 600, 340);
@@ -74,7 +79,7 @@ export class TutorialScene extends Phaser.Scene {
   private finish(): void {
     const ctx = app();
     ctx.save = setFlag(ctx.storage, ctx.save, { tutorialDone: true });
-    analytics.track({ name: 'tutorial_done' });
+    analytics.track({ name: 'tutorial_done', sec: Math.round((Date.now() - this.openedAt) / 1000) });
     (this.scene.get('Game') as GameScene).closeTutorial();
     this.scene.stop();
   }

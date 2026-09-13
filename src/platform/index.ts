@@ -2,8 +2,10 @@ import { Capacitor } from '@capacitor/core';
 import { webAds, nativeAds, type AdsService } from './ads';
 import { webPurchases, nativePurchases, type PurchasesService } from './purchases';
 import { analytics } from './analytics';
+import { buildSink } from './analyticsSink';
 
 export { analytics } from './analytics';
+export { sinkStats } from './analyticsSink';
 export type { AdsService, RewardKind } from './ads';
 export type { PurchasesService, ProductId } from './purchases';
 
@@ -23,7 +25,7 @@ let platform: Platform | null = null;
 /** Built once at startup. The web fakes are what the browser suite exercises. */
 export function initPlatform(o: { testMode: boolean; debug: boolean; fakeAds?: boolean }): Platform {
   const native = Capacitor.isNativePlatform();
-  analytics.configure({ debug: o.debug });
+  analytics.configure({ debug: o.debug, sink: buildSink(o.testMode) ?? undefined });
   platform = {
     native,
     ads: native ? nativeAds({ testMode: o.testMode, rewardedId: ADMOB_REWARDED, interstitialId: ADMOB_INTERSTITIAL }) : webAds({ testMode: o.testMode, fakeAds: o.fakeAds, rewardedId: '', interstitialId: '' }),

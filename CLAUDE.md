@@ -99,6 +99,12 @@ the type: Smiley Sans for headings and anything bold, Orbitron for latin display
 both subset in `public/assets/fonts` and loaded in `BootScene`. `textStyle` routes them, so
 `bold: true` is a heading unless it says `plain`.
 
+Telemetry is view-side and reports exactly once per run. `GameScene.reportRunEnd` is guarded by a
+flag and called from both `finishRun` and `teardown`, so a run abandoned from the pause menu is
+still counted; without that the funnel is open and the survival curve only describes the players
+who already like the game. Anything that changes what the player is offered has to report the
+offer as well as the choice, or the number measures `roll.ts` rather than the player.
+
 Presentation that is not simulation belongs on the view side: the score in
 `src/game/audio/music.ts` is synthesised from the Web Audio clock over the arrangement in
 `audio/score.ts` (pure data, unit-tested), with a mood per situation — menu, battle, boss,

@@ -42,6 +42,9 @@ export interface GameSceneData {
   curse?: number;
 }
 
+/** Runs started since the app launched; the second run is the moment the loop caught. */
+let runsThisSession = 0;
+
 /** Owns the Simulation, drives it with a fixed-step accumulator and mirrors it into pooled views. */
 export class GameScene extends Phaser.Scene {
   sim!: Simulation;
@@ -67,6 +70,8 @@ export class GameScene extends Phaser.Scene {
   private levelUpPending = false;
   private chestPending = false;
   private revivePending = false;
+  /** whether this run has already been reported; every run reports exactly once */
+  private runEndReported = false;
   private timeScale = 1;
   private layers!: Record<
     'floor' | 'decor' | 'shadows' | 'gems' | 'pickups' | 'enemies' | 'player' | 'projectiles' | 'fx' | 'numbers',
@@ -100,7 +105,10 @@ export class GameScene extends Phaser.Scene {
       // a rewarded ad can only be offered where one can be shown; the headless harness never sees it
       adRevive: getPlatform().ads.available(),
     });
-    analytics.track({ name: 'run_start', stage: this.sim.stage.id, character: this.sim.character.id, curse: this.sim.run.curse });
+    // run 1 and run 40 are different games: every number below is read per-cohort or not at all
+    runsThisSession++;
+    this.runEndReported = false;
+    analytics.track({ name: 'run_start', stage: this.sim.stage.id, character: this.sim.character.id, curse: this.sim.run.curse, runIndex: app().save.runsPlayed + 1, sessionRun: runsThisSession });
 
     this.cameras.main.setBackgroundColor('#05070c');
     this.layers = {
@@ -209,6 +217,8 @@ export class GameScene extends Phaser.Scene {
 
   /** Single teardown path: stops child scenes, detaches the profiler and unbinds the debug hook. */
   private teardown(): void {
+    // the catch-all: a run that reached neither death nor the fifteen minute mark was abandoned
+    this.reportRunEnd('quit');
     this.game.events.off(Phaser.Core.Events.HIDDEN, this.onHidden);
     window.removeEventListener('app-back', this.onBack);
     this.scale.off(Phaser.Scale.Events.RESIZE, this.onResize, this);
@@ -325,30 +335,59 @@ export class GameScene extends Phaser.Scene {
 
   /** Called by the overlay; applies the pick and closes or re-rolls in place. */
   applyLevelUpChoice(index: number): boolean {
+    const offered = this.offeredIds();
     const pick = this.sim.run.choices?.[index];
+    const level = this.sim.run.level;
     if (!this.sim.applyChoice(index)) return false;
-    if (pick) analytics.track({ name: 'levelup_pick', kind: pick.kind, id: 'id' in pick ? pick.id : pick.kind });
+    if (pick) {
+      analytics.track({
+        name: 'levelup_pick',
+        action: 'pick',
+        kind: pick.kind,
+        id: 'id' in pick ? pick.id : pick.kind,
+        toLevel: 'toLevel' in pick ? pick.toLevel : 0,
+        level,
+        offered,
+      });
+    }
     this.scene.stop('LevelUp');
     if (this.sim.run.phase === 'levelup') this.openLevelUpOverlay();
     return true;
   }
 
   /** Reroll, skip or banish from the overlay; the overlay rebuilds itself on success. */
+  /** What the offer held, as ids, so a pick rate can be divided by an offer rate. */
+  private offeredIds(): string {
+    return (this.sim.run.choices ?? []).map((c) => ('id' in c ? c.id : c.kind)).join(',').slice(0, 96);
+  }
+
   rerollLevelUp(): boolean {
+    const offered = this.offeredIds();
+    const level = this.sim.run.level;
     if (!this.sim.rerollChoices()) return false;
+    // reroll, skip and banish are shop charges the player paid for: unmeasured, nobody knows
+    // whether the thing they bought is worth selling
+    analytics.track({ name: 'levelup_pick', action: 'reroll', kind: 'reroll', id: 'reroll', toLevel: 0, level, offered });
     this.scene.get('LevelUp').scene.restart();
     return true;
   }
 
   skipLevelUp(): boolean {
+    const offered = this.offeredIds();
+    const level = this.sim.run.level;
     if (!this.sim.skipLevelUp()) return false;
+    analytics.track({ name: 'levelup_pick', action: 'skip', kind: 'skip', id: 'skip', toLevel: 0, level, offered });
     this.scene.stop('LevelUp');
     if (this.sim.run.phase === 'levelup') this.openLevelUpOverlay();
     return true;
   }
 
   banishLevelUp(index: number): boolean {
+    const offered = this.offeredIds();
+    const banished = this.sim.run.choices?.[index];
+    const level = this.sim.run.level;
     if (!this.sim.banishChoice(index)) return false;
+    analytics.track({ name: 'levelup_pick', action: 'banish', kind: banished?.kind ?? 'banish', id: banished && 'id' in banished ? banished.id : 'banish', toLevel: 0, level, offered });
     this.scene.get('LevelUp').scene.restart();
     return true;
   }
@@ -401,9 +440,45 @@ export class GameScene extends Phaser.Scene {
     return def ? t(def.nameKey) : id;
   }
 
+  /**
+   * The run fact table, one row per run. Called from every path a run can leave by, and guarded so
+   * it fires exactly once: dying and clearing go through finishRun, and everything else — quitting
+   * from the pause menu, the debug hook starting another run, the scene being torn down — lands in
+   * teardown. Without that last path the abandoned runs are simply missing, which is the one thing
+   * a fifteen-minute stage most needs to know about.
+   */
+  private reportRunEnd(cause: string): void {
+    if (this.runEndReported || !this.sim) return;
+    this.runEndReported = true;
+    const run = this.sim.run;
+    const evolutions = run.weapons.filter((w) => this.sim.reg.weapons[w.id]?.evolvedOnly).length;
+    // weapons only, and capped: the parameter limit on every analytics backend is about 100 chars
+    const build = run.weapons.map((w) => `${w.id}:${w.level}`).join('|').slice(0, 96);
+    analytics.track({
+      name: 'run_end',
+      stage: run.stageId,
+      character: run.characterId,
+      timeSec: Math.round(run.timeMs / 1000),
+      minute: Math.floor(run.timeMs / 60_000),
+      level: run.level,
+      kills: run.kills,
+      cause,
+      curse: run.curse,
+      runIndex: app().save.runsPlayed + 1,
+      build,
+      evolutions,
+      bossKills: run.bossKills,
+      chests: run.chestsOpened,
+      revives: run.revivalsUsed,
+      adRevived: run.adRevived,
+      gold: run.gold,
+      seed: run.seed,
+    });
+  }
+
   private finishRun(): void {
     const run = this.sim.run;
-    analytics.track({ name: 'run_end', stage: run.stageId, character: run.characterId, timeSec: Math.round(run.timeMs / 1000), level: run.level, kills: run.kills, cause: run.ended ?? 'died', curse: run.curse });
+    this.reportRunEnd(run.ended ?? 'died');
     this.scene.start('Results', {
       timeSec: run.timeMs / 1000,
       kills: run.kills,
@@ -501,9 +576,11 @@ export class GameScene extends Phaser.Scene {
           break;
         case 'chest':
           hook?.pushEvent('pickup:chest');
+          analytics.track({ name: 'chest_open', grade: e.id || 'standard', rewards: this.sim.run.chestsOpened });
           break;
         case 'evolve':
           hook?.pushEvent(`evolve:${e.id}`);
+          analytics.track({ name: 'weapon_evolved', id: e.id, timeSec: Math.round(this.sim.run.timeMs / 1000), level: this.sim.run.level });
           break;
         case 'died':
           hook?.pushEvent('died');

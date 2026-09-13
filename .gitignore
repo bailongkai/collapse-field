@@ -10,3 +10,7 @@ tests/e2e/screenshots/
 # native shells are generated with `npx cap add`
 /ios/
 /android/
+
+# local secrets
+.env
+.env.local

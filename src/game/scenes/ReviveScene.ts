@@ -28,6 +28,9 @@ export class ReviveScene extends Phaser.Scene {
     restartOnResize(this);
     this.busy = false;
     window.__game?.pushEvent('revive:prompt');
+    // the offer is half the funnel: without it, an unanswered prompt is indistinguishable from one
+    // that was never shown
+    analytics.track({ name: 'ad_offer', kind: 'revive' });
     const cx = this.scale.width / 2;
     const cy = this.scale.height / 2;
     const panel = fitPanel(this, 520, 300);
@@ -55,8 +58,9 @@ export class ReviveScene extends Phaser.Scene {
     this.accept?.setEnabled(false);
     this.decline?.setEnabled(false);
     this.status?.setText(t('revive.loading'));
-    const earned = await getPlatform().ads.showRewarded('revive');
-    analytics.track({ name: 'ad_shown', kind: 'revive', earned });
+    const ads = getPlatform().ads;
+    const earned = await ads.showRewarded('revive');
+    analytics.track({ name: 'ad_shown', kind: 'revive', earned, result: ads.lastResult() });
     // the scene can have been torn down while the ad played: a resize restarts it, a hook can end the run
     if (!this.scene.isActive()) return;
     const game = this.scene.get('Game') as GameScene;

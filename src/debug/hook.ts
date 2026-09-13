@@ -10,7 +10,7 @@ import { music } from '../game/audio/music';
 import { app } from '../game/app';
 import { loadSave, writeSave } from '../core/save/saveData';
 import { VERSION } from '../config';
-import { analytics } from '../platform';
+import { analytics, sinkStats } from '../platform';
 
 export type SceneName = 'boot' | 'preload' | 'menu' | 'game' | 'levelup' | 'chest' | 'revive' | 'tutorial' | 'pause' | 'results';
 
@@ -128,6 +128,8 @@ export interface GameDebugApi extends Omit<RunHandlers, 'profileStart' | 'profil
   save: { get(): SaveData; set(s: SaveData): void; reset(): void; addGold(n: number): void };
   /** what the game reported about itself, for the tests */
   analytics(): readonly { name: string }[];
+  /** whether the analytics sink is alive: a silent one is the failure mode this design invites */
+  analyticsHealth(): { sent: number; failures: number; enabled: boolean };
   mute(on: boolean): void;
   detach(): void;
   /** internal: used by scenes */
@@ -236,6 +238,7 @@ export function installHook(game: Phaser.Game, contentProvider: () => GameDebugA
       },
     },
     analytics: () => analytics.recent(),
+    analyticsHealth: () => sinkStats(),
     mute(on) {
       sfx.setMuted(on);
     },

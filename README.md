@@ -186,6 +186,23 @@ results screen offers to double the gold for an ad, and an interstitial plays ev
 end unless "去除广告" was bought. The first run opens on a three-page briefing (`?tutorial=1`
 opts a test in).
 
+## Telemetry
+
+`src/platform/analytics.ts` is a typed event bus; `analyticsSink.ts` sends it to PostHog, on the
+web through `posthog-js` and on a device through `@capawesome/capacitor-posthog`, both lazily and
+both failing soft — a game that will not start because its analytics endpoint is down is a worse
+bug than a week of missing data. Set `VITE_POSTHOG_KEY` (and `VITE_POSTHOG_HOST` if not US cloud)
+to turn it on; with no key, and under `?test=1`, nothing leaves the device and only the in-memory
+ring buffer fills. `window.__game.analyticsHealth()` reports sent and failed counts, because a
+silently dead sink is the failure mode this shape invites.
+
+`run_end` is the one event that has to be complete: it fires for every started run, including the
+ones abandoned from the pause menu, and carries the whole run as properties — minute, build,
+evolutions, bosses, chests, revives, gold and the seed. The seed is the point: the simulation is
+deterministic, so a seed plus a stage plus a character replays in vitest the exact run a player
+died to. `levelup_pick` carries what was *offered* as well as what was taken, because the offer is
+deliberately weighted and a raw pick count measures the weighting rather than the player.
+
 ## Custom art
 
 `art/prompts.json` holds an image-model prompt for every game frame (characters, enemies, bosses,

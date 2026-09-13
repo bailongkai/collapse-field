@@ -7,11 +7,16 @@ import type * as AdMobNs from '@capacitor-community/admob';
 
 export type RewardKind = 'revive' | 'doubleGold';
 
+/** Why a rewarded ad ended the way it did. A boolean conflates three different problems. */
+export type AdResult = 'completed' | 'declined' | 'nofill' | 'error';
+
 export interface AdsService {
   /** whether a rewarded ad could be offered at all */
   available(): boolean;
   /** shows a rewarded ad; resolves true only if the reward was earned */
   showRewarded(kind: RewardKind): Promise<boolean>;
+  /** the reason the last rewarded ad ended, for the funnel */
+  lastResult(): AdResult;
   /** shows an interstitial if one is loaded; never throws */
   showInterstitial(): Promise<void>;
 }
@@ -26,10 +31,13 @@ export interface AdsConfig {
 }
 
 export function webAds(cfg: AdsConfig): AdsService {
+  let last: AdResult = 'completed';
   return {
     available: () => cfg.testMode && cfg.fakeAds === true,
+    lastResult: () => last,
     showRewarded: async () => {
       await new Promise((r) => setTimeout(r, cfg.testMode ? 0 : 1200));
+      last = 'completed';
       return true;
     },
     showInterstitial: async () => {
@@ -57,8 +65,10 @@ export function nativeAds(cfg: AdsConfig): AdsService {
     await m.AdMob.initialize({ initializeForTesting: cfg.testMode });
     return m;
   }));
+  let last: AdResult = 'completed';
   return {
     available: () => true,
+    lastResult: () => last,
     showRewarded: async (kind) => {
       try {
         const m = await mod();
@@ -70,9 +80,13 @@ export function nativeAds(cfg: AdsConfig): AdsService {
         await m.AdMob.showRewardVideoAd();
         sub.remove();
         void kind;
+        // closed without the reward is a player decision; a thrown call is a broken integration,
+        // and telling them apart is the whole reason this is not a boolean
+        last = earned ? 'completed' : 'declined';
         return earned;
       } catch (error) {
         console.warn('rewarded ad failed', error);
+        last = String(error).includes('no fill') ? 'nofill' : 'error';
         return false;
       }
     },

@@ -74,11 +74,13 @@ export class ResultsScene extends Phaser.Scene {
       const award = awardAchievements(ctx.storage, ctx.save, summary);
       ctx.save = award.save;
       earned = award.earned;
+      if (unlockedStage) analytics.track({ name: 'unlock', kind: 'stage', id: unlockedStage });
+      for (const id of earned) analytics.track({ name: 'unlock', kind: 'achievement', id });
       // an interstitial every few run ends, never over the first frame of a fresh player's game,
       // and never once it has been bought off
       const due = interstitialDue(ctx.storage, ctx.save);
       ctx.save = due.save;
-      if (due.show) void getPlatform().ads.showInterstitial().then(() => analytics.track({ name: 'ad_shown', kind: 'interstitial', earned: false }));
+      if (due.show) void getPlatform().ads.showInterstitial().then(() => analytics.track({ name: 'ad_shown', kind: 'interstitial', earned: false, result: 'completed' }));
     }
     const doubled = carried.doubled ?? false;
     restartOnResize(this, { ...data, committed: true, unlockedStage, earned, doubled });
@@ -170,8 +172,10 @@ export class ResultsScene extends Phaser.Scene {
   private async doubleGold(data: ResultsData, btn: UiButton): Promise<void> {
     btn.setEnabled(false);
     sfx.play('click');
-    const earned = await getPlatform().ads.showRewarded('doubleGold');
-    analytics.track({ name: 'ad_shown', kind: 'doubleGold', earned });
+    analytics.track({ name: 'ad_offer', kind: 'doubleGold' });
+    const ads = getPlatform().ads;
+    const earned = await ads.showRewarded('doubleGold');
+    analytics.track({ name: 'ad_shown', kind: 'doubleGold', earned, result: ads.lastResult() });
     if (!this.scene.isActive()) return;
     if (!earned) {
       btn.setEnabled(true);

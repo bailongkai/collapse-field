@@ -172,6 +172,7 @@ export class ShopScene extends Phaser.Scene {
     const { result, save } = buyCharacter(ctx.storage, ctx.save, id);
     if (result === 'bought') {
       ctx.save = save;
+      analytics.track({ name: 'unlock', kind: 'character', id });
       sfx.play('levelup');
       this.scene.restart();
     } else {
