@@ -14,7 +14,7 @@ async function cssSizeOf(page: Page, id: string): Promise<{ w: number; h: number
     const g = window.__game;
     const canvas = document.querySelector('canvas')!;
     const rect = canvas.getBoundingClientRect();
-    const scale = rect.width / g.phaser.scale.width;
+    const scale = rect.width / g.viewSize().width;
     const b = g.ui.buttons().find((x) => x.id === buttonId)!;
     return { w: b.hitW * scale, h: b.hitH * scale, x: rect.left + b.x * scale, y: rect.top + b.y * scale };
   }, id);
@@ -143,7 +143,7 @@ test('iphone: a chest reveal with an evolution fits a landscape phone', async ({
   await waitScene(page, 'chest');
   await press(page, 'chest.continue');
 
-  const view = await page.evaluate(() => ({ w: window.__game.phaser.scale.width, h: window.__game.phaser.scale.height }));
+  const view = await page.evaluate(() => ({ w: window.__game.viewSize().width, h: window.__game.viewSize().height }));
   expect(view.w, 'this case only means anything on a short, wide view').toBeGreaterThan(view.h);
   const btn = (await page.evaluate(() => window.__game.ui.buttons())).find((b) => b.id === 'chest.continue');
   expect(btn, 'the reveal had nothing to press').toBeDefined();

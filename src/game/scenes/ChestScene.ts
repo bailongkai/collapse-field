@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { techPanel } from '../ui/panel';
 import { restartOnResize } from '../ui/responsive';
-import { fitPanel, minTouchUnits } from '../layout';
+import { viewOf, fitPanel, minTouchUnits } from '../layout';
 import { t } from '../../i18n';
 import { COLORS, textStyle } from '../ui/textStyles';
 import { registerButton } from '../ui/buttonRegistry';
@@ -102,10 +102,10 @@ export class ChestScene extends Phaser.Scene {
     const chrome = CHROME_H * kH;
     const panelW = rowW + 80;
     const panelH = chrome + items.length * (rowH + rowGap);
-    const cx = this.scale.width / 2;
-    const cy = this.scale.height / 2;
+    const cx = viewOf(this).width / 2;
+    const cy = viewOf(this).height / 2;
 
-    this.add.rectangle(cx, cy, this.scale.width, this.scale.height, 0x05070c, 0.62);
+    this.add.rectangle(cx, cy, viewOf(this).width, viewOf(this).height, 0x05070c, 0.62);
     techPanel(this, cx, cy, panelW, panelH, { alpha: 0.96, tint: PANEL_TINT, rule: false });
 
     const titleKey = result.grade === 'boss' ? 'chest.title_boss' : 'chest.title';
@@ -194,7 +194,7 @@ export class ChestScene extends Phaser.Scene {
     // the whole screen, not just the panel: the reveal has exactly one action, and a dead margin
     // around the panel only serves to summon the virtual joystick underneath it
     const hit = this.add
-      .rectangle(this.scale.width / 2, this.scale.height / 2, Math.max(this.scale.width, minTouchUnits(this)), Math.max(this.scale.height, minTouchUnits(this)), 0x000000, 0)
+      .rectangle(viewOf(this).width / 2, viewOf(this).height / 2, Math.max(viewOf(this).width, minTouchUnits(this)), Math.max(viewOf(this).height, minTouchUnits(this)), 0x000000, 0)
       .setInteractive({ useHandCursor: true });
     hit.on('pointerdown', (p: Phaser.Input.Pointer) => {
       this.armed = p.id;

@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { renderScale, screenOffset, viewOf } from '../layout';
 
 
 const BASE_RADIUS = 68;
@@ -88,22 +89,34 @@ export class VirtualJoystick {
 
   private onDown(pointer: Phaser.Input.Pointer): void {
     if (!this.enabled || this.pointerId !== -1) return;
-    if (pointer.y < this.scene.scale.height * START_ZONE_FRACTION) return; // leave the HUD strip free
+    // the pointer arrives in canvas pixels; the stick thinks in the logical view like everything else
+    const k = renderScale(this.scene);
+    const view = viewOf(this.scene);
+    const px = pointer.x / k;
+    const py = pointer.y / k;
+    if (py < view.height * START_ZONE_FRACTION) return; // leave the HUD strip free
     this.pointerId = pointer.id;
     // thumbs rest near the edges: clamping the origin as well as the drawing would read that press
     // as an instant shove towards the middle of the screen
-    this.originX = pointer.x;
-    this.originY = pointer.y;
-    this.drawX = Phaser.Math.Clamp(pointer.x, BASE_RADIUS, this.scene.scale.width - BASE_RADIUS);
-    this.drawY = Phaser.Math.Clamp(pointer.y, BASE_RADIUS, this.scene.scale.height - BASE_RADIUS);
-    this.base.setPosition(this.drawX, this.drawY).setVisible(true);
-    this.knob.setPosition(this.drawX, this.drawY).setVisible(true);
-    this.update(pointer.x, pointer.y);
+    this.originX = px;
+    this.originY = py;
+    this.drawX = Phaser.Math.Clamp(px, BASE_RADIUS, view.width - BASE_RADIUS);
+    this.drawY = Phaser.Math.Clamp(py, BASE_RADIUS, view.height - BASE_RADIUS);
+    this.place(this.base, this.drawX, this.drawY).setVisible(true);
+    this.place(this.knob, this.drawX, this.drawY).setVisible(true);
+    this.update(px, py);
   }
 
   private onMove(pointer: Phaser.Input.Pointer): void {
     if (pointer.id !== this.pointerId) return;
-    this.update(pointer.x, pointer.y);
+    const k = renderScale(this.scene);
+    this.update(pointer.x / k, pointer.y / k);
+  }
+
+  /** Puts a scroll-free object at a logical screen position: see screenOffset for why it is offset. */
+  private place(obj: Phaser.GameObjects.Arc, x: number, y: number): Phaser.GameObjects.Arc {
+    const off = screenOffset(this.scene);
+    return obj.setPosition(x + off.x, y + off.y);
   }
 
   private onUp(pointer: Phaser.Input.Pointer): void {
@@ -118,13 +131,13 @@ export class VirtualJoystick {
     if (len < DEAD_ZONE) {
       this.dirX = 0;
       this.dirY = 0;
-      this.knob.setPosition(this.drawX, this.drawY);
+      this.place(this.knob, this.drawX, this.drawY);
       return;
     }
     this.dirX = dx / len;
     this.dirY = dy / len;
     const knobDist = Math.min(len, BASE_RADIUS);
-    this.knob.setPosition(this.drawX + this.dirX * knobDist, this.drawY + this.dirY * knobDist);
+    this.place(this.knob, this.drawX + this.dirX * knobDist, this.drawY + this.dirY * knobDist);
   }
 
   /** Lets go of the stick and hides it. Safe to call at any time. */

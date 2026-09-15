@@ -4,7 +4,7 @@ import { formatTime, onLocaleChanged, t } from '../../i18n';
 import { textStyle, COLORS } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
 import { restartOnResize } from '../ui/responsive';
-import { isPortraitScene } from '../layout';
+import { viewOf, isPortraitScene } from '../layout';
 import { app } from '../app';
 import { music } from '../audio/music';
 import { audioContextOf } from '../audio/context';
@@ -34,10 +34,10 @@ export class MenuScene extends Phaser.Scene {
 
   create(): void {
     restartOnResize(this);
-    const cx = this.scale.width / 2;
-    const cy = this.scale.height / 2;
-    const W = this.scale.width;
-    const H = this.scale.height;
+    const cx = viewOf(this).width / 2;
+    const cy = viewOf(this).height / 2;
+    const W = viewOf(this).width;
+    const H = viewOf(this).height;
     const narrow = isPortraitScene(this) || W < 700;
     this.cameras.main.setBackgroundColor('#04060b');
 

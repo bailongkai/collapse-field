@@ -4,7 +4,7 @@ import { COLORS, textStyle } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
 import { techPanel } from '../ui/panel';
 import { restartOnResize } from '../ui/responsive';
-import { fitPanel, isPortraitScene } from '../layout';
+import { viewOf, fitPanel, isPortraitScene } from '../layout';
 import { app } from '../app';
 import { ENEMY_LIST as ALL_ENEMIES } from '../../data/enemies';
 
@@ -20,9 +20,9 @@ export class BestiaryScene extends Phaser.Scene {
   create(): void {
     restartOnResize(this);
     const save = app().save;
-    const cx = this.scale.width / 2;
-    const cy = this.scale.height / 2;
-    const portrait = isPortraitScene(this) || this.scale.width < 760;
+    const cx = viewOf(this).width / 2;
+    const cy = viewOf(this).height / 2;
+    const portrait = isPortraitScene(this) || viewOf(this).width < 760;
     const cols = portrait ? 3 : 6;
     const cell = portrait ? 96 : 118;
     const rows = Math.ceil(ENEMY_LIST.length / cols);
@@ -32,7 +32,7 @@ export class BestiaryScene extends Phaser.Scene {
     const ch = cell * k;
     const met = ENEMY_LIST.filter((e) => save.seen.includes(e.id)).length;
 
-    this.add.rectangle(cx, cy, this.scale.width, this.scale.height, 0x05070c, 0.85);
+    this.add.rectangle(cx, cy, viewOf(this).width, viewOf(this).height, 0x05070c, 0.85);
     techPanel(this, cx, cy, panel.w, panel.h, { alpha: 0.97, tint: 0x16243a, rule: true });
     this.add.text(cx - panel.w / 2 + 24, cy - panel.h / 2 + 36 * k, t('bestiary.title'), textStyle(Math.round(26 * k), { bold: true, color: COLORS.accent })).setOrigin(0, 0.5);
     this.add

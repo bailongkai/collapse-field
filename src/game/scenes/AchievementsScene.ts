@@ -4,7 +4,7 @@ import { COLORS, textStyle } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
 import { techPanel } from '../ui/panel';
 import { restartOnResize } from '../ui/responsive';
-import { fitPanel, isPortraitScene } from '../layout';
+import { viewOf, fitPanel, isPortraitScene } from '../layout';
 import { app } from '../app';
 import { ACHIEVEMENT_LIST } from '../../data/achievements';
 import { CONTENT } from '../../core/content/registry';
@@ -23,18 +23,18 @@ export class AchievementsScene extends Phaser.Scene {
   create(): void {
     restartOnResize(this);
     const save = app().save;
-    const cx = this.scale.width / 2;
-    const cy = this.scale.height / 2;
-    const wide = this.scale.width >= 980 && !isPortraitScene(this);
+    const cx = viewOf(this).width / 2;
+    const cy = viewOf(this).height / 2;
+    const wide = viewOf(this).width >= 980 && !isPortraitScene(this);
     const cols = wide ? 2 : 1;
     const rowsTall = Math.ceil(ACHIEVEMENT_LIST.length / cols);
-    const rowH = Math.max(40, Math.min(ROW_H, (this.scale.height - 200) / rowsTall));
+    const rowH = Math.max(40, Math.min(ROW_H, (viewOf(this).height - 200) / rowsTall));
     const panel = fitPanel(this, wide ? 1180 : 720, 170 + rowsTall * rowH);
     const colW = (panel.w - 24 * (cols + 1)) / cols;
     const left = cx - panel.w / 2 + 24;
     const earned = ACHIEVEMENT_LIST.filter((a) => save.achievements.includes(a.id)).length;
 
-    this.add.rectangle(cx, cy, this.scale.width, this.scale.height, 0x05070c, 0.85);
+    this.add.rectangle(cx, cy, viewOf(this).width, viewOf(this).height, 0x05070c, 0.85);
     techPanel(this, cx, cy, panel.w, panel.h, { alpha: 0.97, tint: 0x16243a, rule: true });
     this.add.text(left, cy - panel.h / 2 + 36, t('achievements.title'), textStyle(26, { bold: true, color: COLORS.accent })).setOrigin(0, 0.5);
     this.add

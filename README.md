@@ -47,7 +47,10 @@ sideways and a phone held upright all fill their screen with nothing letterboxed
 away. It covers a fixed area of the world, so how much a player can see does not
 depend on their device, except on a physically small screen, where the view
 shrinks until one logical unit is worth at least 0.72 CSS pixels — a view nobody
-can read or tap is worse than a smaller one. Because difficulty scales with
+can read or tap is worse than a smaller one. The canvas itself is rendered at the
+display's own density (up to three device pixels per logical unit, within a pixel
+budget), so a 4K or retina screen gets sharp text and lines rather than a stretched
+1280-wide picture. Because difficulty scales with
 visible area, the wave table follows automatically. Measured with a kiting
 autopilot, a view that showed more of the map without that scaling survived 27%
 longer; with it, the difference is within seed-to-seed noise.

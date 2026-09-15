@@ -4,7 +4,7 @@ import { COLORS, textStyle } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
 import { techPanel } from '../ui/panel';
 import { restartOnResize } from '../ui/responsive';
-import { fitPanel } from '../layout';
+import { viewOf, fitPanel } from '../layout';
 import { sfx } from '../audio/sfx';
 import { music } from '../audio/music';
 import { writeSave } from '../../core/save/saveData';
@@ -23,9 +23,9 @@ export class SettingsScene extends Phaser.Scene {
 
   create(): void {
     restartOnResize(this);
-    const cx = this.scale.width / 2;
-    const cy = this.scale.height / 2;
-    this.add.rectangle(cx, cy, this.scale.width, this.scale.height, 0x05070c, 0.7);
+    const cx = viewOf(this).width / 2;
+    const cy = viewOf(this).height / 2;
+    this.add.rectangle(cx, cy, viewOf(this).width, viewOf(this).height, 0x05070c, 0.7);
     const panel = fitPanel(this, 560, 440);
     const col = Math.min(220, panel.w / 2 - 24);
     techPanel(this, cx, cy, panel.w, panel.h, { alpha: 0.97, tint: 0x16243a, rule: true });

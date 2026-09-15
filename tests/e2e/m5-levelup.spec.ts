@@ -136,7 +136,7 @@ test('M5: a release with no matching press never picks a card', async ({ page })
     ({ x, y }) => {
       const c = document.querySelector('canvas')!;
       const r = c.getBoundingClientRect();
-      const s = r.width / window.__game.phaser.scale.width;
+      const s = r.width / window.__game.viewSize().width;
       return { x: r.left + x * s, y: r.top + y * s };
     },
     { x: card!.x, y: card!.y },

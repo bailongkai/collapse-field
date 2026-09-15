@@ -191,7 +191,9 @@ has to account for it. `tests/unit/horde.test.ts` strips the weapons for exactly
 this reason.
 
 The logical view takes the shape of the display and can be portrait, so scene
-layout must read `this.scale.width` / `.height` rather than any constant, panels
+layout must read `viewOf(this)` from `src/game/layout.ts` rather than any constant, and never
+`this.scale.width`: the canvas is rendered at `renderScale` device pixels per logical unit and the
+camera zoom closes the gap (`src/game/render.ts`), so the scale manager reports pixels, not units. Panels
 must go through `fitPanel`, and a screen with two columns needs a one-column
 fallback for a narrow phone. Anything gameplay-facing takes the view size as an
 explicit input: `Simulation` receives it in its options and defaults to the

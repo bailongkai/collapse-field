@@ -160,7 +160,7 @@ test('mobile: the canvas fills the phone width instead of sitting between bars',
   const canvas = await page.evaluate(() => {
     const el = document.querySelector('canvas')!;
     const rect = el.getBoundingClientRect();
-    return { width: rect.width, height: rect.height, logicalW: window.__game.phaser.scale.width, logicalH: window.__game.phaser.scale.height };
+    return { width: rect.width, height: rect.height, logicalW: window.__game.viewSize().width, logicalH: window.__game.viewSize().height };
   });
 
   // the view follows the display: wide enough to fill the screen, and small enough that one

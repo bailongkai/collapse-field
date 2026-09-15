@@ -5,7 +5,7 @@ import { UiButton } from '../ui/button';
 import { registerButton } from '../ui/buttonRegistry';
 import { techPanel } from '../ui/panel';
 import { restartOnResize } from '../ui/responsive';
-import { fitPanel, isPortraitScene, minTouchUnits } from '../layout';
+import { viewOf, fitPanel, isPortraitScene, minTouchUnits } from '../layout';
 import { app } from '../app';
 import { sfx } from '../audio/sfx';
 import { music } from '../audio/music';
@@ -53,9 +53,9 @@ export class LaunchScene extends Phaser.Scene {
     this.characterId = isCharacterUnlocked(save, save.lastCharacterId) ? save.lastCharacterId : 'survivor';
     this.stageId = isStageUnlocked(save, save.lastStageId) ? save.lastStageId : 'station';
 
-    const cx = this.scale.width / 2;
-    const cy = this.scale.height / 2;
-    const portrait = isPortraitScene(this) || this.scale.width < 760;
+    const cx = viewOf(this).width / 2;
+    const cy = viewOf(this).height / 2;
+    const portrait = isPortraitScene(this) || viewOf(this).width < 760;
     const chars = CHARACTER_LIST;
     const stages = STAGE_ORDER;
 
@@ -72,7 +72,7 @@ export class LaunchScene extends Phaser.Scene {
     const colW = (panel.w - 24 * (colCount + 1)) / colCount;
     const top = cy - panel.h / 2;
 
-    this.add.rectangle(cx, cy, this.scale.width, this.scale.height, 0x05070c, 0.85);
+    this.add.rectangle(cx, cy, viewOf(this).width, viewOf(this).height, 0x05070c, 0.85);
     techPanel(this, cx, cy, panel.w, panel.h, { alpha: 0.97, tint: PANEL_TINT, rule: true });
     this.add.text(cx, top + 36 * k, t('launch.title'), textStyle(Math.round(28 * k), { bold: true, color: COLORS.accent })).setOrigin(0.5);
 

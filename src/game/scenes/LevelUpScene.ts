@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { techPanel } from '../ui/panel';
 import { restartOnResize } from '../ui/responsive';
-import { fitPanel, minTouchUnits } from '../layout';
+import { viewOf, fitPanel, minTouchUnits } from '../layout';
 import { t } from '../../i18n';
 import { COLORS, textStyle } from '../ui/textStyles';
 import { registerButton } from '../ui/buttonRegistry';
@@ -59,15 +59,15 @@ export class LevelUpScene extends Phaser.Scene {
     this.cardH = Math.min(CARD_H, Math.max(72, (wanted.h - 140 - footer) / Math.max(1, choices.length) - CARD_GAP));
     const gap = CARD_GAP;
 
-    this.add.rectangle(this.scale.width / 2, this.scale.height / 2, this.scale.width, this.scale.height, 0x05070c, 0.6);
+    this.add.rectangle(viewOf(this).width / 2, viewOf(this).height / 2, viewOf(this).width, viewOf(this).height, 0x05070c, 0.6);
     const panelH = 140 + footer + choices.length * (this.cardH + gap);
     const panelW = this.cardW + 80;
-    techPanel(this, this.scale.width / 2, this.scale.height / 2, panelW, panelH, { alpha: 0.96, tint: PANEL_TINT, rule: false });
+    techPanel(this, viewOf(this).width / 2, viewOf(this).height / 2, panelW, panelH, { alpha: 0.96, tint: PANEL_TINT, rule: false });
     this.add
-      .text(this.scale.width / 2, this.scale.height / 2 - panelH / 2 + Math.round(42 * this.scaleUi), t('levelup.title'), textStyle(Math.round(32 * this.scaleUi), { bold: true, color: COLORS.accent }))
+      .text(viewOf(this).width / 2, viewOf(this).height / 2 - panelH / 2 + Math.round(42 * this.scaleUi), t('levelup.title'), textStyle(Math.round(32 * this.scaleUi), { bold: true, color: COLORS.accent }))
       .setOrigin(0.5);
 
-    const top = this.scale.height / 2 - panelH / 2 + Math.round(96 * this.scaleUi);
+    const top = viewOf(this).height / 2 - panelH / 2 + Math.round(96 * this.scaleUi);
     choices.forEach((choice, i) => {
       const y = top + i * (this.cardH + gap) + this.cardH / 2;
       this.cards.push(this.buildCard(choice, i, y));
@@ -77,15 +77,15 @@ export class LevelUpScene extends Phaser.Scene {
 
     // reroll / skip / banish, when the save has bought any. Shown with their counts, greyed at zero.
     if (anyCharge) {
-      const y = this.scale.height / 2 + panelH / 2 - 34;
+      const y = viewOf(this).height / 2 + panelH / 2 - 34;
       const bw = Math.min(150, (panelW - 60) / 3);
       const mk = (id: string, x: number, label: string, left: number, onPress: () => void): void => {
         const btn = new UiButton(this, x, y, { id, label: `${label} ×${left}`, width: bw, height: 40, fontSize: 15, onPress });
         if (left <= 0) btn.setEnabled(false);
       };
-      mk('levelup.reroll', this.scale.width / 2 - bw - 8, t('levelup.reroll'), run.rerolls, () => this.reroll());
-      mk('levelup.skip', this.scale.width / 2, t('levelup.skip'), run.skips, () => this.skip());
-      mk('levelup.banish', this.scale.width / 2 + bw + 8, t('levelup.banish'), run.banishes, () => this.banish());
+      mk('levelup.reroll', viewOf(this).width / 2 - bw - 8, t('levelup.reroll'), run.rerolls, () => this.reroll());
+      mk('levelup.skip', viewOf(this).width / 2, t('levelup.skip'), run.skips, () => this.skip());
+      mk('levelup.banish', viewOf(this).width / 2 + bw + 8, t('levelup.banish'), run.banishes, () => this.banish());
     }
 
     const kb = this.input.keyboard;
@@ -113,7 +113,7 @@ export class LevelUpScene extends Phaser.Scene {
     const u = this.scaleUi;
     const w = this.cardW;
     const h = this.cardH;
-    const container = this.add.container(this.scale.width / 2, y);
+    const container = this.add.container(viewOf(this).width / 2, y);
     const bg = this.add.nineslice(0, 0, 'ui', 'panel_rect', w, h, 16, 16, 16, 16).setTint(CARD_TINT);
     const iconSize = Math.round(44 * u);
     const icon = this.add.image(-w / 2 + Math.round(44 * u), 0, 'game', info.icon).setDisplaySize(iconSize, iconSize);

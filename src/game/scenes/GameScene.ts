@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { viewOf } from '../layout';
 import { FIXED_DT_MS, GAME_H, GAME_W, MAX_FRAME_DELTA_MS, MAX_STEPS_PER_FRAME, RUN_SECONDS } from '../../config';
 import { Simulation } from '../../core/sim/simulation';
 import { DEFAULT_CHARACTER_ID } from '../../data/characters';
@@ -96,8 +97,8 @@ export class GameScene extends Phaser.Scene {
       seed,
       characterId: data.characterId ?? DEFAULT_CHARACTER_ID,
       stageId: data.stageId ?? DEFAULT_STAGE_ID,
-      viewW: this.scale.width,
-      viewH: this.scale.height,
+      viewW: viewOf(this).width,
+      viewH: viewOf(this).height,
       metaBonuses: metaBonuses(app().save),
       charges: metaCharges(app().save),
       curse: data.curse ?? 0,
@@ -203,7 +204,7 @@ export class GameScene extends Phaser.Scene {
 
   /** A wider window shows more of the map, so the wave density follows it to keep the pressure. */
   private onResize = (): void => {
-    this.sim.setViewSize(this.scale.width, this.scale.height);
+    this.sim.setViewSize(viewOf(this).width, viewOf(this).height);
   };
 
   /** Android's back button: pause a running game; overlays already have their own buttons. */
@@ -504,8 +505,8 @@ export class GameScene extends Phaser.Scene {
     if (!this.scene.isActive() || !this.cameras?.main) return;
     const cam = this.cameras.main;
     const p = this.sim.world.player;
-    const viewW = this.scale.width;
-    const viewH = this.scale.height;
+    const viewW = viewOf(this).width;
+    const viewH = viewOf(this).height;
     this.playerView.update(p, this.sim.run.hp, this.sim.stats.maxHealth, deltaMs);
     this.floorView.update(cam.midPoint.x, cam.midPoint.y, cam.scrollX, cam.scrollY, viewW, viewH);
     this.shadowView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH);

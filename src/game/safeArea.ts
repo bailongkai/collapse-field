@@ -1,4 +1,5 @@
 import type Phaser from 'phaser';
+import { viewOf } from './layout';
 
 /** The notch and home-indicator insets, in the scene's logical units. Zero on any ordinary screen. */
 export interface SafeInsets {
@@ -27,8 +28,9 @@ function cssInsets(): SafeInsets {
 export function safeInsets(scene: Phaser.Scene): SafeInsets {
   const css = cssInsets();
   const canvas = scene.game.canvas;
-  const cssW = canvas?.clientWidth || scene.scale.width;
+  const view = viewOf(scene);
+  const cssW = canvas?.clientWidth || view.width;
   // logical units per CSS pixel: the canvas is FIT-scaled, so one factor serves both axes
-  const k = scene.scale.width / cssW;
+  const k = view.width / cssW;
   return { top: css.top * k, right: css.right * k, bottom: css.bottom * k, left: css.left * k };
 }

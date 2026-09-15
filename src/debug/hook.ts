@@ -1,4 +1,5 @@
 import type Phaser from 'phaser';
+import { RENDER_SCALE_KEY } from '../game/layout';
 import type { LevelUpChoice, OwnedItem, RunEnd, RunPhase } from '../core/sim/runState';
 import type { EnemyBehaviorId, PlayerStats, StatKey } from '../data/types';
 import type { SaveData } from '../core/save/saveData';
@@ -124,6 +125,8 @@ export interface GameDebugApi extends Omit<RunHandlers, 'profileStart' | 'profil
   profile: { start(): void; stop(): FrameStats };
   screenshot(): Promise<string>;
   content(): { weapons: string[]; passives: string[]; enemies: string[]; pickups: string[]; characters: string[]; stages: string[] };
+  /** the logical view every scene lays out in, and the device pixels the canvas spends per unit */
+  viewSize(): { width: number; height: number; renderScale: number };
   i18n: { setLocale(l: Locale): void; getLocale(): Locale; t(k: string): string };
   save: { get(): SaveData; set(s: SaveData): void; reset(): void; addGold(n: number): void };
   /** what the game reported about itself, for the tests */
@@ -193,6 +196,10 @@ export function installHook(game: Phaser.Game, contentProvider: () => GameDebugA
     },
     getEvents() {
       return events.slice();
+    },
+    viewSize() {
+      const k = (game.registry.get(RENDER_SCALE_KEY) as number) || 1;
+      return { width: game.scale.width / k, height: game.scale.height / k, renderScale: k };
     },
     ui: {
       buttons: () => listButtons(),

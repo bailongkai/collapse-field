@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { viewOf } from '../layout';
 import { RUN_SECONDS } from '../../config';
 import { formatTime, onLocaleChanged, t } from '../../i18n';
 import { textStyle, COLORS } from '../ui/textStyles';
@@ -43,23 +44,23 @@ export class HudScene extends Phaser.Scene {
     // a phone's notch and rounded corners: everything at an edge moves in by the inset
     const inset = safeInsets(this);
     const top = inset.top;
-    const right = this.scale.width - inset.right;
+    const right = viewOf(this).width - inset.right;
     const left = inset.left;
-    this.xpBarBg = this.add.rectangle(this.scale.width / 2, top + 10, this.scale.width, 20, 0x0d1420).setOrigin(0.5);
+    this.xpBarBg = this.add.rectangle(viewOf(this).width / 2, top + 10, viewOf(this).width, 20, 0x0d1420).setOrigin(0.5);
     this.xpBarFill = this.add.rectangle(0, top + 10, 0, 20, 0x4fe0ff).setOrigin(0, 0.5);
     this.levelText = this.add.text(right - 12, top + 10, '', textStyle(14, { bold: true })).setOrigin(1, 0.5);
-    this.timer = this.add.bitmapText(this.scale.width / 2, top + 30, DIGIT_FONT_KEY, '00:00', 32).setOrigin(0.5, 0);
+    this.timer = this.add.bitmapText(viewOf(this).width / 2, top + 30, DIGIT_FONT_KEY, '00:00', 32).setOrigin(0.5, 0);
     this.killsText = this.add.text(right - 12, top + 76, '', textStyle(16, { color: COLORS.dim, align: 'right' })).setOrigin(1, 0);
     this.signatureText = this.add.text(right - 12, top + 98, '', textStyle(14, { color: COLORS.accent, align: 'right' })).setOrigin(1, 0);
-    this.bossBarW = Math.min(400, this.scale.width - 80);
-    const bottom = this.scale.height - inset.bottom;
-    this.bossBarBg = this.add.rectangle(this.scale.width / 2, bottom - 40, this.bossBarW, 12, 0x2a0f14).setOrigin(0.5).setVisible(false);
+    this.bossBarW = Math.min(400, viewOf(this).width - 80);
+    const bottom = viewOf(this).height - inset.bottom;
+    this.bossBarBg = this.add.rectangle(viewOf(this).width / 2, bottom - 40, this.bossBarW, 12, 0x2a0f14).setOrigin(0.5).setVisible(false);
     this.bossBarFill = this.add
-      .rectangle(this.scale.width / 2 - this.bossBarW / 2, bottom - 40, this.bossBarW, 12, 0xff5555)
+      .rectangle(viewOf(this).width / 2 - this.bossBarW / 2, bottom - 40, this.bossBarW, 12, 0xff5555)
       .setOrigin(0, 0.5)
       .setVisible(false);
-    this.bossName = this.add.text(this.scale.width / 2, bottom - 58, '', textStyle(16, { bold: true, color: COLORS.warn })).setOrigin(0.5).setVisible(false);
-    this.toast = this.add.text(this.scale.width / 2, top + 120, '', textStyle(22, { bold: true, color: COLORS.gold, stroke: true })).setOrigin(0.5).setVisible(false);
+    this.bossName = this.add.text(viewOf(this).width / 2, bottom - 58, '', textStyle(16, { bold: true, color: COLORS.warn })).setOrigin(0.5).setVisible(false);
+    this.toast = this.add.text(viewOf(this).width / 2, top + 120, '', textStyle(22, { bold: true, color: COLORS.gold, stroke: true })).setOrigin(0.5).setVisible(false);
 
     // touch players have no Escape key, so they get a button once touch is detected
     const touch = app().touch;
@@ -163,7 +164,7 @@ export class HudScene extends Phaser.Scene {
     const ratio = run.xpNext > 0 ? Math.min(1, run.xp / run.xpNext) : 0;
     if (ratio !== this.last.xp) {
       this.last.xp = ratio;
-      this.xpBarFill.setSize(this.scale.width * ratio, 20);
+      this.xpBarFill.setSize(viewOf(this).width * ratio, 20);
     }
   }
 }

@@ -13,13 +13,13 @@ async function view(page: Page) {
     const c = document.querySelector('canvas')!;
     const r = c.getBoundingClientRect();
     return {
-      logicalW: g.phaser.scale.width,
-      logicalH: g.phaser.scale.height,
+      logicalW: g.viewSize().width,
+      logicalH: g.viewSize().height,
       cssW: r.width,
       cssH: r.height,
       left: r.left,
       top: r.top,
-      scale: r.width / g.phaser.scale.width,
+      scale: r.width / g.viewSize().width,
     };
   });
 }
@@ -158,7 +158,7 @@ test('portrait: the chest reveal fits an upright phone', async ({ page }) => {
   await waitScene(page, 'chest');
   await press(page, 'chest.continue');
 
-  const view = await page.evaluate(() => ({ w: window.__game.phaser.scale.width, h: window.__game.phaser.scale.height }));
+  const view = await page.evaluate(() => ({ w: window.__game.viewSize().width, h: window.__game.viewSize().height }));
   expect(view.h, 'the view should be taller than it is wide').toBeGreaterThan(view.w);
   // the panel and its one button have to sit inside the screen, not off the bottom of it
   const btn = (await page.evaluate(() => window.__game.ui.buttons())).find((b) => b.id === 'chest.continue');

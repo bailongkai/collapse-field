@@ -4,7 +4,7 @@ import { COLORS, textStyle } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
 import { techPanel } from '../ui/panel';
 import { restartOnResize } from '../ui/responsive';
-import { fitPanel } from '../layout';
+import { viewOf, fitPanel } from '../layout';
 import { sfx } from '../audio/sfx';
 import { app } from '../app';
 import { setFlag } from '../../core/save/saveData';
@@ -37,11 +37,11 @@ export class TutorialScene extends Phaser.Scene {
       this.openedAt = Date.now();
       analytics.track({ name: 'tutorial_begin' });
     }
-    const cx = this.scale.width / 2;
-    const cy = this.scale.height / 2;
+    const cx = viewOf(this).width / 2;
+    const cy = viewOf(this).height / 2;
     const panel = fitPanel(this, 600, 340);
     const k = Math.min(1, panel.w / 600);
-    this.add.rectangle(cx, cy, this.scale.width, this.scale.height, 0x05070c, 0.7);
+    this.add.rectangle(cx, cy, viewOf(this).width, viewOf(this).height, 0x05070c, 0.7);
     techPanel(this, cx, cy, panel.w, panel.h, { alpha: 0.97, tint: 0x16243a, rule: false });
     this.add.text(cx, cy - panel.h / 2 + 40 * k, t('tutorial.title'), textStyle(Math.round(26 * k), { bold: true, color: COLORS.accent })).setOrigin(0.5);
     this.body = this.add

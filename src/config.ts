@@ -102,3 +102,25 @@ export const PASSIVE_SLOTS = 6;
 
 export const SAVE_KEY = 'xjxcz.save.v1';
 export const VERSION = '0.1.0';
+
+/**
+ * How many device pixels the canvas may hold, so that rendering at native resolution on a 4K or
+ * retina display does not turn into a fill-rate bill a phone cannot pay. A desktop takes the larger
+ * figure; a touch device gets the smaller one, which is still about a 2x render on most phones.
+ */
+export const MAX_CANVAS_PIXELS_FINE = 8_400_000;
+export const MAX_CANVAS_PIXELS_COARSE = 3_600_000;
+export const MAX_RENDER_SCALE = 3;
+
+/**
+ * Device pixels per logical unit the canvas is rendered at. The logical view is what the game is
+ * laid out and balanced in and it does not change here; what changes is how many pixels each unit
+ * gets. Rendering at the view's own size and letting the browser stretch it to the screen is what
+ * made a 4K display look out of focus, so 1 is the floor and the pixel budget is the ceiling.
+ */
+export function renderScaleFor(logicalW: number, logicalH: number, cssW: number, dpr: number, maxPixels: number): number {
+  const wanted = (Math.max(1, cssW) * Math.max(1, dpr)) / Math.max(1, logicalW);
+  const budget = Math.sqrt(maxPixels / Math.max(1, logicalW * logicalH));
+  const k = Math.min(wanted, budget, MAX_RENDER_SCALE);
+  return Math.max(1, Math.round(k * 100) / 100);
+}

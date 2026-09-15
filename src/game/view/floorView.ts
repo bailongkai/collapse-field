@@ -1,5 +1,6 @@
 import type Phaser from 'phaser';
 
+import { screenOffset, viewOf } from '../layout';
 import type { StageDef } from '../../data/types';
 import { reroll, wrapDecor, type DecorSlot } from '../../core/decor';
 import { hash2 } from '../../core/rng';
@@ -15,12 +16,15 @@ export class FloorView {
   private decor: Phaser.GameObjects.Image[] = [];
   private slots: DecorSlot[] = [];
   private frames: readonly string[];
+  private scene: Phaser.Scene;
 
   constructor(scene: Phaser.Scene, stage: StageDef, floorLayer: Phaser.GameObjects.Layer, decorLayer: Phaser.GameObjects.Layer) {
+    this.scene = scene;
     this.frames = stage.decorFrames;
-    const view = scene.scale;
+    const view = viewOf(scene);
+    const off = screenOffset(scene);
     this.tile = scene.add
-      .tileSprite(view.width / 2, view.height / 2, view.width, view.height, stage.floorTexture)
+      .tileSprite(view.width / 2 + off.x, view.height / 2 + off.y, view.width, view.height, stage.floorTexture)
       .setScrollFactor(0)
       .setTint(stage.floorTint);
     floorLayer.add(this.tile);
@@ -43,10 +47,10 @@ export class FloorView {
   }
 
   update(camX: number, camY: number, scrollX: number, scrollY: number, viewW: number, viewH: number): void {
-    if (this.tile.width !== viewW || this.tile.height !== viewH) {
-      this.tile.setSize(viewW, viewH);
-      this.tile.setPosition(viewW / 2, viewH / 2);
-    }
+    if (this.tile.width !== viewW || this.tile.height !== viewH) this.tile.setSize(viewW, viewH);
+    // scroll-free, so it is placed at the offset rather than the centre: see screenOffset
+    const off = screenOffset(this.scene);
+    this.tile.setPosition(viewW / 2 + off.x, viewH / 2 + off.y);
     this.tile.tilePositionX = scrollX;
     this.tile.tilePositionY = scrollY;
     for (let i = 0; i < this.slots.length; i++) {

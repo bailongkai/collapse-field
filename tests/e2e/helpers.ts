@@ -196,7 +196,7 @@ export function toScreen(page: Page, gameX: number, gameY: number): Promise<{ x:
     ({ x, y }) => {
       const canvas = document.querySelector('canvas')!;
       const rect = canvas.getBoundingClientRect();
-      const scale = rect.width / window.__game.phaser.scale.width;
+      const scale = rect.width / window.__game.viewSize().width;
       return { x: rect.left + x * scale, y: rect.top + y * scale };
     },
     { x: gameX, y: gameY },

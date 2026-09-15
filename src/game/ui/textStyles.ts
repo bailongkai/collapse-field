@@ -15,8 +15,19 @@ export const COLORS = {
   good: '#7bf1a8',
 };
 
+let textResolution = Math.min(typeof devicePixelRatio === 'number' ? devicePixelRatio : 1, 2);
+
+/**
+ * Text is rasterised at this many pixels per logical unit. It is the render scale (see
+ * src/game/render.ts): a glyph drawn once at the density it is shown at is sharp, and one drawn at
+ * the device's own ratio was still stretched whenever the canvas was smaller than the screen.
+ */
+export function setTextResolution(k: number): void {
+  textResolution = Math.max(1, Math.min(4, k));
+}
+
 function resolution(): number {
-  return Math.min(typeof devicePixelRatio === 'number' ? devicePixelRatio : 1, 2);
+  return textResolution;
 }
 
 export interface StyleOpts {

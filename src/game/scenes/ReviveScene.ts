@@ -4,7 +4,7 @@ import { COLORS, textStyle } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
 import { techPanel } from '../ui/panel';
 import { restartOnResize } from '../ui/responsive';
-import { fitPanel } from '../layout';
+import { viewOf, fitPanel } from '../layout';
 import { sfx } from '../audio/sfx';
 import { getPlatform, analytics } from '../../platform';
 import type { GameScene } from './GameScene';
@@ -31,11 +31,11 @@ export class ReviveScene extends Phaser.Scene {
     // the offer is half the funnel: without it, an unanswered prompt is indistinguishable from one
     // that was never shown
     analytics.track({ name: 'ad_offer', kind: 'revive' });
-    const cx = this.scale.width / 2;
-    const cy = this.scale.height / 2;
+    const cx = viewOf(this).width / 2;
+    const cy = viewOf(this).height / 2;
     const panel = fitPanel(this, 520, 300);
     const k = Math.min(1, panel.w / 520);
-    this.add.rectangle(cx, cy, this.scale.width, this.scale.height, 0x05070c, 0.7);
+    this.add.rectangle(cx, cy, viewOf(this).width, viewOf(this).height, 0x05070c, 0.7);
     techPanel(this, cx, cy, panel.w, panel.h, { alpha: 0.97, tint: 0x16243a, rule: false });
     this.add.text(cx, cy - panel.h / 2 + 44 * k, t('revive.title'), textStyle(Math.round(30 * k), { bold: true, color: COLORS.warn })).setOrigin(0.5);
     this.add

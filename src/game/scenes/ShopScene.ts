@@ -4,7 +4,7 @@ import { COLORS, textStyle } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
 import { techPanel } from '../ui/panel';
 import { restartOnResize } from '../ui/responsive';
-import { fitPanel, isPortraitScene } from '../layout';
+import { viewOf, fitPanel, isPortraitScene } from '../layout';
 import { UPGRADE_LIST } from '../../data/upgrades';
 import { buyUpgrade, upgradeCost, upgradeLevel } from '../../core/save/upgrades';
 import { buyCharacter, isCharacterUnlocked } from '../../core/save/unlocks';
@@ -26,15 +26,15 @@ export class ShopScene extends Phaser.Scene {
   create(): void {
     restartOnResize(this);
     const ctx = app();
-    const cx = this.scale.width / 2;
-    const cy = this.scale.height / 2;
+    const cx = viewOf(this).width / 2;
+    const cy = viewOf(this).height / 2;
     const priced = CHARACTER_LIST.filter((c) => c.cost !== undefined);
     // the store rows sit under the characters: only where there is a store to buy from
     const store = getPlatform().purchases.available() ? PRODUCT_IDS : [];
     // upgrades and characters side by side when there is room; one column under the other on a
     // phone held upright. Thirteen rows in one column on a landscape screen squeezed the text
     // together until the names sat on the descriptions.
-    const wide = this.scale.width >= 980 && !isPortraitScene(this);
+    const wide = viewOf(this).width >= 980 && !isPortraitScene(this);
     // side by side on a wide screen; two products per row on a phone, where every row is scarce
     const storeCols = wide ? 1 : 2;
     const storeRows = store.length > 0 ? Math.ceil(store.length / storeCols) + 2 : 0;
@@ -47,11 +47,16 @@ export class ShopScene extends Phaser.Scene {
     // sizing rows first and clamping the panel after left the store rows under the back button
     const chrome = wide ? 170 : 210;
     const panel = fitPanel(this, wide ? 1180 : 760, chrome + rowsTall * ROW_H);
-    const rowH = Math.max(36, Math.min(ROW_H, (panel.h - chrome) / rowsTall));
+    const rowH = Math.max(40, Math.min(ROW_H, (panel.h - chrome) / rowsTall));
     const narrow = !wide && panel.w < 640;
+    // a short, wide screen (a 2:1 monitor, a phone on its side) cannot give thirteen rows two lines
+    // each: the name and the description share one line instead, so nothing overprints the row
+    // below. A row needs about fifty units for two lines of 19 and 14 with their padding.
+    const tight = rowH < 50;
+    const rowBtnH = Math.min(44, rowH - 6);
     const colW = wide ? (panel.w - 72) / 2 : panel.w - 48;
     const left = cx - panel.w / 2 + 24;
-    this.add.rectangle(cx, cy, this.scale.width, this.scale.height, 0x05070c, 0.85);
+    this.add.rectangle(cx, cy, viewOf(this).width, viewOf(this).height, 0x05070c, 0.85);
     techPanel(this, cx, cy, panel.w, panel.h, { alpha: 0.97, tint: 0x16243a, rule: true });
     this.add.text(left, cy - panel.h / 2 + 36, t('shop.title'), textStyle(26, { bold: true, color: COLORS.accent })).setOrigin(0, 0.5);
     this.add
@@ -67,23 +72,26 @@ export class ShopScene extends Phaser.Scene {
       this.add.image(left + 18, y, 'game', def.icon).setDisplaySize(32, 32);
       const textX = left + 44;
       const levelLabel = t('shop.level', { a: level, b: def.maxLevel });
+      const levelColor = level >= def.maxLevel ? COLORS.good : COLORS.text;
       if (narrow) {
         // on a phone the description moves next to the level, since there is no room for a column
         this.add.text(textX, y - 11, t(def.nameKey), textStyle(17, { bold: true })).setOrigin(0, 0.5);
         this.add.text(textX, y + 11, `${levelLabel}  ${t(def.descKey)}`, textStyle(13, { color: COLORS.dim })).setOrigin(0, 0.5);
+      } else if (tight) {
+        const name = this.add.text(textX, y, t(def.nameKey), textStyle(17, { bold: true })).setOrigin(0, 0.5);
+        this.add.text(textX + name.width + 10, y, t(def.descKey), textStyle(13, { color: COLORS.dim })).setOrigin(0, 0.5);
+        this.add.text(left + colW - btnW - 96, y, levelLabel, textStyle(15, { color: levelColor })).setOrigin(0, 0.5);
       } else {
         this.add.text(textX, y - 12, t(def.nameKey), textStyle(19, { bold: true })).setOrigin(0, 0.5);
         this.add.text(textX, y + 12, t(def.descKey), textStyle(14, { color: COLORS.dim })).setOrigin(0, 0.5);
-        this.add
-          .text(left + colW - btnW - 96, y, levelLabel, textStyle(16, { color: level >= def.maxLevel ? COLORS.good : COLORS.text }))
-          .setOrigin(0, 0.5);
+        this.add.text(left + colW - btnW - 96, y, levelLabel, textStyle(16, { color: levelColor })).setOrigin(0, 0.5);
       }
       const btn = new UiButton(this, buyX, y, {
         id: `shop.buy.${def.id}`,
         label: cost === null ? t('shop.max') : t('shop.buy', { n: cost }),
         width: btnW,
-        height: 44,
-        fontSize: narrow ? 15 : 17,
+        height: rowBtnH,
+        fontSize: narrow || tight ? 15 : 17,
         onPress: () => this.buy(def.id),
       });
       if (cost === null || ctx.save.gold < cost) btn.setEnabled(false);
@@ -109,6 +117,9 @@ export class ShopScene extends Phaser.Scene {
       } else if (narrow) {
         this.add.text(textX, y - 11, t(def.nameKey), textStyle(17, { bold: true })).setOrigin(0, 0.5);
         this.add.text(textX, y + 11, weapon, textStyle(13, { color: COLORS.dim })).setOrigin(0, 0.5);
+      } else if (tight) {
+        const name = this.add.text(textX, y, t(def.nameKey), textStyle(17, { bold: true })).setOrigin(0, 0.5);
+        this.add.text(textX + name.width + 10, y, weapon, textStyle(13, { color: COLORS.dim })).setOrigin(0, 0.5);
       } else {
         this.add.text(textX, y - 12, t(def.nameKey), textStyle(19, { bold: true })).setOrigin(0, 0.5);
         this.add.text(textX, y + 12, weapon, textStyle(14, { color: COLORS.dim })).setOrigin(0, 0.5);
@@ -117,8 +128,8 @@ export class ShopScene extends Phaser.Scene {
         id: `shop.buyChar.${def.id}`,
         label: owned ? t('shop.owned') : t('shop.buy', { n: def.cost ?? 0 }),
         width: charBtnW,
-        height: charCols === 1 ? 44 : 38,
-        fontSize: charCols === 1 ? (narrow ? 15 : 17) : 13,
+        height: charCols === 1 ? rowBtnH : 38,
+        fontSize: charCols === 1 ? (narrow || tight ? 15 : 17) : 13,
         onPress: () => this.buyChar(def.id),
       });
       if (owned || ctx.save.gold < (def.cost ?? 0)) btn.setEnabled(false);
@@ -137,13 +148,18 @@ export class ShopScene extends Phaser.Scene {
         const owned = productOwned(ctx.save, id);
         const cellX = charLeft + col * cellW;
         const textX = cellX + 12;
-        this.add.text(textX, y - 11, td(`shop.iap.${id}`), textStyle(storeCols === 1 ? 19 : 15, { bold: true })).setOrigin(0, 0.5);
-        this.add.text(textX, y + 11, td(`shop.iap.${id}.desc`), textStyle(storeCols === 1 ? 14 : 12, { color: COLORS.dim })).setOrigin(0, 0.5);
+        if (tight && storeCols === 1) {
+          const name = this.add.text(textX, y, td(`shop.iap.${id}`), textStyle(17, { bold: true })).setOrigin(0, 0.5);
+          this.add.text(textX + name.width + 10, y, td(`shop.iap.${id}.desc`), textStyle(13, { color: COLORS.dim })).setOrigin(0, 0.5);
+        } else {
+          this.add.text(textX, y - 11, td(`shop.iap.${id}`), textStyle(storeCols === 1 ? 19 : 15, { bold: true })).setOrigin(0, 0.5);
+          this.add.text(textX, y + 11, td(`shop.iap.${id}.desc`), textStyle(storeCols === 1 ? 14 : 12, { color: COLORS.dim })).setOrigin(0, 0.5);
+        }
         const btn = new UiButton(this, cellX + cellW - cellBtnW / 2, y, {
           id: `shop.iap.${id}`,
           label: owned ? t('shop.iap.owned') : t('shop.iap.buy'),
           width: cellBtnW,
-          height: storeCols === 1 ? 44 : 38,
+          height: storeCols === 1 ? rowBtnH : 38,
           fontSize: storeCols === 1 ? 17 : 14,
           onPress: () => void this.purchase(id),
         });

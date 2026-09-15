@@ -4,7 +4,7 @@ import { COLORS, textStyle } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
 import { techPanel } from '../ui/panel';
 import { restartOnResize } from '../ui/responsive';
-import { fitPanel } from '../layout';
+import { viewOf, fitPanel } from '../layout';
 import { IconRow } from '../ui/iconRow';
 import { CONTENT } from '../../core/content/registry';
 import type { StatKey } from '../../data/types';
@@ -27,15 +27,15 @@ export class PauseScene extends Phaser.Scene {
     const game = this.scene.get('Game') as GameScene;
     const run = game.sim.run;
     const stats = game.sim.stats;
-    const cx = this.scale.width / 2;
-    const cy = this.scale.height / 2;
+    const cx = viewOf(this).width / 2;
+    const cy = viewOf(this).height / 2;
     const panel = fitPanel(this, PANEL_W, PANEL_H);
     // one column on a phone held upright, two when there is room for them
     const oneColumn = panel.w < 640;
     const left = cx - panel.w / 2 + 40;
     const right = oneColumn ? left : cx + 60;
 
-    this.add.rectangle(cx, cy, this.scale.width, this.scale.height, 0x05070c, 0.65);
+    this.add.rectangle(cx, cy, viewOf(this).width, viewOf(this).height, 0x05070c, 0.65);
     techPanel(this, cx, cy, panel.w, panel.h, { alpha: 0.97, tint: 0x16243a, rule: true });
     this.add.text(cx, cy - panel.h / 2 + 40, t('pause.title'), textStyle(30, { bold: true, color: COLORS.accent })).setOrigin(0.5);
 

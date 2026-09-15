@@ -4,7 +4,7 @@ import { textStyle, COLORS } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
 import { techPanel } from '../ui/panel';
 import { restartOnResize } from '../ui/responsive';
-import { fitPanel } from '../layout';
+import { viewOf, fitPanel } from '../layout';
 import { IconRow } from '../ui/iconRow';
 import { commitRun, awardAchievements, grantGold, interstitialDue } from '../../core/save/saveData';
 import { analytics, getPlatform } from '../../platform';
@@ -43,7 +43,7 @@ export class ResultsScene extends Phaser.Scene {
   create(data: ResultsData): void {
     music.setMood('menu');
     music.setIntensity(0);
-    const cx = this.scale.width / 2;
+    const cx = viewOf(this).width / 2;
     const survived = data.ended === 'survived';
     const ctx = app();
 
@@ -85,9 +85,9 @@ export class ResultsScene extends Phaser.Scene {
     const doubled = carried.doubled ?? false;
     restartOnResize(this, { ...data, committed: true, unlockedStage, earned, doubled });
 
-    const cy = this.scale.height / 2;
+    const cy = viewOf(this).height / 2;
     const panel = fitPanel(this, 720, 640);
-    this.add.rectangle(cx, cy, this.scale.width, this.scale.height, 0x05070c, 0.93);
+    this.add.rectangle(cx, cy, viewOf(this).width, viewOf(this).height, 0x05070c, 0.93);
     techPanel(this, cx, cy, panel.w, panel.h, { alpha: 0.97, tint: 0x16243a, rule: true });
     this.add
       .text(cx, cy - panel.h / 2 + 52, survived ? t('results.survived') : t('results.died'), textStyle(Math.round(Math.min(44, panel.w * 0.075)), { bold: true, color: survived ? COLORS.good : COLORS.warn }))
