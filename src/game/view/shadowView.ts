@@ -1,8 +1,9 @@
 import type Phaser from 'phaser';
 import { ENEMY_CAP } from '../../config';
+import { GAME_ATLAS_DENSITY, GAME_FRAME_SCALE } from '../atlas';
 import type { World } from '../../core/sim/world';
 
-/** Pre-scaled shadow frames, chosen by body radius. Bobs cannot scale, so the sizes are baked. */
+/** Shadow frames by body radius, `w` in units. Bobs cannot scale, so the sizes are baked. */
 const SIZES = [
   { frame: 'shadow_s', w: 28, maxRadius: 15 },
   { frame: 'shadow_m', w: 44, maxRadius: 22 },
@@ -22,6 +23,7 @@ function pick(radius: number): { frame: string; w: number } {
  */
 export class ShadowView {
   private blitter: Phaser.GameObjects.Blitter;
+  private root: Phaser.GameObjects.Container;
   private bobs: Phaser.GameObjects.Bob[] = [];
   private frames: string[] = new Array<string>(ENEMY_CAP + 1).fill('');
   private widths: number[] = new Array<number>(ENEMY_CAP + 1).fill(0);
@@ -29,8 +31,11 @@ export class ShadowView {
   private readonly playerSlot = ENEMY_CAP;
 
   constructor(scene: Phaser.Scene, layer: Phaser.GameObjects.Layer) {
+    // the WebGL Blitter ignores its own transform, so a Container undoes the atlas density and
+    // the Bobs are placed in atlas pixels
     this.blitter = scene.add.blitter(0, 0, 'game');
-    layer.add(this.blitter);
+    this.root = scene.add.container(0, 0, [this.blitter]).setScale(GAME_FRAME_SCALE);
+    layer.add(this.root);
     for (let i = 0; i <= ENEMY_CAP; i++) {
       const bob = this.blitter.create(0, 0, 'shadow_s', true);
       bob.visible = false;
@@ -46,9 +51,9 @@ export class ShadowView {
       this.bobs[slot].setFrame(size.frame);
     }
     const bob = this.bobs[slot];
-    bob.x = x - size.w / 2;
+    bob.x = (x - size.w / 2) * GAME_ATLAS_DENSITY;
     // the shadow sits under the body's feet, not under its centre, or it just darkens the sprite
-    bob.y = y - size.w * 0.21 + radius * 0.85;
+    bob.y = (y - size.w * 0.21 + radius * 0.85) * GAME_ATLAS_DENSITY;
     bob.visible = true;
   }
 
@@ -76,7 +81,7 @@ export class ShadowView {
   }
 
   destroy(): void {
-    this.blitter.destroy();
+    this.root.destroy(); // takes the blitter with it
     this.bobs.length = 0;
   }
 }

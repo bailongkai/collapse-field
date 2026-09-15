@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { validateContent } from '../../src/core/content/validate';
 import { LOCKED_BY_DEFAULT } from '../../src/data/achievements';
 import { CONTENT, enemyDef, stageDef } from '../../src/core/content/registry';
+import { GAME_ATLAS_DENSITY } from '../../src/game/atlas';
 
 function atlasFrames(name: string): string[] {
   const json = JSON.parse(readFileSync(`public/assets/atlas/${name}.json`, 'utf8')) as {
@@ -14,6 +15,18 @@ function atlasFrames(name: string): string[] {
   return Object.keys(json.frames ?? {});
 }
 
+/** each frame's untrimmed size in atlas pixels */
+function atlasFrameSizes(name: string): Map<string, { w: number; h: number }> {
+  const json = JSON.parse(readFileSync(`public/assets/atlas/${name}.json`, 'utf8')) as {
+    textures?: { frames: { filename: string; sourceSize: { w: number; h: number } }[] }[];
+    frames?: Record<string, { sourceSize: { w: number; h: number } }> | { filename: string; sourceSize: { w: number; h: number } }[];
+  };
+  const out = new Map<string, { w: number; h: number }>();
+  const list = json.textures ? json.textures.flatMap((t) => t.frames) : Array.isArray(json.frames) ? json.frames : Object.entries(json.frames ?? {}).map(([filename, f]) => ({ filename, ...f }));
+  for (const f of list) out.set(f.filename, f.sourceSize);
+  return out;
+}
+
 describe('content', () => {
   const frames = new Set([...atlasFrames('game'), ...atlasFrames('ui')]);
 
@@ -23,6 +36,25 @@ describe('content', () => {
 
   it('validates with every referenced frame present', () => {
     expect(validateContent(frames)).toEqual([]);
+  });
+
+  it('packs every game frame at the declared density, so a frame authored at size N is N x density pixels', () => {
+    const manifest = JSON.parse(readFileSync('scripts/asset-manifest.json', 'utf8')) as {
+      density: number;
+      entries: { frame: string; size?: number; atlas: 'game' | 'ui' }[];
+    };
+    expect(manifest.density).toBe(GAME_ATLAS_DENSITY);
+    const sizes = atlasFrameSizes('game');
+    for (const e of manifest.entries) {
+      if (e.atlas !== 'game') continue;
+      const f = sizes.get(e.frame);
+      expect(f, e.frame).toBeDefined();
+      expect(Math.max(f!.w, f!.h), e.frame).toBe(e.size! * GAME_ATLAS_DENSITY);
+    }
+    // the procedural frames the views size themselves against
+    expect(sizes.get('bar_bg')).toEqual({ w: 40 * GAME_ATLAS_DENSITY, h: 5 * GAME_ATLAS_DENSITY });
+    expect(sizes.get('px')).toEqual({ w: 4 * GAME_ATLAS_DENSITY, h: 4 * GAME_ATLAS_DENSITY });
+    expect(sizes.get('shadow_s')!.w).toBe(28 * GAME_ATLAS_DENSITY);
   });
 
   it('every base weapon has exactly one evolution, and there is one character per base weapon', () => {

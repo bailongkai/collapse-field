@@ -1,5 +1,6 @@
 import type Phaser from 'phaser';
 import type { CharacterDef } from '../../data/types';
+import { GAME_FRAME_SCALE } from '../atlas';
 import type { Player } from '../../core/sim/entities/player';
 import { advancePhase, idlePose, recoil, squash, walkPose, type Pose, type RecoilKind } from './anim';
 
@@ -26,15 +27,15 @@ export class PlayerView {
   private recoilKind: RecoilKind = 'pulse';
   private hurtMs = 0;
   private pose: Pose = { dy: 0, scaleX: 1, scaleY: 1, rotation: 0 };
-  /** half the sprite's height, so a squash keeps the feet on the floor */
+  /** half the sprite's height in units, so a squash keeps the feet on the floor */
   private halfH = 22;
 
   constructor(scene: Phaser.Scene, ch: CharacterDef, layer: Phaser.GameObjects.Layer) {
     this.sprite = scene.add.image(0, 0, 'game', ch.frame);
-    this.barBg = scene.add.image(0, 0, 'game', 'bar_bg');
+    this.barBg = scene.add.image(0, 0, 'game', 'bar_bg').setDisplaySize(BAR_W, BAR_H);
     this.barFill = scene.add.image(0, 0, 'game', 'bar_fill').setOrigin(0, 0.5);
     layer.add([this.barBg, this.barFill, this.sprite]);
-    this.halfH = this.sprite.height / 2;
+    this.halfH = (this.sprite.height * GAME_FRAME_SCALE) / 2;
   }
 
   get gameObject(): Phaser.GameObjects.Image {
@@ -98,7 +99,7 @@ export class PlayerView {
     // squash and stretch about the feet, not the centre, or the body sinks into the floor
     const footLift = (sy - 1) * this.halfH;
     this.sprite.setPosition(player.x + dx, player.y + pose.dy - footLift);
-    this.sprite.setScale(sx, sy);
+    this.sprite.setScale(sx * GAME_FRAME_SCALE, sy * GAME_FRAME_SCALE);
     this.sprite.setRotation(pose.rotation * dir);
 
     if (this.hurtFlashMs > 0) {

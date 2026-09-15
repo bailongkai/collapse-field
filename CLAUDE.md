@@ -162,7 +162,12 @@ and paid back in growth and greed.
 ## Adding content
 
 A weapon of an existing archetype is a data change in `src/data/weapons.ts` plus
-an atlas frame in `scripts/asset-manifest.json`. A character is a data change in
+an atlas frame in `scripts/asset-manifest.json`. The manifest's `size` is the frame's longest side in
+logical units; the game atlas is packed at `density` times that (`src/game/atlas.ts` holds the same
+number) so sprites stay sharp on a retina display, and a view that draws a game frame at its
+native size scales it by `GAME_FRAME_SCALE`. Bobs cannot scale and the WebGL Blitter ignores its own
+transform, so a Blitter drawing game frames sits in a Container scaled by that factor and its
+Bobs are placed in atlas pixels. A character is a data change in
 `src/data/characters.ts` plus a frame; a stage is a data change in
 `src/data/stages.ts` plus a floor entry and decor frames. A new archetype also needs a
 behavior file and an entry in `src/core/weapons/registry.ts`. An enemy is a data

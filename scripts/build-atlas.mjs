@@ -1,7 +1,10 @@
 // Builds public/assets/atlas/{game,ui}.{png,json} from scripts/asset-manifest.json.
 // - Each entry's `file` may be a glob (first sorted match wins); on zero matches the pack's
 //   directory listing (two levels) is printed and the script exits non-zero.
-// - `size` = in-game pixel size of the longest side (game atlas only); ui frames keep native size.
+// - `size` = in-game size of the longest side in logical units (game atlas only); ui frames keep native size.
+// - `density` = texture pixels per logical unit for the game atlas. Every game frame, procedural ones
+//   included, is built at `size * density` so it stays sharp when the canvas renders at up to three
+//   device pixels per unit; the views draw it at 1 / density (src/game/atlas.ts) so nothing changes size.
 // - Procedural frames (fx_slash, icon_plasmaBlade, bar_bg, bar_fill, px) are drawn here so they exist in game.json.
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { dirname, join, resolve, sep } from 'node:path';
@@ -15,6 +18,11 @@ const CACHE = join(ROOT, '.cache', 'kenney');
 const CUSTOM = join(ROOT, 'art', 'generated');
 const OUT = join(ROOT, 'public', 'assets', 'atlas');
 const manifest = JSON.parse(readFileSync(join(ROOT, 'scripts', 'asset-manifest.json'), 'utf8'));
+/** texture pixels per logical unit in the game atlas; the hairline constants below are in units */
+const D = manifest.density;
+if (!Number.isInteger(D) || D < 1) throw new Error(`manifest.density must be a positive integer, got ${D}`);
+/** a single texture is loaded per atlas, so the packer must never spill into a second page */
+const MAX_SIDE = { game: 4096, ui: 2048 };
 
 function walk(dir, depth, out = []) {
   if (depth < 0 || !existsSync(dir)) return out;
@@ -102,26 +110,26 @@ function drawBeam(w, h, rgb) {
 }
 
 /** The stake the sapper drives into the deck: a lit post seen from above, drawn upright. */
-function drawStake(w = 22, h = 44) {
+function drawStake(w = 22 * D, h = 44 * D) {
   const img = new Jimp({ width: w, height: h, color: 0x00000000 });
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
     const cx = w / 2;
     const halfW = x < cx ? cx - x : x - cx;
-    const taper = 2 + (1 - y / h) * (w / 2 - 3);
+    const taper = 2 * D + (1 - y / h) * (w / 2 - 3 * D);
     if (halfW > taper) continue;
     const lit = y < h * 0.42;
     const [r, g, b] = lit ? [0x9c, 0xff, 0xd8] : [0x24, 0x3a, 0x4e];
-    const edge = halfW > taper - 1.6 ? 0.55 : 1;
+    const edge = halfW > taper - 1.6 * D ? 0.55 : 1;
     img.setPixelColor((((r * edge) << 24) | ((g * edge) << 16) | ((b * edge) << 8) | 0xff) >>> 0, x, y);
   }
   return img;
 }
 
 // --- procedural frames -------------------------------------------------------
-function drawSlash(w = 128, h = 48) {
+function drawSlash(w = 128 * D, h = 48 * D) {
   const img = new Jimp({ width: w, height: h, color: 0x00000000 });
-  const cx = w / 2, cy = h + 52; // arc centre below the image -> convex-up crescent
-  const rOuter = cy - 2, rInner = cy - 22;
+  const cx = w / 2, cy = h + 52 * D; // arc centre below the image -> convex-up crescent
+  const rOuter = cy - 2 * D, rInner = cy - 22 * D;
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
     const d = Math.hypot(x - cx, y - cy);
     if (d > rOuter || d < rInner) continue;
@@ -134,21 +142,21 @@ function drawSlash(w = 128, h = 48) {
   return img;
 }
 
-function drawIconBlade(size = 40) {
+function drawIconBlade(size = 40 * D) {
   const img = new Jimp({ width: size, height: size, color: 0x00000000 });
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
     // diagonal blade: distance to the line y = size - x
     const d = Math.abs(x + y - (size - 1)) / Math.SQRT2;
     const along = (x - y + size) / (2 * size); // 0..1 along the blade
-    if (d < 5 && along > 0.08 && along < 0.92) {
-      const a = Math.round(255 * Math.min(1, (5 - d) / 2));
+    if (d < 5 * D && along > 0.08 && along < 0.92) {
+      const a = Math.round(255 * Math.min(1, (5 * D - d) / (2 * D)));
       img.setPixelColor(((0x4f << 24) | (0xe0 << 16) | (0xff << 8) | a) >>> 0, x, y);
     }
   }
   return img;
 }
 
-function drawPauseIcon(size = 32) {
+function drawPauseIcon(size = 32 * D) {
   const img = new Jimp({ width: size, height: size, color: 0x00000000 });
   const barW = Math.round(size * 0.22);
   const gap = Math.round(size * 0.16);
@@ -227,7 +235,7 @@ function drawGem(size, rgb) {
  * building, which reads as scenery rather than as the reward the whole run is now built around,
  * both on the ground and floating over the elite that is carrying it.
  */
-function drawChest(w = 48) {
+function drawChest(w = 48 * D) {
   const h = Math.round(w * 0.82);
   const img = new Jimp({ width: w, height: h, color: 0x00000000 });
   const put = (x, y, r, g, b, a = 255) => {
@@ -238,17 +246,17 @@ function drawChest(w = 48) {
   const inset = Math.round(w * 0.06);
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
-      if (x < inset || x >= w - inset || y < 1 || y >= h - 1) continue;
+      if (x < inset || x >= w - inset || y < D || y >= h - D) continue;
       const inLid = y < lidH;
       // the lid is a shallow arc, so the silhouette is a chest and not a crate
       if (inLid) {
         const t = (x - w / 2) / (w / 2 - inset);
-        const top = Math.round(lidH * 0.32 * t * t) + 1;
+        const top = Math.round(lidH * 0.32 * t * t) + D;
         if (y < top) continue;
       }
-      const edge = x < inset + 2 || x >= w - inset - 2 || y === h - 2 || (inLid && y <= lidH * 0.34 + 2);
+      const edge = x < inset + 2 * D || x >= w - inset - 2 * D || y >= h - 2 * D || (inLid && y <= lidH * 0.34 + 2 * D);
       const band = Math.abs(x - w / 2) < w * 0.07;
-      const seam = !inLid && y < lidH + 3;
+      const seam = !inLid && y < lidH + 3 * D;
       let r, g, b;
       if (seam) [r, g, b] = [0x3a, 0x2a, 0x12];
       else if (band) [r, g, b] = [0xf4, 0xd9, 0x7a];
@@ -262,14 +270,14 @@ function drawChest(w = 48) {
   }
   // the latch
   const lx = Math.round(w / 2);
-  for (let y = lidH - 2; y < lidH + 5; y++) {
-    for (let x = lx - 3; x <= lx + 2; x++) put(x, y, 0xff, 0xf1, 0xb8);
+  for (let y = lidH - 2 * D; y < lidH + 5 * D; y++) {
+    for (let x = lx - 3 * D; x <= lx + 2 * D; x++) put(x, y, 0xff, 0xf1, 0xb8);
   }
   return img;
 }
 
 /** A chevron pointing right, for the relic guide at the edge of the view. */
-function drawArrow(size = 32) {
+function drawArrow(size = 32 * D) {
   const img = new Jimp({ width: size, height: size, color: 0x00000000 });
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
     const cy = size / 2;
@@ -288,8 +296,8 @@ function drawArrow(size = 32) {
 function drawContainer(size, [r, g, b]) {
   const img = new Jimp({ width: size, height: size, color: 0x00000000 });
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
-    const rim = x < 3 || y < 3 || x >= size - 3 || y >= size - 3;
-    const rib = !rim && (x % 12 === 6 || x % 12 === 7);
+    const rim = x < 3 * D || y < 3 * D || x >= size - 3 * D || y >= size - 3 * D;
+    const rib = !rim && x % (12 * D) >= 6 * D && x % (12 * D) < 8 * D;
     const lit = Math.max(0, 1 - (x / size + y / size) * 0.5);
     let cr = r, cg = g, cb = b;
     if (rim) { cr *= 0.45; cg *= 0.45; cb *= 0.45; }
@@ -316,11 +324,11 @@ async function main() {
     const custom = join(CUSTOM, `${e.frame}.png`);
     let img;
     if (existsSync(custom)) {
-      img = await loadCustom(custom, e.atlas === 'game' ? e.size : undefined);
+      img = await loadCustom(custom, e.atlas === 'game' ? e.size * D : undefined);
       console.log(`${e.frame.padEnd(22)} <- art/generated (custom) ${img.width}x${img.height}`);
     } else {
       const path = resolveFile(e.pack, e.file);
-      img = await loadScaled(path, e.atlas === 'game' ? e.size : undefined);
+      img = await loadScaled(path, e.atlas === 'game' ? e.size * D : undefined);
       console.log(`${e.frame.padEnd(22)} <- ${e.pack}/${path.slice(join(CACHE, e.pack).length + 1)} ${img.width}x${img.height}`);
     }
     groups[e.atlas].push({ path: e.frame + '.png', contents: await img.getBuffer('image/png') });
@@ -335,26 +343,26 @@ async function main() {
     // authored on its side, the lance stood upright a beam's half-length from the character, and the
     // arc lay across its two links instead of between them. Both are `beam` visuals, stretched
     // along that axis to the hit rect by the view.
-    ['fx_arc', drawBeam(192, 14, [0x4f, 0xe0, 0xff]).rotate(90)],
-    ['fx_lance', drawBeam(448, 64, [0xff, 0x8a, 0x3d]).rotate(90)],
+    ['fx_arc', drawBeam(192 * D, 14 * D, [0x4f, 0xe0, 0xff]).rotate(90)],
+    ['fx_lance', drawBeam(448 * D, 64 * D, [0xff, 0x8a, 0x3d]).rotate(90)],
     ['pylon_stake', drawStake()],
-    ['pk_chest', existsSync(join(CUSTOM, 'pk_chest.png')) ? await loadCustom(join(CUSTOM, 'pk_chest.png'), 48) : drawChest()],
+    ['pk_chest', existsSync(join(CUSTOM, 'pk_chest.png')) ? await loadCustom(join(CUSTOM, 'pk_chest.png'), 48 * D) : drawChest()],
     ['ui_arrow', drawArrow()],
-    ['wall_orange', drawContainer(64, [0xd8, 0x74, 0x3a])],
-    ['wall_grey', drawContainer(64, [0x8a, 0x94, 0xa0])],
+    ['wall_orange', drawContainer(64 * D, [0xd8, 0x74, 0x3a])],
+    ['wall_grey', drawContainer(64 * D, [0x8a, 0x94, 0xa0])],
     ['icon_plasmaBlade', drawIconBlade()],
-    ['bar_bg', solid(40, 5, 0x101418ff)],
-    ['bar_fill', solid(40, 5, 0x5ee06aff)],
-    ['px', solid(4, 4, 0xffffffff)],
+    ['bar_bg', solid(40 * D, 5 * D, 0x101418ff)],
+    ['bar_fill', solid(40 * D, 5 * D, 0x5ee06aff)],
+    ['px', solid(4 * D, 4 * D, 0xffffffff)],
     ['icon_pause', drawPauseIcon()],
-    ['gem_blue', drawGem(16, [0x3f, 0x9c, 0xff])],
-    ['gem_green', drawGem(16, [0x4f, 0xd6, 0x6a])],
-    ['gem_red', drawGem(18, [0xff, 0x5f, 0x6b])],
-    ['gem_big', drawGem(28, [0xff, 0xd1, 0x66])],
-    ['shadow_s', drawShadow(28)],
-    ['shadow_m', drawShadow(44)],
-    ['shadow_l', drawShadow(68)],
-    ['shadow_xl', drawShadow(140)],
+    ['gem_blue', drawGem(16 * D, [0x3f, 0x9c, 0xff])],
+    ['gem_green', drawGem(16 * D, [0x4f, 0xd6, 0x6a])],
+    ['gem_red', drawGem(18 * D, [0xff, 0x5f, 0x6b])],
+    ['gem_big', drawGem(28 * D, [0xff, 0xd1, 0x66])],
+    ['shadow_s', drawShadow(28 * D)],
+    ['shadow_m', drawShadow(44 * D)],
+    ['shadow_l', drawShadow(68 * D)],
+    ['shadow_xl', drawShadow(140 * D)],
   ];
   for (const [name, img] of procedural) {
     groups.game.push({ path: name + '.png', contents: await img.getBuffer('image/png') });
@@ -363,8 +371,8 @@ async function main() {
   for (const [name, images] of Object.entries(groups)) {
     const files = await packAsync(images, {
       textureName: name,
-      width: 2048,
-      height: 2048,
+      width: MAX_SIDE[name],
+      height: MAX_SIDE[name],
       fixedSize: false,
       powerOfTwo: false,
       padding: 2,
@@ -377,11 +385,15 @@ async function main() {
       removeFileExtension: true,
       prependFolderName: false,
     });
+    const pages = files.filter((f) => f.name.endsWith('.png'));
+    if (pages.length !== 1) throw new Error(`atlas ${name} spilled into ${pages.length} textures (${pages.map((f) => f.name).join(', ')}); the loader expects one`);
     for (const f of files) writeFileSync(join(OUT, f.name), f.buffer);
     const json = JSON.parse(readFileSync(join(OUT, `${name}.json`), 'utf8'));
-    const frames = json.textures ? json.textures[0].frames : json.frames;
+    const texture = json.textures ? json.textures[0] : json;
+    const frames = texture.frames;
     const count = Array.isArray(frames) ? frames.length : Object.keys(frames).length;
-    console.log(`atlas ${name}: ${count} frames -> ${files.map((f) => f.name).join(', ')}`);
+    const size = texture.size ? `${texture.size.w}x${texture.size.h}` : json.meta?.size ? `${json.meta.size.w}x${json.meta.size.h}` : '?';
+    console.log(`atlas ${name}: ${count} frames, ${size} px, ${(pages[0].buffer.length / 1024).toFixed(0)} KB -> ${files.map((f) => f.name).join(', ')}`);
   }
 }
 

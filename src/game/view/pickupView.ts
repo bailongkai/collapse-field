@@ -1,5 +1,6 @@
 import type Phaser from 'phaser';
 import { PICKUP_CAP } from '../../config';
+import { GAME_FRAME_SCALE } from '../atlas';
 import { pickupDef } from '../../core/content/registry';
 import type { World } from '../../core/sim/world';
 
@@ -10,7 +11,7 @@ export class PickupView {
 
   constructor(scene: Phaser.Scene, layer: Phaser.GameObjects.Layer) {
     for (let i = 0; i < PICKUP_CAP; i++) {
-      const img = scene.add.image(0, 0, 'game', 'pk_coin').setVisible(false);
+      const img = scene.add.image(0, 0, 'game', 'pk_coin').setScale(GAME_FRAME_SCALE).setVisible(false);
       layer.add(img);
       this.images.push(img);
     }

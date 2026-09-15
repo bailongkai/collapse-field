@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { GAME_FRAME_SCALE } from '../atlas';
 import { techPanel } from '../ui/panel';
 import { restartOnResize } from '../ui/responsive';
 import { viewOf, fitPanel, minTouchUnits } from '../layout';
@@ -118,7 +119,7 @@ export class ChestScene extends Phaser.Scene {
       .setBlendMode(Phaser.BlendModes.ADD)
       .setTint(this.burstTint(items.length))
       .setAlpha(0)
-      .setScale(0.6 * this.scaleUi);
+      .setScale(0.6 * this.scaleUi * GAME_FRAME_SCALE);
     this.chestImg = this.add.image(cx, cy - panelH / 2 + Math.round(100 * kH), 'game', 'pk_chest')
       .setDisplaySize(Math.round(68 * this.scaleUi), Math.round(68 * this.scaleUi));
 
@@ -247,7 +248,8 @@ export class ChestScene extends Phaser.Scene {
     if (this.chestImg && e < FLY_MS) {
       const p = e / FLY_MS;
       const eased = 1 + 2.7 * Math.pow(p - 1, 3) + 1.7 * Math.pow(p - 1, 2);
-      this.chestImg.setScale((0.5 + 0.5 * eased) * (this.chestImg.scaleX / Math.max(this.chestImg.scaleX, 1e-6)));
+      // lands at the frame's authored size, as it always has
+      this.chestImg.setScale((0.5 + 0.5 * eased) * GAME_FRAME_SCALE);
       this.chestImg.setAlpha(Math.min(1, p * 2));
     }
 

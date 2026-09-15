@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { PROJECTILE_CAP } from '../../config';
+import { GAME_FRAME_SCALE } from '../atlas';
 import { weaponDef } from '../../core/content/registry';
 import type { World } from '../../core/sim/world';
 
@@ -72,13 +73,14 @@ export class ProjectileView {
         img.setPosition(p.x + Math.cos(p.angle) * mid, p.y + Math.sin(p.angle) * mid);
         img.setRotation(p.angle - Math.PI / 2);
         // a beam frame is authored upright at one fixed length and stretched along the shot to the
-        // hit rect, so the same picture is a lance from the body or an arc between two links
-        if (visual?.beam) img.setScale(p.scale, p.rectLen / img.frame.height);
-        else img.setScale(p.scale);
+        // hit rect, so the same picture is a lance from the body or an arc between two links; the
+        // length is a ratio of the frame's own height, so it holds at any atlas density
+        if (visual?.beam) img.setScale(p.scale * GAME_FRAME_SCALE, p.rectLen / img.frame.height);
+        else img.setScale(p.scale * GAME_FRAME_SCALE);
         img.setAlpha(Math.max(0, Math.min(1, p.ttlMs / 150)));
       } else {
         img.setRotation(p.angle + Math.PI / 2);
-        img.setScale(p.scale);
+        img.setScale(p.scale * GAME_FRAME_SCALE);
         img.setAlpha(1);
       }
     }

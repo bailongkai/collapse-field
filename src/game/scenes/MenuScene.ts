@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { VERSION } from '../../config';
+import { GAME_ATLAS_DENSITY, GAME_FRAME_SCALE } from '../atlas';
 import { formatTime, onLocaleChanged, t } from '../../i18n';
 import { textStyle, COLORS } from '../ui/textStyles';
 import { UiButton } from '../ui/button';
@@ -136,14 +137,17 @@ export class MenuScene extends Phaser.Scene {
 
   /** A field of pixel stars in two depths, drawn with one Blitter. */
   private buildStars(W: number, H: number): { bob: Phaser.GameObjects.Bob; rate: number; phase: number }[] {
+    // the WebGL Blitter ignores its own transform, so a Container undoes the atlas density and
+    // the Bobs are placed in atlas pixels
     const blitter = this.add.blitter(0, 0, 'game', 'px');
+    this.add.container(0, 0, [blitter]).setScale(GAME_FRAME_SCALE);
     const stars: { bob: Phaser.GameObjects.Bob; rate: number; phase: number }[] = [];
     // a fixed seed keeps the sky the same between visits, which is what a menu wants
     let seed = 7;
     const rnd = (): number => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
     const n = Math.round((W * H) / 9000);
     for (let i = 0; i < n; i++) {
-      const bob = blitter.create(rnd() * W, rnd() * H);
+      const bob = blitter.create(rnd() * W * GAME_ATLAS_DENSITY, rnd() * H * GAME_ATLAS_DENSITY);
       const big = rnd() < 0.15;
       bob.setAlpha(0.6);
       bob.setTint(big ? 0xbfefff : 0x8fb4d8);

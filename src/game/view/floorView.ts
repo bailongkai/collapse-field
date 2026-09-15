@@ -1,5 +1,6 @@
 import type Phaser from 'phaser';
 
+import { GAME_FRAME_SCALE } from '../atlas';
 import { screenOffset, viewOf } from '../layout';
 import type { StageDef } from '../../data/types';
 import { reroll, wrapDecor, type DecorSlot } from '../../core/decor';
@@ -61,7 +62,7 @@ export class FloorView {
       const img = this.decor[i];
       img.setPosition(slot.x, slot.y);
       img.setRotation(slot.rotation);
-      img.setScale(slot.scale);
+      img.setScale(slot.scale * GAME_FRAME_SCALE);
     }
   }
 

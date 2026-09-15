@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { GAME_FRAME_SCALE } from '../atlas';
 
 /**
  * Shared particle emitters for deaths and impacts. One emitter per effect is created up front and
@@ -21,7 +22,7 @@ export class FxView {
       frame: 'p_spark',
       speed: { min: 40, max: 160 },
       lifespan: 320,
-      scale: { start: 0.35, end: 0 },
+      scale: { start: 0.35 * GAME_FRAME_SCALE, end: 0 },
       alpha: { start: 0.9, end: 0 },
       quantity: 1,
       emitting: false,
@@ -30,7 +31,7 @@ export class FxView {
       frame: 'p_smoke',
       speed: { min: 20, max: 80 },
       lifespan: 520,
-      scale: { start: 0.5, end: 0.05 },
+      scale: { start: 0.5 * GAME_FRAME_SCALE, end: 0.05 * GAME_FRAME_SCALE },
       alpha: { start: 0.7, end: 0 },
       quantity: 1,
       emitting: false,

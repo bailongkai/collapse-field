@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { ENEMY_CAP } from '../../config';
+import { GAME_FRAME_SCALE } from '../atlas';
 import type { World } from '../../core/sim/world';
 import { advancePhase, BOB_AMP, LEAN_AMP, dashStretch, squash } from './anim';
 
@@ -115,8 +116,10 @@ export class EnemyView {
         sx *= q.scaleX;
         sy *= q.scaleY;
       }
-      const halfH = img.height / 2;
+      const halfH = (img.height * GAME_FRAME_SCALE) / 2; // in units: the frame is packed at density
       img.setPosition(e.x, e.y + dy - (def.faceTarget ? (sy - 1) * halfH : 0));
+      sx *= GAME_FRAME_SCALE;
+      sy *= GAME_FRAME_SCALE;
       if (img.scaleX !== sx || img.scaleY !== sy) img.setScale(sx, sy);
       if (img.rotation !== rot) img.setRotation(rot);
 
