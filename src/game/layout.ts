@@ -88,6 +88,17 @@ export function applyRenderScale(scene: Phaser.Scene): void {
   }
 }
 
+/**
+ * A camera shake at its authored strength. Phaser sizes the shake by the camera's pixel width
+ * times its zoom and then applies it in world units, so every one of those grew with the render
+ * scale and a 0.006 shake on a 4K display threw the screen about nine times as far as on the
+ * 1280-wide view it was tuned on. Dividing by the scale squared puts it back.
+ */
+export function shake(scene: Phaser.Scene, durationMs: number, intensity: number): void {
+  const k = renderScale(scene);
+  scene.cameras.main.shake(durationMs, intensity / (k * k));
+}
+
 /** Apple's minimum comfortable touch target, in CSS pixels. */
 export const MIN_TOUCH_CSS = 46;
 /** The height a plain button is authored at, in logical units. */

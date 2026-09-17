@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { GAME_FRAME_SCALE } from '../atlas';
 import { techPanel } from '../ui/panel';
 import { restartOnResize } from '../ui/responsive';
-import { viewOf, fitPanel, minTouchUnits } from '../layout';
+import { shake, viewOf, fitPanel, minTouchUnits } from '../layout';
 import { t } from '../../i18n';
 import { COLORS, textStyle } from '../ui/textStyles';
 import { registerButton } from '../ui/buttonRegistry';
@@ -256,7 +256,7 @@ export class ChestScene extends Phaser.Scene {
     // three knocks, each a little higher than the last
     while (this.thumpsDone < THUMPS.length && e >= THUMPS[this.thumpsDone]) {
       sfx.play('hit', { rate: [0.9, 1, 1.12][this.thumpsDone], volume: 0.9 });
-      this.cameras.main.shake(90, 0.004);
+      shake(this, 90, 0.004);
       this.thumpsDone++;
     }
     if (this.chestImg && this.thumpsDone > 0 && !this.burst) {

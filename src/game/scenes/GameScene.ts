@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { viewOf } from '../layout';
+import { shake, viewOf } from '../layout';
 import { FIXED_DT_MS, GAME_H, GAME_W, MAX_FRAME_DELTA_MS, MAX_STEPS_PER_FRAME, RUN_SECONDS } from '../../config';
 import { Simulation } from '../../core/sim/simulation';
 import { DEFAULT_CHARACTER_ID } from '../../data/characters';
@@ -603,7 +603,7 @@ export class GameScene extends Phaser.Scene {
         case 'hurt':
           haptic('medium');
           this.playerView.flashHurt();
-          this.cameras.main.shake(150, 0.006);
+          shake(this, 150, 0.006);
           sfx.play('hurt');
           break;
         case 'death':
@@ -620,25 +620,25 @@ export class GameScene extends Phaser.Scene {
         }
         case 'hit':
           this.damageNumbers.spawn(e.x, e.y - 12, e.n, e.big);
-          if (e.big) this.cameras.main.shake(120, 0.004);
+          if (e.big) shake(this, 120, 0.004);
           sfx.play('hit');
           break;
         case 'bossSpawned':
           music.setMood('boss');
           this.toast(t('toast.boss', { name: this.enemyName(e.id) }));
-          this.cameras.main.shake(400, 0.008);
+          shake(this, 400, 0.008);
           sfx.play('boss');
           break;
         case 'final':
           music.setMood('final');
           this.toast(t('toast.final', { name: this.enemyName(e.id) }), 3600);
-          this.cameras.main.shake(600, 0.01);
+          shake(this, 600, 0.01);
           sfx.play('boss');
           break;
         case 'enrage':
           this.toast(t('toast.enrage', { name: this.enemyName(e.id) }), 3000);
           this.cameras.main.flash(300, 255, 60, 60);
-          this.cameras.main.shake(500, 0.01);
+          shake(this, 500, 0.01);
           sfx.play('boss');
           break;
         case 'chest':
@@ -653,7 +653,7 @@ export class GameScene extends Phaser.Scene {
           const def = this.sim.reg.weapons[e.id];
           this.toast(t('toast.evolve', { name: def ? t(def.nameKey) : e.id }), 3200);
           this.cameras.main.flash(500, 255, 120, 220);
-          this.cameras.main.shake(300, 0.006);
+          shake(this, 300, 0.006);
           sfx.play('levelup');
           break;
         }
@@ -663,13 +663,13 @@ export class GameScene extends Phaser.Scene {
           haptic('heavy');
           this.toast(t('toast.bossKilled', { name: this.enemyName(e.id) }), 3000);
           this.cameras.main.flash(400, 255, 255, 255);
-          this.cameras.main.shake(700, 0.012);
+          shake(this, 700, 0.012);
           this.slowMotion(650);
           sfx.play('explode');
           break;
         case 'explode':
           this.fxView.death(e.x, e.y, true);
-          this.cameras.main.shake(180, 0.006);
+          shake(this, 180, 0.006);
           sfx.play('explode');
           break;
         case 'shield':
@@ -683,7 +683,7 @@ export class GameScene extends Phaser.Scene {
           break;
         }
         case 'telegraph':
-          this.cameras.main.shake(200, 0.003);
+          shake(this, 200, 0.003);
           sfx.play('boss');
           break;
         case 'enemyShot':
