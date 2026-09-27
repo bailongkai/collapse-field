@@ -1,9 +1,6 @@
-All files in this directory are by Kenney (www.kenney.nl), licensed CC0 1.0 Universal.
+The assets in this folder come from several sources under different licences:
+AI-generated art made for this game, Kenney's CC0 packs, two SIL OFL fonts renamed as the
+OFL requires, and Kenney Future under CC BY-SA 3.0.
 
-CC0 1.0 Universal (CC0 1.0) Public Domain Dedication
-
-The person who associated a work with this deed has dedicated the work to the public domain by waiving all of his or her rights to the work worldwide under copyright law, including all related and neighboring rights, to the extent allowed by law.
-
-You can copy, modify, distribute and perform the work, even for commercial purposes, all without asking permission.
-
-Full legal text: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+See CREDITS.txt at the root of the game for what each file is and its licence. The font
+licences are in fonts/.
