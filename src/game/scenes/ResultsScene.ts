@@ -6,6 +6,7 @@ import { techPanel } from '../ui/panel';
 import { restartOnResize } from '../ui/responsive';
 import { viewOf, fitPanel } from '../layout';
 import { IconRow } from '../ui/iconRow';
+import { planResults, oneColumnWidth, twoColumnWidth, RESULTS_HEADER, RESULTS_BLOCK_GAP } from '../ui/resultsLayout';
 import { commitRun, awardAchievements, grantGold, interstitialDue } from '../../core/save/saveData';
 import { analytics, getPlatform } from '../../platform';
 import { sfx } from '../audio/sfx';
@@ -85,13 +86,20 @@ export class ResultsScene extends Phaser.Scene {
     const doubled = carried.doubled ?? false;
     restartOnResize(this, { ...data, committed: true, unlockedStage, earned, doubled });
 
-    const cy = viewOf(this).height / 2;
-    const panel = fitPanel(this, 720, 640);
-    this.add.rectangle(cx, cy, viewOf(this).width, viewOf(this).height, 0x05070c, 0.93);
-    techPanel(this, cx, cy, panel.w, panel.h, { alpha: 0.97, tint: 0x16243a, rule: true });
-    this.add
-      .text(cx, cy - panel.h / 2 + 52, survived ? t('results.survived') : t('results.died'), textStyle(Math.round(Math.min(44, panel.w * 0.075)), { bold: true, color: survived ? COLORS.good : COLORS.warn }))
-      .setOrigin(0.5);
+    const view = viewOf(this);
+    const cy = view.height / 2;
+    const max = fitPanel(this, view.width, view.height);
+    const oneW = oneColumnWidth(max.w);
+    const twoW = twoColumnWidth(max.w);
+    const stacked = oneW < 520;
+    const offerDouble = !doubled && (data.gold ?? 0) > 0 && getPlatform().ads.available();
+
+    // The summary and the build are each built in a container from its own top-left, so they can
+    // be measured before anything is placed. Where they go is `planResults`' decision.
+    const colW = oneW - 60;
+    const half = Math.min(150, colW / 2);
+    const stats = this.add.container(0, 0);
+    const build = this.add.container(0, 0);
 
     const stage = data.stageId ? CONTENT.stages[data.stageId] : undefined;
     const rows: [string, string][] = [
@@ -101,61 +109,111 @@ export class ResultsScene extends Phaser.Scene {
       [t('results.kills'), String(data.kills ?? 0)],
       [t('results.gold'), doubled ? t('results.doubled', { n: data.gold ?? 0 }) : String(data.gold ?? 0)],
     ];
-    const half = Math.min(150, panel.w / 2 - 30);
-    const rowsTop = cy - panel.h / 2 + 120;
     rows.forEach(([label, value], i) => {
-      const y = rowsTop + i * 36;
-      this.add.text(cx - half, y, label, textStyle(19, { color: COLORS.dim })).setOrigin(0, 0.5);
-      this.add.text(cx + half, y, value, textStyle(19, { bold: true })).setOrigin(1, 0.5);
+      const y = 18 + i * 36;
+      stats.add(this.add.text(-half, y, label, textStyle(19, { color: COLORS.dim })).setOrigin(0, 0.5));
+      stats.add(this.add.text(half, y, value, textStyle(19, { bold: true })).setOrigin(1, 0.5));
     });
+    let statsH = rows.length * 36;
 
     if (unlockedStage) {
       const next = CONTENT.stages[unlockedStage];
-      this.add
-        .text(cx, rowsTop + rows.length * 36 + 2, t('results.unlocked_stage', { name: next ? t(next.nameKey) : unlockedStage }), textStyle(16, { bold: true, color: COLORS.good }))
-        .setOrigin(0.5);
+      stats.add(
+        this.add
+          .text(0, statsH + 20, t('results.unlocked_stage', { name: next ? t(next.nameKey) : unlockedStage }), textStyle(16, { bold: true, color: COLORS.good }))
+          .setOrigin(0.5),
+      );
+      statsH += 40;
     }
-    let extra = unlockedStage ? 40 : 0;
+    let achievements: Phaser.GameObjects.Text | null = null;
     if (earned.length > 0) {
       const table = CONTENT_ACHIEVEMENTS as Record<string, AchievementDef>;
       const names = earned.map((id) => (table[id] ? t(table[id].nameKey) : id)).join(' · ');
-      this.add
-        .text(cx, rowsTop + rows.length * 36 + extra + 2, t('results.achievements', { names }), textStyle(15, { bold: true, color: COLORS.gold, wrapWidth: panel.w - 60, align: 'center' }))
+      achievements = this.add
+        .text(0, statsH + 8, t('results.achievements', { names }), textStyle(15, { bold: true, color: COLORS.gold, wrapWidth: colW, align: 'center' }))
         .setOrigin(0.5, 0);
-      extra += 44;
+      stats.add(achievements);
     }
-    const iconsTop = rowsTop + rows.length * 36 + extra + 24;
-    const weapons = new IconRow(this, cx - 130, iconsTop, 6, 32);
+    // a long list of achievements wraps, and wraps sooner in a column half as wide
+    const statsHeight = (wrap: number): number => {
+      if (!achievements) return statsH;
+      achievements.setWordWrapWidth(wrap, true);
+      return statsH + 8 + achievements.height;
+    };
+
+    const weapons = new IconRow(this, -half + 20, 16, 6, 32);
     weapons.setItems(data.weapons ?? [], 'weapon');
-    const passives = new IconRow(this, cx - 130, iconsTop + 42, 6, 32);
+    weapons.addTo(build);
+    const passives = new IconRow(this, -half + 20, 58, 6, 32);
     passives.setItems(data.passives ?? [], 'passive');
+    passives.addTo(build);
+    let buildH = 74;
 
     // which weapon did the work: the same bars the reference game ends on, and the only honest
     // answer to "was that pick worth it"
     const dealt = (data.damageByWeapon ?? []).filter((d) => d.damage > 0).sort((a, b) => b.damage - a.damage);
     const total = dealt.reduce((n, d) => n + d.damage, 0);
     if (total > 0) {
-      const barW = Math.min(300, panel.w - 80);
-      const barX = cx - barW / 2;
-      const barTop = iconsTop + 90;
-      this.add.text(cx, barTop - 20, t('results.damage'), textStyle(14, { color: COLORS.dim })).setOrigin(0.5);
-      dealt.slice(0, 4).forEach((d, i) => {
+      const barW = half * 2;
+      const barX = -half;
+      const barTop = 108;
+      build.add(this.add.text(0, barTop - 22, t('results.damage'), textStyle(14, { color: COLORS.dim })).setOrigin(0.5));
+      const shown = dealt.slice(0, 4);
+      shown.forEach((d, i) => {
         const y = barTop + i * 22;
         const def = CONTENT.weapons[d.id];
         const frac = d.damage / total;
-        this.add.rectangle(barX, y, barW, 14, 0x0d1420).setOrigin(0, 0.5);
-        this.add.rectangle(barX, y, barW * frac, 14, def?.iconTint ?? 0x4fe0ff).setOrigin(0, 0.5).setAlpha(0.85);
+        build.add(this.add.rectangle(barX, y, barW, 14, 0x0d1420).setOrigin(0, 0.5));
+        build.add(this.add.rectangle(barX, y, barW * frac, 14, def?.iconTint ?? 0x4fe0ff).setOrigin(0, 0.5).setAlpha(0.85));
         // stroked, because a full bar puts the text on top of its own colour
-        this.add.text(barX + 6, y, def ? t(def.nameKey) : d.id, textStyle(12, { bold: true, stroke: true })).setOrigin(0, 0.5);
-        this.add.text(barX + barW - 6, y, `${Math.round(frac * 100)}%`, textStyle(12, { bold: true, stroke: true })).setOrigin(1, 0.5);
+        build.add(this.add.text(barX + 6, y, def ? t(def.nameKey) : d.id, textStyle(12, { bold: true, stroke: true })).setOrigin(0, 0.5));
+        build.add(this.add.text(barX + barW - 6, y, `${Math.round(frac * 100)}%`, textStyle(12, { bold: true, stroke: true })).setOrigin(1, 0.5));
       });
+      buildH = barTop + (shown.length - 1) * 22 + 10;
+    }
+
+    // what the buttons take from the bottom of the panel, their own margin included
+    const footerH = 88 + (stacked ? 60 : 0) + (offerDouble ? 56 : 0);
+    const twoColW = twoW > 0 ? twoW / 2 - 40 : 0;
+    const plan = planResults({
+      maxW: max.w,
+      maxH: max.h,
+      footerH,
+      one: { stats: statsHeight(colW), build: buildH },
+      two: twoW > 0 ? { stats: statsHeight(twoColW), build: buildH } : null,
+    });
+    const finalStatsH = statsHeight(plan.columns === 2 ? twoColW : colW);
+    const panel = { w: plan.panelW, h: plan.panelH };
+    const top = cy - panel.h / 2;
+
+    this.add.rectangle(cx, cy, view.width, view.height, 0x05070c, 0.93);
+    techPanel(this, cx, cy, panel.w, panel.h, { alpha: 0.97, tint: 0x16243a, rule: true });
+    const title = this.add
+      .text(cx, top + 52, survived ? t('results.survived') : t('results.died'), textStyle(Math.round(Math.min(44, panel.w * 0.075)), { bold: true, color: survived ? COLORS.good : COLORS.warn }))
+      .setOrigin(0.5);
+    // the panel is drawn after the content it was sized from, so the content goes back on top
+    this.children.bringToTop(title);
+    this.children.bringToTop(stats);
+    this.children.bringToTop(build);
+
+    const contentTop = top + RESULTS_HEADER;
+    stats.setScale(plan.scale);
+    build.setScale(plan.scale);
+    if (plan.columns === 2) {
+      // side by side the pair is shorter than the room it was given; sit it in the middle
+      const room = panel.h - RESULTS_HEADER - footerH;
+      const y = contentTop + Math.max(0, (room - Math.max(finalStatsH, buildH) * plan.scale) / 2);
+      stats.setPosition(cx - panel.w / 4, y);
+      build.setPosition(cx + panel.w / 4, y);
+    } else {
+      stats.setPosition(cx, contentTop);
+      build.setPosition(cx, contentTop + (finalStatsH + RESULTS_BLOCK_GAP) * plan.scale);
     }
 
     const btnW = Math.min(220, panel.w / 2 - 24);
     const btnY = cy + panel.h / 2 - 48;
-    const stacked = panel.w < 520;
     // the gold of this run again for an ad: the one offer worth making every time, and only once
-    if (!doubled && (data.gold ?? 0) > 0 && getPlatform().ads.available()) {
+    if (offerDouble) {
       const dbl = new UiButton(this, cx, btnY - (stacked ? 120 : 60), { id: 'results.doubleGold', label: t('results.doubleGold'), width: Math.min(300, panel.w - 48), height: 44, fontSize: 17, onPress: () => void this.doubleGold(data, dbl) });
     }
     if (stacked) {
