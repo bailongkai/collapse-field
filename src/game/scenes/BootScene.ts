@@ -30,8 +30,8 @@ export class BootScene extends Phaser.Scene {
     const timeout = new Promise<void>((r) => setTimeout(r, 3000));
     const load = (async () => {
       const faces: [string, string][] = [
-        ['Smiley Sans', 'assets/fonts/SmileySans-subset.ttf'],
-        ['Orbitron', 'assets/fonts/Orbitron-subset.ttf'],
+        ['CF Heading', 'assets/fonts/CFHeading-subset.ttf'],
+        ['CF Display', 'assets/fonts/CFDisplay-subset.ttf'],
         ['kenvector_future', 'assets/fonts/kenvector_future.ttf'],
       ];
       await Promise.all(faces.map(async ([family, url]) => {

@@ -1,10 +1,14 @@
 import type Phaser from 'phaser';
 
 export const FONT_CJK = '"PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif';
-/** headings and buttons: a condensed oblique CJK face with some speed in it, bundled and subset */
-export const FONT_TITLE = `"Smiley Sans", ${FONT_CJK}`;
+/**
+ * headings and buttons: a condensed oblique CJK face with some speed in it, bundled and subset. It is
+ * Smiley Sans (得意黑) under a name of its own, because the OFL reserves that name and a subset is a
+ * modified version; see scripts/font-names.py.
+ */
+export const FONT_TITLE = `"CF Heading", ${FONT_CJK}`;
 /** latin display: the wide geometric face for taglines, numbers and labels */
-export const FONT_DISPLAY = `"Orbitron", "kenvector_future", ${FONT_CJK}`;
+export const FONT_DISPLAY = `"CF Display", "kenvector_future", ${FONT_CJK}`;
 
 export const COLORS = {
   text: '#e8f1ff',
