@@ -3,6 +3,7 @@ import type { StageDef, WaveEvent } from '../../../data/types';
 import { densityScale, spawnEnemy, spawnRing, spawnRingRadius } from './spawnSystem';
 import type { World } from '../world';
 import { bossLevelScale } from '../../enemies/bossScale';
+import { openCollapse } from './collapseSystem';
 
 /**
  * Fires the stage's timed events. The pointer only moves forward, so an event never repeats, and
@@ -103,6 +104,9 @@ export class EventScheduler {
         if (elite) world.events.push('elite', elite.x, elite.y, elite.maxHp, event.enemy, true);
         break;
       }
+      case 'collapse':
+        openCollapse(world, event, viewW, viewH);
+        break;
       case 'final': {
         const boss = spawnEnemy(world, event.enemy, {
           x: world.player.x + ring * 0.8,

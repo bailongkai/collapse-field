@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { viewOf } from '../layout';
+import { viewOf, setShakeEnabled } from '../layout';
 import { STAGES } from '../../data/stages';
 import { t } from '../../i18n';
 import { textStyle } from '../ui/textStyles';
@@ -36,6 +36,7 @@ export class PreloadScene extends Phaser.Scene {
     const ctx = app();
     sfx.init(this.sound, { muted: ctx.testMode, volume: ctx.save.settings.sfxVolume });
     music.setVolume(ctx.save.settings.musicVolume);
+    setShakeEnabled(ctx.save.settings.shake);
     music.setEnabled(!ctx.testMode && ctx.save.settings.musicVolume > 0);
     this.scene.start('Menu');
   }

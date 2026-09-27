@@ -107,6 +107,21 @@ the type: Smiley Sans for headings and anything bold, Orbitron for latin display
 both subset in `public/assets/fonts` and loaded in `BootScene`. `textStyle` routes them, so
 `bold: true` is a heading unless it says `plain`.
 
+The station's floor gives way three times a run (`WaveEvent` kind `'collapse'`,
+`collapseSystem.ts`): a circle is marked inside the view with a non-magnetic chest in the middle,
+and nine seconds later it takes the chest and every ordinary body standing on it, and hurts a
+player who is still there through `world.blasts`. It is an experiment on the first stage only, in
+what the game is named after. Two rules it must keep: it never shares a minute with a boss, and it
+removes the crowd it lands on rather than adding to it, because a hazard stacked on a set piece is
+a death nobody could have read. The bodies it takes are not kills and drop nothing.
+
+A level-up card for a passive names the weapons it will make stronger, from `WEAPON_STAT_USE` in
+`src/core/weapons/statUse.ts`, and a passive no weapon in the build can use is offered at a
+quarter of its weight. The case that made this necessary: duration does nothing for the blade,
+whose sweep resolves on the tick it is made, so the first card a new player was offered could be
+an upgrade that changed nothing. A new behaviour needs an entry there; a test holds the table to
+the behaviour files.
+
 Telemetry is view-side and reports exactly once per run. `GameScene.reportRunEnd` is guarded by a
 flag and called from both `finishRun` and `teardown`, so a run abandoned from the pause menu is
 still counted; without that the funnel is open and the survival curve only describes the players

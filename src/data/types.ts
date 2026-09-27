@@ -195,6 +195,13 @@ export type WaveEvent = { readonly at: number } & (
   | { readonly kind: 'encircle'; readonly enemy: string; readonly count: number; readonly gapEvery: number; readonly speedMult?: number }
   /** every nest alive hatches at once, `count` each: the lab's own set piece */
   | { readonly kind: 'hatchAll'; readonly enemy: string; readonly count: number }
+  /**
+   * A piece of the floor gives way. A circle of `radius` is marked `distance` from the player with
+   * `reward` lying in the middle of it; `warnMs` later it collapses, takes the reward and every
+   * ordinary body inside with it, and hurts a player who is still there for `damage`. The one
+   * event that is about the ground rather than about what walks on it.
+   */
+  | { readonly kind: 'collapse'; readonly radius: number; readonly distance: number; readonly warnMs: number; readonly damage: number; readonly reward: string }
 );
 export interface StageDef {
   readonly id: string;

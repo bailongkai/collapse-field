@@ -28,6 +28,18 @@ function targetable(e: Enemy): boolean {
   return !!def && !def.invulnerable && def.behavior !== 'mire';
 }
 
+/** A circle of floor counting down to its collapse. */
+export interface CollapseZone {
+  x: number;
+  y: number;
+  radius: number;
+  leftMs: number;
+  totalMs: number;
+  damage: number;
+  /** pickup id lying at the centre, lost with the floor if nobody took it */
+  reward: string;
+}
+
 export class World {
   readonly enemies = new Pool<Enemy>(ENEMY_CAP, createEnemy);
   readonly projectiles = new Pool<Projectile>(PROJECTILE_CAP, createProjectile);
@@ -52,6 +64,8 @@ export class World {
    * it resolves them in tick order, the way the bomber's blast already does.
    */
   readonly blasts: { x: number; y: number; radius: number; damage: number; id: string }[] = [];
+  /** marked ground that has not given way yet; see `collapseSystem` */
+  readonly collapses: CollapseZone[] = [];
   private serialCounter = 1;
   /** weapon instances that must have their per-enemy hit timers reset when a slot is reused */
   weaponInstances: WeaponInstance[] = [];
@@ -64,6 +78,7 @@ export class World {
     this.enemies.clear();
     this.projectiles.clear();
     this.blasts.length = 0;
+    this.collapses.length = 0;
     this.gems.clear();
     this.pickups.clear();
     this.events.clear();

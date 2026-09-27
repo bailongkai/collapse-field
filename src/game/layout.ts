@@ -88,6 +88,13 @@ export function applyRenderScale(scene: Phaser.Scene): void {
   }
 }
 
+let shakeEnabled = true;
+
+/** The settings screen's switch. Every shake in the game goes through `shake`, so this is all of them. */
+export function setShakeEnabled(on: boolean): void {
+  shakeEnabled = on;
+}
+
 /**
  * A camera shake at its authored strength. Phaser sizes the shake by the camera's pixel width
  * times its zoom and then applies it in world units, so every one of those grew with the render
@@ -95,6 +102,7 @@ export function applyRenderScale(scene: Phaser.Scene): void {
  * 1280-wide view it was tuned on. Dividing by the scale squared puts it back.
  */
 export function shake(scene: Phaser.Scene, durationMs: number, intensity: number): void {
+  if (!shakeEnabled) return;
   const k = renderScale(scene);
   scene.cameras.main.shake(durationMs, intensity / (k * k));
 }

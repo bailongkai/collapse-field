@@ -13,6 +13,7 @@ import { PlayerView } from '../view/playerView';
 import { EnemyView } from '../view/enemyView';
 import { CarriedView } from '../view/carriedView';
 import { TetherView } from '../view/tetherView';
+import { CollapseView } from '../view/collapseView';
 import { PylonView } from '../view/pylonView';
 import { RelicView } from '../view/relicView';
 import { ObstacleView } from '../view/obstacleView';
@@ -57,6 +58,7 @@ export class GameScene extends Phaser.Scene {
   private enemyView!: EnemyView;
   private carriedView!: CarriedView;
   private tetherView!: TetherView;
+  private collapseView!: CollapseView;
   private pylonView!: PylonView;
   private relicView!: RelicView;
   private obstacleView!: ObstacleView;
@@ -65,6 +67,8 @@ export class GameScene extends Phaser.Scene {
   private pickupView!: PickupView;
   private projectileView!: ProjectileView;
   private damageNumbers!: DamageNumbers;
+  /** read from the settings when the run starts; the settings screen is only reachable from the menu */
+  private showDamageNumbers = true;
   private fxView!: FxView;
   private profiler = new Profiler();
   private accumulator = 0;
@@ -130,6 +134,8 @@ export class GameScene extends Phaser.Scene {
     this.carriedView = new CarriedView(this, this.layers.fx);
     // under the bodies: a beam is the floor between them, not something drawn over their heads
     this.tetherView = new TetherView(this, this.layers.shadows);
+    // on the floor, under everything that stands on it; its countdown above everything
+    this.collapseView = new CollapseView(this, this.layers.decor, this.layers.numbers);
     // on the floor with the beams, under every body: a lattice is terrain, not an overlay
     this.pylonView = new PylonView(this, this.layers.shadows);
     this.relicView = new RelicView(this, this.layers.numbers);
@@ -138,6 +144,7 @@ export class GameScene extends Phaser.Scene {
     this.pickupView = new PickupView(this, this.layers.pickups);
     this.projectileView = new ProjectileView(this, this.layers.projectiles, this.layers.fx);
     this.damageNumbers = new DamageNumbers(this, this.layers.numbers);
+    this.showDamageNumbers = app().save.settings.damageNumbers;
     this.fxView = new FxView(this, this.layers.fx);
     this.input_ = new InputController(this);
     // the stick draws above every world layer but below the HUD scene
@@ -242,6 +249,7 @@ export class GameScene extends Phaser.Scene {
     this.enemyView.destroy();
     this.carriedView.destroy();
     this.tetherView.destroy();
+    this.collapseView.destroy();
     this.pylonView.destroy();
     this.relicView.destroy();
     this.obstacleView.destroy();
@@ -513,6 +521,7 @@ export class GameScene extends Phaser.Scene {
     this.enemyView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH, deltaMs);
     this.carriedView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH, deltaMs);
     this.tetherView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH, deltaMs);
+    this.collapseView.sync(this.sim.world, deltaMs);
     this.pylonView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH, deltaMs);
     this.relicView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH, deltaMs);
     this.gemView.sync(this.sim.world, cam.midPoint.x, cam.midPoint.y, viewW, viewH);
@@ -619,7 +628,7 @@ export class GameScene extends Phaser.Scene {
           break;
         }
         case 'hit':
-          this.damageNumbers.spawn(e.x, e.y - 12, e.n, e.big);
+          if (this.showDamageNumbers) this.damageNumbers.spawn(e.x, e.y - 12, e.n, e.big);
           if (e.big) shake(this, 120, 0.004);
           sfx.play('hit');
           break;
@@ -682,6 +691,16 @@ export class GameScene extends Phaser.Scene {
           sfx.play('levelup');
           break;
         }
+        case 'collapseWarn':
+          this.toast(t('toast.collapseWarn'), 3200);
+          sfx.play('boss');
+          break;
+        case 'collapse':
+          this.collapseView.collapsed(e.x, e.y, e.n);
+          this.cameras.main.flash(220, 255, 140, 90);
+          shake(this, 500, 0.01);
+          sfx.play('explode');
+          break;
         case 'telegraph':
           shake(this, 200, 0.003);
           sfx.play('boss');

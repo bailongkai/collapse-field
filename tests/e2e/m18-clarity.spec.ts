@@ -1,0 +1,88 @@
+import { test, expect } from '@playwright/test';
+import { openGame, startRun, waitScene, snap, step, realWait } from './helpers';
+
+test('clarity: the comfort switches are saved and the launch screen explains the challenge', async ({ page }) => {
+  const errors = await openGame(page, '?test=1');
+  expect(await page.evaluate(() => window.__game.ui.press('menu.settings'))).toBe(true);
+  await page.waitForFunction(() => window.__game.ui.buttons().some((b) => b.id === 'settings.shake'));
+  expect(await page.evaluate(() => window.__game.save.get().settings)).toMatchObject({ shake: true, damageNumbers: true });
+  await page.evaluate(() => {
+    window.__game.ui.press('settings.shake');
+    window.__game.ui.press('settings.damageNumbers');
+  });
+  expect(await page.evaluate(() => window.__game.save.get().settings)).toMatchObject({ shake: false, damageNumbers: false });
+  await snap(page, 'clarity-settings');
+  // every button of the taller panel is still on the screen
+  const view = await page.evaluate(() => window.__game.viewSize());
+  for (const b of await page.evaluate(() => window.__game.ui.buttons())) {
+    expect(b.y + b.hitH / 2, `${b.id} overflows the bottom`).toBeLessThanOrEqual(view.height + 1);
+    expect(b.y - b.hitH / 2, `${b.id} overflows the top`).toBeGreaterThanOrEqual(-1);
+  }
+  await page.evaluate(() => window.__game.ui.press('settings.back'));
+
+  // closing the settings restarts the menu, and Phaser does that on a frame boundary: press the
+  // menu that is coming, not the one that is leaving
+  await page.waitForFunction(() => !window.__game.ui.buttons().some((b) => b.id === 'settings.back'));
+  await realWait(200);
+  await page.waitForFunction(() => window.__game.ui.press('menu.start'));
+  await page.waitForFunction(() => window.__game.ui.buttons().some((b) => b.id === 'launch.start'));
+  await page.evaluate(() => window.__game.ui.press('launch.curse.20'));
+  await snap(page, 'clarity-launch');
+  expect(errors, errors.join('\n')).toEqual([]);
+});
+
+test('clarity: no damage numbers are drawn once they are switched off', async ({ page }) => {
+  const errors = await openGame(page, '?test=1&seed=61');
+  await page.evaluate(() => window.__game.ui.press('menu.settings'));
+  await page.waitForFunction(() => window.__game.ui.buttons().some((b) => b.id === 'settings.damageNumbers'));
+  await page.evaluate(() => window.__game.ui.press('settings.damageNumbers'));
+  await page.evaluate(() => window.__game.ui.press('settings.back'));
+  await startRun(page, 61);
+  await waitScene(page, 'game');
+  await page.evaluate(() => {
+    window.__game.godMode(true);
+    window.__game.giveWeapon('empField', 5);
+    window.__game.spawn('infected', 30, { radius: 60 });
+  });
+  await step(page, 90);
+  const s = await page.evaluate(() => window.__game.getState());
+  expect(s.kills, 'nothing was hit, so the test proves nothing').toBeGreaterThan(0);
+  expect(s.counts.dmgNumbers).toBe(0);
+  expect(errors, errors.join('\n')).toEqual([]);
+});
+
+test('clarity: a collapse is announced, drawn, and takes its cache when nobody comes', async ({ page }) => {
+  const errors = await openGame(page, '?test=1&seed=62');
+  await startRun(page, 62);
+  await waitScene(page, 'game');
+  await page.evaluate(() => {
+    window.__game.godMode(true);
+    window.__game.setStat('moveSpeed', 0);
+    // the station's events are sorted by time: the rush at 90 s, then the first collapse
+    window.__game.triggerEvent(1);
+  });
+  await step(page, 30);
+  const during = await page.evaluate(() => window.__game.getState().pickups.map((p) => p.defId));
+  expect(during).toContain('riftCache');
+  await snap(page, 'clarity-collapse');
+  await step(page, 60 * 10);
+  const after = await page.evaluate(() => window.__game.getState());
+  expect(after.pickups.map((p) => p.defId)).not.toContain('riftCache');
+  expect(after.chestsOpened).toBe(0);
+  expect(after.phase).toBe('running');
+  expect(errors, errors.join('\n')).toEqual([]);
+});
+
+test('clarity: the clock gives way to the objective once the final boss is on the field', async ({ page }) => {
+  const errors = await openGame(page, '?test=1&seed=63');
+  await startRun(page, 63);
+  await waitScene(page, 'game');
+  await page.evaluate(() => {
+    window.__game.godMode(true);
+    window.__game.spawnFinal();
+  });
+  await step(page, 10);
+  expect((await page.evaluate(() => window.__game.getState())).finalSpawned).toBe(true);
+  await snap(page, 'clarity-final');
+  expect(errors, errors.join('\n')).toEqual([]);
+});

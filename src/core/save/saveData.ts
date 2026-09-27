@@ -5,7 +5,7 @@ export interface SaveData {
   runsPlayed: number;
   bestTimeSec: number;
   bestKills: number;
-  settings: { locale: 'zh-CN' | 'en'; sfxVolume: number; musicVolume: number };
+  settings: { locale: 'zh-CN' | 'en'; sfxVolume: number; musicVolume: number; shake: boolean; damageNumbers: boolean };
   /** permanent upgrade levels by id */
   upgrades: Record<string, number>;
   /** what gold and clears have opened. Stages listed here have been SURVIVED, which opens the next. */
@@ -36,7 +36,7 @@ export const DEFAULT_SAVE: SaveData = {
   runsPlayed: 0,
   bestTimeSec: 0,
   bestKills: 0,
-  settings: { locale: 'zh-CN', sfxVolume: 0.8, musicVolume: 0.5 },
+  settings: { locale: 'zh-CN', sfxVolume: 0.8, musicVolume: 0.5, shake: true, damageNumbers: true },
   upgrades: {},
   unlocks: { characters: [], stages: [], items: [] },
   achievements: [],
@@ -106,6 +106,8 @@ export function loadSave(st: SaveStorage): SaveData {
       if (parsed.settings.locale === 'en' || parsed.settings.locale === 'zh-CN') d.settings.locale = parsed.settings.locale;
       if (typeof parsed.settings.sfxVolume === 'number') d.settings.sfxVolume = Math.min(1, Math.max(0, parsed.settings.sfxVolume));
       if (typeof parsed.settings.musicVolume === 'number') d.settings.musicVolume = Math.min(1, Math.max(0, parsed.settings.musicVolume));
+      if (typeof parsed.settings.shake === 'boolean') d.settings.shake = parsed.settings.shake;
+      if (typeof parsed.settings.damageNumbers === 'boolean') d.settings.damageNumbers = parsed.settings.damageNumbers;
     }
     return d;
   } catch {

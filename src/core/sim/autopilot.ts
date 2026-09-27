@@ -70,6 +70,11 @@ const eDy = new Float64Array(MAX_TRACKED);
 const eDist = new Float64Array(MAX_TRACKED);
 const ePrize = new Uint8Array(MAX_TRACKED);
 
+/** how long before a collapse the policy starts treating the circle as a wall */
+const HAZARD_HEED_MS = 4000;
+/** how far ahead it checks a direction against the circle */
+const HAZARD_LOOK = 120;
+
 const AIM_LEAD_TICKS = 10;
 const CROWD_RADIUS = 340;
 /** Behaviours whose shots go where the character faces, rather than at a target or all round. */
@@ -145,6 +150,14 @@ export function driveAutopilot(world: World, tick: number): void {
     if (prizeD < Infinity) s += (ux * prizeX + uy * prizeY) * PRIZE_W * safety;
     // turning costs a step of distance and buys a swing that lands: worth it, but not at any price
     if (side !== 0 && Math.sign(ux) === side) s += Math.abs(ux) * 26;
+    // ground that is about to go is not somewhere to be standing, or to walk into
+    for (const zone of world.collapses) {
+      if (zone.leftMs > HAZARD_HEED_MS) continue;
+      const hx = p.x + ux * HAZARD_LOOK - zone.x;
+      const hy = p.y + uy * HAZARD_LOOK - zone.y;
+      const reach = zone.radius + 40;
+      if (hx * hx + hy * hy < reach * reach) s -= 600;
+    }
     // momentum. Without it the best direction flips between two near-equal neighbours every step
     // and the character vibrates on the spot, which is the one thing a crowd never forgives.
     s += (ux * p.inputX + uy * p.inputY) * MOMENTUM;

@@ -7,6 +7,21 @@ import { reroll, wrapDecor, type DecorSlot } from '../../core/decor';
 import { hash2 } from '../../core/rng';
 
 const DECOR_COUNT = 24;
+/**
+ * The floor is drawn at this fraction of its painted brightness, and the scenery on it fainter
+ * still. The tiles were the brightest, busiest thing on screen: lit seams and cyan dashes at full
+ * strength under bodies that are mostly dark purple and grey. The floor is where things stand, so
+ * it gives way to them.
+ */
+const FLOOR_DIM = 0.66;
+const DECOR_ALPHA = 0.4;
+
+function dim(tint: number, k: number): number {
+  const r = Math.round(((tint >> 16) & 0xff) * k);
+  const g = Math.round(((tint >> 8) & 0xff) * k);
+  const b = Math.round((tint & 0xff) * k);
+  return (r << 16) | (g << 8) | b;
+}
 
 /**
  * Infinite floor: a camera-locked TileSprite whose tile offset follows the camera scroll, plus a
@@ -27,7 +42,7 @@ export class FloorView {
     this.tile = scene.add
       .tileSprite(view.width / 2 + off.x, view.height / 2 + off.y, view.width, view.height, stage.floorTexture)
       .setScrollFactor(0)
-      .setTint(stage.floorTint);
+      .setTint(dim(stage.floorTint, FLOOR_DIM));
     floorLayer.add(this.tile);
 
     for (let i = 0; i < DECOR_COUNT; i++) {
@@ -41,7 +56,7 @@ export class FloorView {
       };
       reroll(slot, this.frames.length);
       this.slots.push(slot);
-      const img = scene.add.image(slot.x, slot.y, 'game', this.frames[slot.frame]).setAlpha(0.55);
+      const img = scene.add.image(slot.x, slot.y, 'game', this.frames[slot.frame]).setAlpha(DECOR_ALPHA);
       decorLayer.add(img);
       this.decor.push(img);
     }

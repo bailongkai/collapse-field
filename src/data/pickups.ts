@@ -47,6 +47,11 @@ export const PICKUPS = {
     id: 'relicChest', nameKey: 'pickup.relicChest.name', frame: 'pk_chest', radius: 26,
     effect: { kind: 'chest', grade: 'boss' }, dropChance: 0, magnetic: false, persistent: true, sfx: 'levelup',
   },
+  // What lies in the middle of a collapsing floor. It stays where it is: the walk in is the price.
+  riftCache: {
+    id: 'riftCache', nameKey: 'pickup.riftCache.name', frame: 'pk_chest', radius: 26,
+    effect: { kind: 'chest', grade: 'standard' }, dropChance: 0, magnetic: false, persistent: true, sfx: 'levelup',
+  },
   relicVacuum: {
     id: 'relicVacuum', nameKey: 'pickup.vacuum.name', frame: 'pk_vacuum', radius: 18,
     effect: { kind: 'vacuum' }, dropChance: 0, magnetic: false, persistent: true, sfx: 'pickup',

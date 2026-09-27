@@ -13,6 +13,7 @@ import { dropForEnemy } from './systems/dropSystem';
 import { stepWeapons } from './systems/weaponSystem';
 import { stepProjectiles } from './systems/projectileSystem';
 import { stepGems, vacuumGems } from './systems/gemSystem';
+import { stepCollapses } from './systems/collapseSystem';
 import { EventScheduler } from './systems/eventSystem';
 import { rollDrops, spawnPickup, stepPickups, type PickupCollected } from './systems/pickupSystem';
 import { rollLevelUp } from '../levelup/roll';
@@ -300,6 +301,7 @@ export class Simulation {
     if (this.events.step(world, stage, run.timeMs, this.viewW, this.viewH, run.level)) run.finalSpawned = true;
     stepEnemies(world, world.player, dt, this.detonated);
     for (const b of this.detonated) this.detonate(b);
+    stepCollapses(world, FIXED_DT_MS);
     // set pieces queue their area damage rather than dealing it: armor, i-frames and god mode are
     // the simulation's to apply, and a boss that bypassed them would be a bug nobody could see
     for (const blast of world.blasts) {

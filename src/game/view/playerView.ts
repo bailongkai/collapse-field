@@ -7,6 +7,15 @@ import { advancePhase, idlePose, recoil, squash, walkPose, type Pose, type Recoi
 const BAR_W = 40;
 const BAR_H = 5;
 const BAR_OFFSET_Y = 30;
+/**
+ * The outline is the sprite drawn four more times in one flat colour, a unit and a half out in
+ * each diagonal, underneath itself. It is what picks the character out of a crowd of bodies the
+ * same size and nearly the same colours; nothing else on the field is outlined, and that is the
+ * point of it.
+ */
+const OUTLINE_OFFSET = 1.5;
+const OUTLINE_COLOR = 0xeaffff;
+const OUTLINE_DIRS: readonly (readonly [number, number])[] = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
 
 /**
  * The player sprite plus its world-space health bar. The soldier art is drawn facing right, so
@@ -14,6 +23,7 @@ const BAR_OFFSET_Y = 30;
  */
 export class PlayerView {
   private sprite: Phaser.GameObjects.Image;
+  private outline: Phaser.GameObjects.Image[] = [];
   private barBg: Phaser.GameObjects.Image;
   private barFill: Phaser.GameObjects.Image;
   private hurtFlashMs = 0;
@@ -34,7 +44,10 @@ export class PlayerView {
     this.sprite = scene.add.image(0, 0, 'game', ch.frame);
     this.barBg = scene.add.image(0, 0, 'game', 'bar_bg').setDisplaySize(BAR_W, BAR_H);
     this.barFill = scene.add.image(0, 0, 'game', 'bar_fill').setOrigin(0, 0.5);
-    layer.add([this.barBg, this.barFill, this.sprite]);
+    for (let i = 0; i < OUTLINE_DIRS.length; i++) {
+      this.outline.push(scene.add.image(0, 0, 'game', ch.frame).setTint(OUTLINE_COLOR).setTintMode(1 /* FILL */).setAlpha(0.85));
+    }
+    layer.add([this.barBg, this.barFill, ...this.outline, this.sprite]);
     this.halfH = (this.sprite.height * GAME_FRAME_SCALE) / 2;
   }
 
@@ -101,6 +114,13 @@ export class PlayerView {
     this.sprite.setPosition(player.x + dx, player.y + pose.dy - footLift);
     this.sprite.setScale(sx * GAME_FRAME_SCALE, sy * GAME_FRAME_SCALE);
     this.sprite.setRotation(pose.rotation * dir);
+    for (let i = 0; i < this.outline.length; i++) {
+      const o = this.outline[i];
+      o.setPosition(this.sprite.x + OUTLINE_DIRS[i][0] * OUTLINE_OFFSET, this.sprite.y + OUTLINE_DIRS[i][1] * OUTLINE_OFFSET);
+      o.setScale(this.sprite.scaleX, this.sprite.scaleY);
+      o.setRotation(this.sprite.rotation);
+      o.setFlipX(this.sprite.flipX);
+    }
 
     if (this.hurtFlashMs > 0) {
       this.hurtFlashMs -= deltaMs;
@@ -125,6 +145,8 @@ export class PlayerView {
 
   destroy(): void {
     this.sprite.destroy();
+    for (const o of this.outline) o.destroy();
+    this.outline.length = 0;
     this.barBg.destroy();
     this.barFill.destroy();
   }

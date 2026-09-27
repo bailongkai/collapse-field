@@ -37,13 +37,28 @@ const WAVES: readonly WaveEntry[] = [
  * a hands-off run is at roughly 30 damage per second at 3:00 and 180 by 14:00, and each of these
  * is meant to be a five-to-ten second detour at the time it appears.
  */
+/**
+ * The station's floor gives way three times a run, each time with a supply chest in the middle of
+ * the marked circle. An experiment, on this stage only, in what the game is named after: every
+ * other event is about what walks on the floor and this one is about the floor.
+ *
+ * Nine seconds is long enough to walk in from where the circle is drawn, take the chest and walk
+ * out again at 200 px/s with a second or two to spare, and not long enough to finish a fight
+ * first. None of the three shares a minute with a boss: a hazard on top of a set piece is a death
+ * nobody could have read. The damage is a little under half a starting health bar, so being
+ * caught is a mistake and not the end of the run.
+ */
+const COLLAPSE = (at: number): WaveEvent => ({ at, kind: 'collapse', radius: 170, distance: 360, warnMs: 9000, damage: 45, reward: 'riftCache' });
+
 const EVENTS: readonly WaveEvent[] = byTime([
   { at: 90, kind: 'swarm', enemy: 'interceptor', count: 25, pattern: 'hLine' },
+  COLLAPSE(120),
   { at: 150, kind: 'elite', enemy: 'sentinel', hpMult: 1 },
   { at: 210, kind: 'swarm', enemy: 'drone', count: 40, pattern: 'vLine' },
   { at: 300, kind: 'boss', enemy: 'mothership', hpMult: 1 }, // 400 hp: about 23 s of ideal output
   { at: 330, kind: 'elite', enemy: 'sentinel', hpMult: 2 },
   { at: 390, kind: 'swarm', enemy: 'interceptor', count: 35, pattern: 'diag' },
+  COLLAPSE(450),
   { at: 510, kind: 'elite', enemy: 'sentinel', hpMult: 3.2 },
   { at: 540, kind: 'encircle', enemy: 'interceptor', count: 16, gapEvery: 5 },
   { at: 600, kind: 'boss', enemy: 'warden', hpMult: 4.2 }, // 2180 hp: about 13 s, on a build ten times stronger
@@ -51,6 +66,7 @@ const EVENTS: readonly WaveEvent[] = byTime([
   { at: 660, kind: 'encircle', enemy: 'robot', count: 16, gapEvery: 5 },
   { at: 700, kind: 'elite', enemy: 'sentinel', hpMult: 4.5 },
   { at: 750, kind: 'encircle', enemy: 'hound', count: 14, gapEvery: 4 },
+  COLLAPSE(780),
   { at: 810, kind: 'swarm', enemy: 'interceptor', count: 50, pattern: 'hLine', speedMult: 1.2 },
   { at: 850, kind: 'elite', enemy: 'sentinel', hpMult: 5.5 },
   { at: 870, kind: 'encircle', enemy: 'hound', count: 18, gapEvery: 5 },

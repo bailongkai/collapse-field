@@ -108,8 +108,14 @@ export function validateContent(frames?: ReadonlySet<string>): string[] {
     s.events.forEach((e, i) => {
       check(e.at >= prev, `stage ${key}: events are not sorted at index ${i}`);
       prev = e.at;
-      check(CONTENT.enemies[e.enemy], `stage ${key}: event ${i} references unknown enemy "${e.enemy}"`);
+      if (e.kind !== 'collapse') check(CONTENT.enemies[e.enemy], `stage ${key}: event ${i} references unknown enemy "${e.enemy}"`);
     });
+    for (const e of s.events) {
+      if (e.kind !== 'collapse') continue;
+      const reward = CONTENT.pickups[e.reward];
+      check(!!reward?.persistent && !reward?.magnetic, `stage ${key}: collapse reward "${e.reward}" must be a persistent, non-magnetic pickup`);
+      check(e.warnMs >= 5000, `stage ${key}: a collapse needs at least five seconds of warning`);
+    }
     const finals = s.events.filter((e) => e.kind === 'final');
     check(finals.length === 1, `stage ${key}: expected exactly one final boss event, got ${finals.length}`);
     for (const f of finals) check(!!CONTENT.enemies[f.enemy]?.boss?.final, `stage ${key}: final boss "${f.enemy}" has no final config`);
