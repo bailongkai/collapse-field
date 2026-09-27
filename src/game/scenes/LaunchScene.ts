@@ -241,7 +241,7 @@ export class LaunchScene extends Phaser.Scene {
   /** Repaints the selection and rewrites the detail blocks; the tiles themselves are static. */
   private refresh(): void {
     const save = app().save;
-    for (const b of this.curseBtns) b.setEnabled((b.getData('curse') as number) !== this.curse);
+    for (const b of this.curseBtns) b.setSelected((b.getData('curse') as number) === this.curse);
     for (const [id, bg] of this.cardBgs) {
       const selected = id === `launch.char.${this.characterId}` || id === `launch.stage.${this.stageId}`;
       const shown = id === `launch.char.${this.shownCharacter}` || id === `launch.stage.${this.shownStage}`;

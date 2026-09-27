@@ -22,6 +22,7 @@ export class UiButton extends Phaser.GameObjects.Container {
   private bg: Phaser.GameObjects.NineSlice;
   private label: Phaser.GameObjects.Text;
   private enabled = true;
+  private selected = false;
   /** id of the pointer that pressed this button, or -1 */
   private armedPointer = -1;
   private hitW = 0;
@@ -81,8 +82,20 @@ export class UiButton extends Phaser.GameObjects.Container {
 
   setHighlight(on: boolean): void {
     if (!this.enabled) return;
-    this.bg.setTint(on ? 0xcdeeff : 0xffffff);
+    this.bg.setTint(on ? 0xcdeeff : this.selected ? SELECTED_TINT : 0xffffff);
     this.setScale(on ? 1.03 : 1);
+  }
+
+  /**
+   * Marks the current choice of a group — a language, a challenge level. It used to be shown by
+   * disabling the button, which made the one option already in force look like the one option
+   * that could not be had. Selected stays pressable and survives the pointer leaving it.
+   */
+  setSelected(on: boolean): this {
+    this.selected = on;
+    this.bg.setTint(on ? SELECTED_TINT : 0xffffff);
+    this.label.setColor(on ? COLORS.accent : COLORS.text);
+    return this;
   }
 
   setEnabled(on: boolean): this {
@@ -105,3 +118,4 @@ export class UiButton extends Phaser.GameObjects.Container {
 }
 
 export const BUTTON_TEXT_COLOR = COLORS.text;
+const SELECTED_TINT = 0x6fd8ff;

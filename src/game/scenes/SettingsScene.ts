@@ -111,8 +111,8 @@ export class SettingsScene extends Phaser.Scene {
     this.musicText.setText(t('settings.volume.value', { n: Math.round(ctx.save.settings.musicVolume * 100) }));
     this.volumeText.setText(t('settings.volume.value', { n: Math.round(ctx.save.settings.sfxVolume * 100) }));
     const locale = getLocale();
-    this.zhButton.setHighlight(locale === 'zh-CN');
-    this.enButton.setHighlight(locale === 'en');
+    this.zhButton.setSelected(locale === 'zh-CN');
+    this.enButton.setSelected(locale === 'en');
   }
 
   private close(): void {
