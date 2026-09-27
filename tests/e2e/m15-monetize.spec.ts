@@ -7,7 +7,12 @@ async function die(page: Page): Promise<void> {
     window.__game.setTimeScale(0);
     window.__game.spawn('mech', 30, { ring: true, radius: 40 });
   });
-  for (let i = 0; i < 40; i++) {
+  // Bounded by time, not by a count of attempts. A kill can drop a wreck chest, and its reveal
+  // takes a few frames to open and a few to close; with four workers sharing the machine a frame
+  // can take a quarter of a second, and forty quick attempts used to run out while the reveal was
+  // still opening, leaving the run paused and the test waiting on a results screen that never came.
+  const deadline = Date.now() + 20_000;
+  while (Date.now() < deadline) {
     // the run can end inside a batch, which unbinds the hook: that is the outcome wanted here
     if (!(await page.evaluate(() => window.__game.hasRun()))) return;
     const phase = (await state(page)).phase;
@@ -17,6 +22,8 @@ async function die(page: Page): Promise<void> {
     }
     if (phase === 'revivePrompt' || phase === 'ended') return;
     await settleOverlays(page);
+    // let the scene queue move: an overlay that is opening is not on screen to be dismissed yet
+    await page.evaluate(() => new Promise<void>((done) => requestAnimationFrame(() => requestAnimationFrame(() => done()))));
   }
 }
 
