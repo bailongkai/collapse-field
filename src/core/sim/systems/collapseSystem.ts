@@ -64,6 +64,8 @@ export function stepCollapses(world: World, dtMs: number): void {
     zone.leftMs -= dtMs;
     if (zone.leftMs > 0) continue;
 
+    // announced before the bodies it takes, so the view knows which hole each of them fell into
+    world.events.push('collapse', zone.x, zone.y, zone.radius, zone.reward, true);
     const r2 = zone.radius * zone.radius;
     const alive = world.enemies.aliveList();
     for (let i = world.enemies.count - 1; i >= 0; i--) {
@@ -71,7 +73,9 @@ export function stepCollapses(world: World, dtMs: number): void {
       if (!e.active || !e.def || e.def.bossBar || e.def.behavior === 'prop') continue;
       const dx = e.x - zone.x;
       const dy = e.y - zone.y;
-      if (dx * dx + dy * dy <= r2) world.enemies.free(e);
+      if (dx * dx + dy * dy > r2) continue;
+      world.events.push('swallowed', e.x, e.y, 0, e.defId);
+      world.enemies.free(e);
     }
     const pickups = world.pickups.aliveList();
     for (let i = world.pickups.count - 1; i >= 0; i--) {
@@ -82,7 +86,6 @@ export function stepCollapses(world: World, dtMs: number): void {
       if (dx * dx + dy * dy <= r2) world.pickups.free(p);
     }
     world.blasts.push({ x: zone.x, y: zone.y, radius: zone.radius, damage: zone.damage, id: COLLAPSE_SOURCE });
-    world.events.push('collapse', zone.x, zone.y, zone.radius, zone.reward, true);
     zones.splice(z, 1);
   }
 }

@@ -135,7 +135,7 @@ export class GameScene extends Phaser.Scene {
     // under the bodies: a beam is the floor between them, not something drawn over their heads
     this.tetherView = new TetherView(this, this.layers.shadows);
     // on the floor, under everything that stands on it; its countdown above everything
-    this.collapseView = new CollapseView(this, this.layers.decor, this.layers.numbers);
+    this.collapseView = new CollapseView(this, this.layers.decor, this.layers.shadows, this.layers.fx, this.layers.numbers);
     // on the floor with the beams, under every body: a lattice is terrain, not an overlay
     this.pylonView = new PylonView(this, this.layers.shadows);
     this.relicView = new RelicView(this, this.layers.numbers);
@@ -697,9 +697,14 @@ export class GameScene extends Phaser.Scene {
           break;
         case 'collapse':
           this.collapseView.collapsed(e.x, e.y, e.n);
-          this.cameras.main.flash(220, 255, 140, 90);
+          haptic('heavy');
+          // dim: the disc flashes hot on its own, and a full-strength flash on top whited out the screen
+          this.cameras.main.flash(160, 110, 50, 30);
           shake(this, 500, 0.01);
           sfx.play('explode');
+          break;
+        case 'swallowed':
+          this.collapseView.swallowed(e.x, e.y, this.sim.reg.enemies[e.id]?.frame);
           break;
         case 'telegraph':
           shake(this, 200, 0.003);

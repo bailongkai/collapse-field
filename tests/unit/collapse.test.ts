@@ -118,6 +118,11 @@ describe('the floor gives way', () => {
     expect(left).toHaveLength(0);
     expect(s.world.enemies.items.some((e) => e.active && e.defId === 'infected')).toBe(true);
     expect(s.run.kills).toBe(kills);
+    // each one is announced, after the collapse itself, so the view can show it falling in
+    const log: string[] = [];
+    for (let i = 0; i < s.world.events.length; i++) log.push(s.world.events.at(i).type);
+    expect(log.filter((t) => t === 'swallowed')).toHaveLength(6);
+    expect(log.indexOf('collapse')).toBeLessThan(log.indexOf('swallowed'));
   });
 
   it('spares a boss', () => {
