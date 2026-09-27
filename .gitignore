@@ -15,8 +15,12 @@ tests/e2e/screenshots/
 # local secrets
 .env
 .env.local
-# the itch.io upload key; never read by the build
-.env.itch
+# the itch.io upload key; never read by the build. The wildcard also covers an editor's swap
+# and backup files, which hold the same key while the file is open
+.env.itch*
+.env.local*
+*.swp
+*~
 
 # the desktop app checks out task worktrees here; they carry their own tsconfig
 .claude/worktrees/
