@@ -9,6 +9,7 @@
     "dev:lan": "vite --host",
     "build": "vite build",
     "package:itch": "vite build && node scripts/package-itch.mjs",
+    "publish:itch": "node scripts/publish-itch.mjs",
     "preview": "vite preview --port 4173 --strictPort",
     "assets": "npm run assets:fetch && npm run assets:floor && npm run assets:atlas && npm run assets:audio",
     "assets:fetch": "node scripts/fetch-assets.mjs",

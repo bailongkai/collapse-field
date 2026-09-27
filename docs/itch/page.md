@@ -19,7 +19,7 @@ On the project's **Edit game** page:
 |---|---|---|
 | Kind of project | HTML | |
 | Upload | `collapse-field-html5.zip`, ticked **This file will be played in the browser** | |
-| Embed options → Viewport dimensions | **1280 × 720** | the size the game is authored at; it adapts to any other, but this is the one the balance was measured on |
+| Embed options → Viewport dimensions | **960 × 540** | 16:9 like the game, and it fits a laptop's itch page; the game scales to the frame, so the player sees the same field as at 1280 × 720, and the fullscreen button gives the full size |
 | Mobile friendly | **on**, orientation **Landscape** | touch controls appear on the first touch; portrait works but landscape shows more of the field |
 | Automatically start on page load | off | the first click is what lets the browser start the music |
 | Fullscreen button | **on** | |
@@ -42,6 +42,22 @@ Future is CC BY-SA 3.0 and the two display fonts are OFL; put this line at the e
 Analytics: the build sends anonymous run events to PostHog when `VITE_POSTHOG_KEY` is set in
 `.env.local` at build time. `public/privacy.html` ships in the zip and says so; link it from the page.
 Build without the key if the itch build should send nothing.
+
+## Publishing updates
+
+After the first upload, updates go up from the command line:
+
+```bash
+npm run publish:itch
+```
+
+It reads `.env.itch` (gitignored, never read by the build): `BUTLER_API_KEY` from
+https://itch.io/user/settings/api-keys and `ITCH_TARGET` as `username/project`. It builds, runs the
+package checks, and pushes with butler to the `html5` channel, which sends only what changed.
+
+butler cannot take over a file uploaded through the website. The first push adds a second upload
+next to the hand-made one: on the Edit game page, tick **This file will be played in the browser**
+on the new `html5` upload, delete the old one, and save. Every push after that replaces it in place.
 
 ## Page text (English)
 
