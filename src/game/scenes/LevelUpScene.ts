@@ -109,7 +109,7 @@ export class LevelUpScene extends Phaser.Scene {
   }
 
   private buildCard(choice: LevelUpChoice, index: number, y: number): Phaser.GameObjects.Container {
-    const info = describeChoice(choice);
+    const info = describeChoice(choice, undefined, (this.scene.get('Game') as GameScene).sim.run.weapons);
     const u = this.scaleUi;
     const w = this.cardW;
     const h = this.cardH;

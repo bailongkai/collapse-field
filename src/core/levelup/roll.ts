@@ -2,10 +2,17 @@ import { PASSIVE_SLOTS, WEAPON_SLOTS } from '../../config';
 import type { ContentRegistry } from '../content/registry';
 import type { Rng } from '../rng';
 import type { LevelUpChoice, LimitStat, OwnedItem } from '../sim/runState';
+import { isDeadPick } from '../weapons/statUse';
 
 /** What one limit break pick is worth. Cooldown is a reduction, the others are increases. */
 export const LIMIT_AMOUNT: Record<LimitStat, number> = { damage: 0.1, area: 0.08, cooldown: 0.06, speed: 0.1 };
 const LIMIT_STATS: readonly LimitStat[] = ['damage', 'area', 'cooldown', 'speed'];
+/**
+ * What is left of a passive's weight when no weapon in the build can use it. Not zero: it may be
+ * the half of an evolution the player is planning, and the card says so. But it should not be one
+ * of the three cards of a first level-up as often as the ones that do something.
+ */
+export const DEAD_PICK_WEIGHT = 0.25;
 
 export interface RollInput {
   weapons: readonly OwnedItem[];
@@ -55,6 +62,11 @@ export function rollLevelUp(input: RollInput): LevelUpChoice[] {
 
   collect('weapon', reg.weapons, weapons, WEAPON_SLOTS);
   collect('passive', reg.passives, passives, PASSIVE_SLOTS);
+  for (const c of candidates) {
+    if (c.choice.kind !== 'passive') continue;
+    const def = reg.passives[c.choice.id];
+    if (def && isDeadPick(def, weapons, reg.weapons)) c.weight *= DEAD_PICK_WEIGHT;
+  }
 
   const wantFourth = rng.next() < clamp01(input.luck - 1);
   const count = 3 + (wantFourth ? 1 : 0);

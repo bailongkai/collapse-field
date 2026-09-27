@@ -1,7 +1,8 @@
 import { t, tDynamic } from '../../i18n';
 import { describeDeltas } from '../../core/levelup/roll';
 import { CONTENT } from '../../core/content/registry';
-import type { LevelUpChoice } from '../../core/sim/runState';
+import { passiveBenefit } from '../../core/weapons/statUse';
+import type { LevelUpChoice, OwnedItem } from '../../core/sim/runState';
 
 export interface ChoiceInfo {
   title: string;
@@ -16,8 +17,10 @@ export interface ChoiceInfo {
  * never drift apart: a chest hands out the same `LevelUpChoice` values the level-up screen does,
  * and a player who sees "等离子刃 Lv 4 → 5" in one place must see the same words in the other.
  * `fromLevel` is for a chest that paid the same item more than once; see `describeRewards`.
+ * `build` is the weapons the player holds: with it a passive's card names the ones it will make
+ * stronger, or says that none of them can use it and which evolution it is half of.
  */
-export function describeChoice(choice: LevelUpChoice, fromLevel?: number): ChoiceInfo {
+export function describeChoice(choice: LevelUpChoice, fromLevel?: number, build?: readonly OwnedItem[]): ChoiceInfo {
   if (choice.kind === 'weapon') {
     const def = CONTENT.weapons[choice.id];
     const from = fromLevel ?? choice.toLevel - 1;
@@ -48,7 +51,7 @@ export function describeChoice(choice: LevelUpChoice, fromLevel?: number): Choic
     return {
       title: t(def.nameKey),
       tag: isNew ? t('levelup.new_passive') : t('levelup.level_to', { a: from, b: choice.toLevel }),
-      body: t(def.descKey),
+      body: t(def.descKey) + (build ? passiveNote(def.id, build) : ''),
       icon: def.icon,
     };
   }
@@ -108,4 +111,21 @@ function sumDeltas(levels: readonly Record<string, number | undefined>[]): Recor
     }
   }
   return out;
+}
+
+/** The second line of a passive's card: who it helps in this build, or what it is for if nobody. */
+function passiveNote(id: string, build: readonly OwnedItem[]): string {
+  const def = CONTENT.passives[id];
+  if (!def) return '';
+  const benefit = passiveBenefit(def, build, CONTENT.weapons);
+  if (benefit.weapons.length > 0) {
+    // every weapon in the build: saying so is shorter than listing them
+    if (benefit.weapons.length === build.length && build.length > 1) return `\n${t('levelup.affects_all')}`;
+    const names = benefit.weapons.map((w) => t(CONTENT.weapons[w].nameKey)).join(t('common.list_sep'));
+    return `\n${t('levelup.affects', { names })}`;
+  }
+  if (benefit.player) return '';
+  const paired = Object.values(CONTENT.weapons).find((w) => w.evolution?.requires === id);
+  const use = paired ? t('levelup.affects_evolves', { weapon: t(paired.nameKey) }) : '';
+  return `\n${t('levelup.affects_none')}${use ? ` · ${use}` : ''}`;
 }
