@@ -13,6 +13,7 @@ import type { GameScene } from './GameScene';
 /** Screen-space HUD. Runs in parallel with GameScene and only redraws when a value changes. */
 export class HudScene extends Phaser.Scene {
   private timer!: Phaser.GameObjects.BitmapText;
+  private objective!: Phaser.GameObjects.Text;
   private levelText!: Phaser.GameObjects.Text;
   private killsText!: Phaser.GameObjects.Text;
   private xpBarBg!: Phaser.GameObjects.Rectangle;
@@ -50,6 +51,12 @@ export class HudScene extends Phaser.Scene {
     this.xpBarFill = this.add.rectangle(0, top + 10, 0, 20, 0x4fe0ff).setOrigin(0, 0.5);
     this.levelText = this.add.text(right - 12, top + 10, '', textStyle(14, { bold: true })).setOrigin(1, 0.5);
     this.timer = this.add.bitmapText(viewOf(this).width / 2, top + 30, DIGIT_FONT_KEY, '00:00', 32).setOrigin(0.5, 0);
+    // Once the final boss is on the field the clock has nothing left to say: it stopped at 15:00
+    // and the run did not. What replaces it is the thing the player is now there to do.
+    this.objective = this.add
+      .text(viewOf(this).width / 2, top + 34, t('hud.objective_final'), textStyle(22, { bold: true, color: COLORS.warn, stroke: true }))
+      .setOrigin(0.5, 0)
+      .setVisible(false);
     this.killsText = this.add.text(right - 12, top + 76, '', textStyle(16, { color: COLORS.dim, align: 'right' })).setOrigin(1, 0);
     this.signatureText = this.add.text(right - 12, top + 98, '', textStyle(14, { color: COLORS.accent, align: 'right' })).setOrigin(1, 0);
     this.bossBarW = Math.min(400, viewOf(this).width - 80);
@@ -131,6 +138,11 @@ export class HudScene extends Phaser.Scene {
       this.bossName.setVisible(false);
     }
 
+    const finale = run.finalSpawned && run.phase !== 'ended';
+    if (finale !== this.objective.visible) {
+      this.objective.setVisible(finale);
+      this.timer.setVisible(!finale);
+    }
     const sec = Math.min(RUN_SECONDS, Math.floor(run.timeMs / 1000));
     if (sec !== this.last.time) {
       this.last.time = sec;
