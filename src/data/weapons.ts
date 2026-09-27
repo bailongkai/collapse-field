@@ -117,7 +117,10 @@ export const WEAPONS = {
   arcConduit: {
     id: 'arcConduit', nameKey: 'weapon.arcConduit.name', descKey: 'weapon.arcConduit.desc',
     icon: 'icon_arcConduit', rarity: 80, maxLevel: 8, behavior: 'chain',
-    base: { damage: 6, cooldown: 1250, amount: 1, area: 1, speed: 1, duration: 140, pierce: 4, knockback: 0.5, interval: 0, hitCooldown: 0 },
+    // Measured alone at level 8 in the station's minute-10 crowd over twelve seeds: at 6 damage and
+    // 1250 ms it killed 110 a minute, the weakest base weapon; at 10 and 1100 it kills 152, level
+    // with the guided laser.
+    base: { damage: 10, cooldown: 1100, amount: 1, area: 1, speed: 1, duration: 140, pierce: 4, knockback: 0.5, interval: 0, hitCooldown: 0 },
     levels: [
       { pierce: 1 },
       { damage: 2 },
@@ -201,8 +204,12 @@ export const WEAPONS = {
     id: 'stormLattice', nameKey: 'weapon.stormLattice.name', descKey: 'weapon.stormLattice.desc',
     icon: 'icon_arcConduit', iconTint: 0xfff0b0, rarity: 0, maxLevel: 8, behavior: 'chain', evolvedOnly: true,
     // fourteen links at a tenth of falloff each: the first weapon whose output still climbs past
-    // twenty bodies, which is the archetype's promise finally paid out
-    base: { damage: 20, cooldown: 900, amount: 3, area: 1.2, speed: 1, duration: 200, pierce: 14, knockback: 0.5, interval: 0, hitCooldown: 0 },
+    // twenty bodies, which is the archetype's promise finally paid out. It used to hit for 20 with
+    // three arcs, which wounded minute-ten bodies rather than killing them and measured 147 kills a
+    // minute against 357 to 498 for every other evolution; worse than no evolution at all for the
+    // player who built towards it. Six arcs at 40 measure 376. Damage alone plateaus near 250,
+    // because each arc is limited by how many bodies stand within a jump of each other.
+    base: { damage: 40, cooldown: 800, amount: 6, area: 1.2, speed: 1, duration: 200, pierce: 14, knockback: 0.5, interval: 0, hitCooldown: 0 },
     levels: [{}, {}, {}, {}, {}, {}, {}],
     visual: { frame: 'fx_arc', blend: 'add', tint: 0xfff0b0, sfx: 'emp', beam: true },
   },
