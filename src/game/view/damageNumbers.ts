@@ -44,8 +44,9 @@ export class DamageNumbers {
     slot.life = big ? 900 : 650;
     slot.ttl = slot.life;
     slot.text.setText(String(Math.round(value)));
-    slot.text.setFontSize(big ? 26 : 18);
-    slot.text.setTint(big ? 0xffd166 : 0xffffff);
+    // small and quiet for the ordinary hit, so the one that matters stands out from it
+    slot.text.setFontSize(big ? 24 : 14);
+    slot.text.setTint(big ? 0xffd166 : 0xdfe8f2);
     slot.text.setPosition(x, y);
     slot.text.setVisible(true);
     slot.text.setAlpha(1);

@@ -71,8 +71,19 @@ export const GEM_CAP_POOL = 400;
 export const PICKUP_CAP = 40;
 /** gold a supply chest awards when the build has nothing left to upgrade */
 export const CHEST_CONSOLATION_GOLD = 120;
-export const DMG_NUMBER_POOL = 48;
-export const DMG_NUMBERS_PER_STEP = 8;
+/**
+ * How many damage numbers can be on screen at once, and how many a step may add. Late in a run every
+ * weapon hits dozens of bodies a second, and at 48 the numbers covered a third of the screen; past
+ * a couple of dozen they stop being information and become the thing the player cannot see through.
+ */
+export const DMG_NUMBER_POOL = 24;
+export const DMG_NUMBERS_PER_STEP = 4;
+/**
+ * A hit is only "big" — large gold number, a spark burst, a camera shake — on a body with at least
+ * this much health. Without it every one-shot on late-game trash counted, since a kill is by
+ * definition half the target's health, and from minute eight the camera never stopped shaking.
+ */
+export const BIG_HIT_MIN_HP = 400;
 
 export const GRID_CELL = 64;
 export const GRID_SIZE = 64; // cells per axis, anchored on the player

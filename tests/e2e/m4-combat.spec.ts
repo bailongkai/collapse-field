@@ -24,7 +24,7 @@ test('M4: weapons fire, kill enemies and show damage numbers', async ({ page }) 
   await step(page, 60);
   const withNumbers = await state(page);
   expect(withNumbers.counts.dmgNumbers).toBeGreaterThan(0);
-  expect(withNumbers.counts.dmgNumbers).toBeLessThanOrEqual(48);
+  expect(withNumbers.counts.dmgNumbers).toBeLessThanOrEqual(24);
   // the test build never creates audio nodes
   expect((await page.evaluate(() => window.__game.getPerf())).activeSounds).toBe(0);
 

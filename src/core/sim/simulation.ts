@@ -32,7 +32,7 @@ import type { GemTier } from '../../data/types';
 import type { WeaponContext, WeaponInstance } from '../weapons/types';
 import { ENEMY_CAP, WEAPON_SLOTS, PASSIVE_SLOTS } from '../../config';
 import type { Enemy } from './entities/enemy';
-import { PLAYER_RADIUS } from '../../config';
+import { BIG_HIT_MIN_HP, PLAYER_RADIUS } from '../../config';
 import type { ChestResult, LevelUpChoice, OwnedItem, RunEnd, RunPhase } from './runState';
 
 export interface SimulationOptions {
@@ -421,7 +421,7 @@ export class Simulation {
     if (slot >= 0) this.run.damageBySlot[slot] = (this.run.damageBySlot[slot] ?? 0) + rounded;
     e.flashMs = 80;
     if (knockback > 0) applyKnockback(e, dirX, dirY, knockback * 240);
-    this.world.events.push('hit', e.x, e.y, rounded, e.defId, rounded >= e.maxHp * 0.5);
+    this.world.events.push('hit', e.x, e.y, rounded, e.defId, e.maxHp >= BIG_HIT_MIN_HP && rounded >= e.maxHp * 0.5);
     if (e.hp <= 0) this.killEnemy(e);
   }
 
