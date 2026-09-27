@@ -92,6 +92,14 @@ final boss is what clears a stage — the timer never ends a run on its own, and
 `killAll` does not, which is how tests finish a run. The old invulnerable reaper is gone: an
 ending nobody could fight felt like a bug to the player who reached it.
 
+Boss health follows the level the player arrives at (`src/data/bossScaling.ts`, applied in
+`eventSystem.ts` on the tick the boss spawns). The authored numbers were tuned against the
+autopilot and a person at six times its level killed every boss in ten to thirty seconds. Up to
+twice the autopilot's level the fight is exactly as authored, so unit tests that spawn a boss at
+level 1 see the numbers in `enemies.ts`; past that it grows to a cap, lower for the final because
+it enrages. A flat multiplier is the wrong tool: whatever suits one of those two players is wrong
+for the other.
+
 The interface has one look and one place to change it: `ui/panel.ts` draws every overlay (glass
 slab, hairline, corner brackets, heading rule) and `button_tech` in the ui atlas is every button,
 both generated in `build-atlas.mjs` rather than taken from an art pack. Two bundled faces carry

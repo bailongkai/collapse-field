@@ -297,7 +297,7 @@ export class Simulation {
       world.player.y = this.scratch.y;
     }
     this.spawner.step(world, stage, run.timeMs, stats.curse, dt, this.viewW, this.viewH);
-    if (this.events.step(world, stage, run.timeMs, this.viewW, this.viewH)) run.finalSpawned = true;
+    if (this.events.step(world, stage, run.timeMs, this.viewW, this.viewH, run.level)) run.finalSpawned = true;
     stepEnemies(world, world.player, dt, this.detonated);
     for (const b of this.detonated) this.detonate(b);
     // set pieces queue their area damage rather than dealing it: armor, i-frames and god mode are
@@ -700,18 +700,18 @@ export class Simulation {
 
   /** Fires a stage event immediately, by index. */
   triggerEvent(index: number): boolean {
-    return this.events.fireIndex(this.world, this.stage, index, this.viewW, this.viewH);
+    return this.events.fireIndex(this.world, this.stage, index, this.viewW, this.viewH, this.run.level);
   }
 
   spawnBoss(): void {
     const index = this.stage.events.findIndex((e) => e.kind === 'boss');
-    if (index >= 0) this.events.fireIndex(this.world, this.stage, index, this.viewW, this.viewH);
+    if (index >= 0) this.events.fireIndex(this.world, this.stage, index, this.viewW, this.viewH, this.run.level);
   }
 
   spawnFinal(): void {
     const index = this.stage.events.findIndex((e) => e.kind === 'final');
     if (index >= 0) {
-      this.events.fireIndex(this.world, this.stage, index, this.viewW, this.viewH);
+      this.events.fireIndex(this.world, this.stage, index, this.viewW, this.viewH, this.run.level);
       this.run.finalSpawned = true;
     }
   }

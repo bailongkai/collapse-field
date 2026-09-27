@@ -2,6 +2,7 @@
 import type { StageDef, WaveEvent } from '../../../data/types';
 import { densityScale, spawnEnemy, spawnRing, spawnRingRadius } from './spawnSystem';
 import type { World } from '../world';
+import { bossLevelScale } from '../../enemies/bossScale';
 
 /**
  * Fires the stage's timed events. The pointer only moves forward, so an event never repeats, and
@@ -25,13 +26,16 @@ export class EventScheduler {
     return this.next;
   }
 
-  /** Returns true when the final boss event fired this step. */
-  step(world: World, stage: StageDef, timeMs: number, viewW: number, viewH: number): boolean {
+  /**
+   * Returns true when the final boss event fired this step. `level` is the player's, which is
+   * what a boss's health is scaled by on the tick it arrives.
+   */
+  step(world: World, stage: StageDef, timeMs: number, viewW: number, viewH: number, level: number): boolean {
     const sec = timeMs / 1000;
     let final = false;
     while (this.next < stage.events.length && stage.events[this.next].at <= sec) {
       const event = stage.events[this.next];
-      this.fire(world, stage, event, viewW, viewH);
+      this.fire(world, stage, event, viewW, viewH, level);
       if (event.kind === 'final') final = true;
       this.next++;
     }
@@ -39,14 +43,14 @@ export class EventScheduler {
   }
 
   /** Fires one event by index regardless of the clock; used by the debug hook. */
-  fireIndex(world: World, stage: StageDef, index: number, viewW: number, viewH: number): boolean {
+  fireIndex(world: World, stage: StageDef, index: number, viewW: number, viewH: number, level: number): boolean {
     const event = stage.events[index];
     if (!event) return false;
-    this.fire(world, stage, event, viewW, viewH);
+    this.fire(world, stage, event, viewW, viewH, level);
     return true;
   }
 
-  private fire(world: World, stage: StageDef, event: WaveEvent, viewW: number, viewH: number): void {
+  private fire(world: World, stage: StageDef, event: WaveEvent, viewW: number, viewH: number, level: number): void {
     const ring = spawnRingRadius(stage, viewW, viewH);
     switch (event.kind) {
       case 'swarm':
@@ -60,7 +64,7 @@ export class EventScheduler {
           x: world.player.x + ring,
           y: world.player.y,
           isEvent: true,
-          hpMult: event.hpMult,
+          hpMult: event.hpMult * bossLevelScale('boss', event.at, level),
         });
         if (boss) world.events.push('bossSpawned', boss.x, boss.y, boss.maxHp, event.enemy, true);
         break;
@@ -104,7 +108,7 @@ export class EventScheduler {
           x: world.player.x + ring * 0.8,
           y: world.player.y - ring * 0.4,
           isEvent: true,
-          hpMult: event.hpMult,
+          hpMult: event.hpMult * bossLevelScale('final', event.at, level),
         });
         if (boss) {
           world.events.push('bossSpawned', boss.x, boss.y, boss.maxHp, event.enemy, true);
