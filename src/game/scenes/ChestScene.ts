@@ -7,7 +7,7 @@ import { t } from '../../i18n';
 import { COLORS, textStyle } from '../ui/textStyles';
 import { registerButton } from '../ui/buttonRegistry';
 import { sfx } from '../audio/sfx';
-import { describeChoice } from '../ui/choiceCard';
+import { describeRewards, type ChoiceInfo } from '../ui/choiceCard';
 import { CONTENT } from '../../core/content/registry';
 import type { ChestResult } from '../../core/sim/runState';
 import type { GameScene } from './GameScene';
@@ -117,7 +117,7 @@ export class ChestScene extends Phaser.Scene {
     // the light behind the lid, and the chest itself flying in from where it was picked up
     this.ring = this.add.image(cx, cy - panelH / 2 + Math.round(100 * kH), 'game', 'fx_ring')
       .setBlendMode(Phaser.BlendModes.ADD)
-      .setTint(this.burstTint(items.length))
+      .setTint(this.burstTint(this.paidCount(result, items.length)))
       .setAlpha(0)
       .setScale(0.6 * this.scaleUi * GAME_FRAME_SCALE);
     this.chestImg = this.add.image(cx, cy - panelH / 2 + Math.round(100 * kH), 'game', 'pk_chest')
@@ -142,9 +142,12 @@ export class ChestScene extends Phaser.Scene {
     });
   }
 
-  /** Rewards first, then any evolution, which is the loudest thing in the stack and lands last. */
-  private revealItems(result: ChestResult): { info: ReturnType<typeof describeChoice>; evolve: boolean }[] {
-    const out = result.rewards.map((choice) => ({ info: describeChoice(choice), evolve: false }));
+  /**
+   * Rewards first, one row per item however many levels it was paid, then any evolution, which is
+   * the loudest thing in the stack and lands last.
+   */
+  private revealItems(result: ChestResult): { info: ChoiceInfo; evolve: boolean }[] {
+    const out = describeRewards(result.rewards).map((info) => ({ info, evolve: false }));
     for (const id of result.evolved) {
       const def = CONTENT.weapons[id];
       if (!def) continue;
@@ -159,13 +162,18 @@ export class ChestScene extends Phaser.Scene {
     return out;
   }
 
+  /** The light is the colour of what the chest paid, not of how many rows that folded into. */
+  private paidCount(result: ChestResult, rows: number): number {
+    return Math.max(rows, result.rewards.length + result.evolved.length);
+  }
+
   private burstTint(count: number): number {
     if (count >= 5) return 0xff96ff;
     if (count >= 3) return 0xffd166;
     return 0xffffff;
   }
 
-  private buildRow(item: { info: ReturnType<typeof describeChoice>; evolve: boolean }, cx: number, y: number, w: number, h: number): Phaser.GameObjects.Container {
+  private buildRow(item: { info: ChoiceInfo; evolve: boolean }, cx: number, y: number, w: number, h: number): Phaser.GameObjects.Container {
     const u = this.scaleUi;
     const info = item.info;
     const c = this.add.container(cx, y).setAlpha(0).setVisible(false);
@@ -267,8 +275,7 @@ export class ChestScene extends Phaser.Scene {
     // the lid
     if (!this.burst && e >= BURST_MS) {
       this.burst = true;
-      const count = this.rows.length;
-      const tint = this.burstTint(count);
+      const tint = this.burstTint(this.result ? this.paidCount(this.result, this.rows.length) : this.rows.length);
       this.cameras.main.flash(140, (tint >> 16) & 0xff, (tint >> 8) & 0xff, tint & 0xff);
       sfx.play('levelup');
       this.chestImg?.setAngle(0);

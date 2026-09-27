@@ -15,15 +15,16 @@ export interface ChoiceInfo {
  * How one reward reads on a card. Shared by the level-up offer and the chest reveal so the two can
  * never drift apart: a chest hands out the same `LevelUpChoice` values the level-up screen does,
  * and a player who sees "等离子刃 Lv 4 → 5" in one place must see the same words in the other.
+ * `fromLevel` is for a chest that paid the same item more than once; see `describeRewards`.
  */
-export function describeChoice(choice: LevelUpChoice): { title: string; tag: string; body: string; icon: string; iconTint?: number } {
+export function describeChoice(choice: LevelUpChoice, fromLevel?: number): ChoiceInfo {
   if (choice.kind === 'weapon') {
     const def = CONTENT.weapons[choice.id];
-    const isNew = choice.toLevel === 1;
-    const delta = isNew ? null : def.levels[choice.toLevel - 2];
+    const from = fromLevel ?? choice.toLevel - 1;
+    const isNew = from === 0;
     let body = isNew
       ? t(def.descKey)
-      : describeDeltas(delta ?? {})
+      : describeDeltas(sumDeltas(def.levels.slice(from - 1, choice.toLevel - 1)))
           .map((d) => tDynamic(d.key, { v: d.value }))
           .join(' · ');
     // reaching max level is when the evolution becomes possible; say so on the card
@@ -34,7 +35,7 @@ export function describeChoice(choice: LevelUpChoice): { title: string; tag: str
     }
     return {
       title: t(def.nameKey),
-      tag: isNew ? t('levelup.new_weapon') : t('levelup.level_to', { a: choice.toLevel - 1, b: choice.toLevel }),
+      tag: isNew ? t('levelup.new_weapon') : t('levelup.level_to', { a: from, b: choice.toLevel }),
       body: body || t(def.descKey),
       icon: def.icon,
       iconTint: def.iconTint,
@@ -42,10 +43,11 @@ export function describeChoice(choice: LevelUpChoice): { title: string; tag: str
   }
   if (choice.kind === 'passive') {
     const def = CONTENT.passives[choice.id];
-    const isNew = choice.toLevel === 1;
+    const from = fromLevel ?? choice.toLevel - 1;
+    const isNew = from === 0;
     return {
       title: t(def.nameKey),
-      tag: isNew ? t('levelup.new_passive') : t('levelup.level_to', { a: choice.toLevel - 1, b: choice.toLevel }),
+      tag: isNew ? t('levelup.new_passive') : t('levelup.level_to', { a: from, b: choice.toLevel }),
       body: t(def.descKey),
       icon: def.icon,
     };
@@ -67,4 +69,43 @@ export function describeChoice(choice: LevelUpChoice): { title: string; tag: str
   }
   const healAmount = choice.kind === 'heal' ? choice.amount : 0;
   return { title: t('levelup.heal'), tag: '', body: t('levelup.heal_desc', { n: healAmount }), icon: 'pk_heal' };
+}
+
+/**
+ * A chest's rewards as rows, with every level paid to the same item folded into one row.
+ *
+ * A chest that pushes one weapon twice used to show "Lv 4 → 5" and "Lv 5 → 6" as two cards, which
+ * reads exactly like the level-up offer: two options for the same weapon, pick one. Nothing in a
+ * chest is a choice, so the row says what happened to the item as a whole — "Lv 4 → 6" and the sum
+ * of what both levels added. A row sits where the item first landed.
+ */
+export function describeRewards(rewards: readonly LevelUpChoice[]): ChoiceInfo[] {
+  const rows: { choice: LevelUpChoice; from?: number }[] = [];
+  for (const choice of rewards) {
+    if (choice.kind !== 'weapon' && choice.kind !== 'passive') {
+      rows.push({ choice });
+      continue;
+    }
+    const row = rows.find((r) => r.choice.kind === choice.kind && r.choice.id === choice.id);
+    if (!row) {
+      rows.push({ choice, from: choice.toLevel - 1 });
+      continue;
+    }
+    const held = row.choice as typeof choice;
+    row.from = Math.min(row.from ?? held.toLevel - 1, choice.toLevel - 1);
+    if (choice.toLevel > held.toLevel) row.choice = choice;
+  }
+  return rows.map((r) => describeChoice(r.choice, r.from));
+}
+
+function sumDeltas(levels: readonly Record<string, number | undefined>[]): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const delta of levels) {
+    for (const [param, raw] of Object.entries(delta)) {
+      if (raw === undefined) continue;
+      // two levels of +10% must read as +20%, not as what 0.1 + 0.1 happens to be in binary
+      out[param] = Math.round(((out[param] ?? 0) + raw) * 1e6) / 1e6;
+    }
+  }
+  return out;
 }
