@@ -2,7 +2,14 @@ import { ENEMY_CAP, MAX_ENEMY_RADIUS } from '../../../config';
 import { hitCooldownTicks } from '../ticks';
 import type { WeaponBehavior } from '../types';
 
-const ORBIT_RADIUS = 90;
+/**
+ * Close enough that a drone passes through the bodies pressing on the player. A drone meets a body
+ * within about 28 units of its circle, and a crowd against a player standing still sits about 30
+ * from their centre: at the old 90 the whole crowd was inside the ring and the drones went round
+ * it, and the Navigator's first two minutes killed a third of what every other starting weapon
+ * did. At 50 the starting drones are level with the slowest of the others.
+ */
+const ORBIT_RADIUS = 50;
 const HIT_RADIUS = 14;
 const REVS_PER_SEC = 1;
 
