@@ -165,6 +165,10 @@ export class GameScene extends Phaser.Scene {
     this.input.keyboard?.on('keydown-ESC', () => this.openPause());
     this.input.keyboard?.on('keydown-P', () => this.openPause());
     this.game.events.on(Phaser.Core.Events.HIDDEN, this.onHidden);
+    // Losing focus is not the same as being hidden. Embedded in a page — itch.io runs the game in an
+    // iframe — a click on the description or the comments takes the keyboard away while the tab
+    // stays visible, and the run carried on without its player until they died.
+    this.game.events.on(Phaser.Core.Events.BLUR, this.onHidden);
     window.addEventListener('app-back', this.onBack);
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.teardown());
@@ -228,6 +232,7 @@ export class GameScene extends Phaser.Scene {
     // the catch-all: a run that reached neither death nor the fifteen minute mark was abandoned
     this.reportRunEnd('quit');
     this.game.events.off(Phaser.Core.Events.HIDDEN, this.onHidden);
+    this.game.events.off(Phaser.Core.Events.BLUR, this.onHidden);
     window.removeEventListener('app-back', this.onBack);
     this.scale.off(Phaser.Scale.Events.RESIZE, this.onResize, this);
     this.scene.stop('Hud');
@@ -587,6 +592,10 @@ export class GameScene extends Phaser.Scene {
         case 'chest':
           hook?.pushEvent('pickup:chest');
           analytics.track({ name: 'chest_open', grade: e.id || 'standard', rewards: this.sim.run.chestsOpened });
+          break;
+        case 'collapseResult':
+          hook?.pushEvent(e.n === 0 ? 'collapse:taken' : 'collapse:lost');
+          analytics.track({ name: 'collapse', stage: this.sim.stage.id, minute: Math.floor(this.sim.run.timeMs / 60_000), taken: e.n === 0, caught: e.big });
           break;
         case 'evolve':
           hook?.pushEvent(`evolve:${e.id}`);

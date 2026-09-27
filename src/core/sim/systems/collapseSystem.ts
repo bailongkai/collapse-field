@@ -77,14 +77,24 @@ export function stepCollapses(world: World, dtMs: number): void {
       world.events.push('swallowed', e.x, e.y, 0, e.defId);
       world.enemies.free(e);
     }
+    let lost = false;
     const pickups = world.pickups.aliveList();
     for (let i = world.pickups.count - 1; i >= 0; i--) {
       const p = world.pickups.items[pickups[i]];
       if (!p.active || p.defId !== zone.reward) continue;
       const dx = p.x - zone.x;
       const dy = p.y - zone.y;
-      if (dx * dx + dy * dy <= r2) world.pickups.free(p);
+      if (dx * dx + dy * dy > r2) continue;
+      lost = true;
+      world.pickups.free(p);
     }
+    // What the player did with the offer, for the telemetry: whether the cache was still lying there
+    // (`n` 1) and whether they were still standing on the floor (`big`). The event is an experiment's
+    // only way of saying whether anyone goes in, and it has to report the offer turned down as well
+    // as the one taken or the number measures the circle's placement rather than the player.
+    const ppx = world.player.x - zone.x;
+    const ppy = world.player.y - zone.y;
+    world.events.push('collapseResult', zone.x, zone.y, lost ? 1 : 0, zone.reward, ppx * ppx + ppy * ppy <= r2);
     world.blasts.push({ x: zone.x, y: zone.y, radius: zone.radius, damage: zone.damage, id: COLLAPSE_SOURCE });
     zones.splice(z, 1);
   }

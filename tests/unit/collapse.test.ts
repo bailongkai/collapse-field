@@ -15,6 +15,14 @@ const open = (s: Simulation) => {
   s.triggerEvent(collapseIndex(s));
   return s.world.collapses[0];
 };
+const results = (s: Simulation): { lost: boolean; caught: boolean }[] => {
+  const out: { lost: boolean; caught: boolean }[] = [];
+  for (let i = 0; i < s.world.events.length; i++) {
+    const e = s.world.events.at(i);
+    if (e.type === 'collapseResult') out.push({ lost: e.n === 1, caught: e.big });
+  }
+  return out;
+};
 const caches = (s: Simulation): number => s.world.pickups.items.filter((p) => p.active && p.defId === 'riftCache').length;
 
 describe('the floor gives way', () => {
@@ -67,6 +75,8 @@ describe('the floor gives way', () => {
     expect(s.world.collapses).toHaveLength(0);
     expect(caches(s)).toBe(0);
     expect(s.run.chestsOpened).toBe(0);
+    const result = results(s);
+    expect(result).toEqual([{ lost: true, caught: false }]);
   });
 
   it('hurts a player who is standing on it, and not one who is not', () => {
@@ -100,6 +110,9 @@ describe('the floor gives way', () => {
     s.stepMany(3);
     expect(s.run.chestsOpened).toBe(1);
     expect(caches(s)).toBe(0);
+    // and when the floor goes, it reports the offer as taken, and the player still on it as caught
+    s.stepMany(Math.ceil(zone.totalMs / (1000 / 60)));
+    expect(results(s)).toEqual([{ lost: false, caught: true }]);
   });
 
   it('takes the ordinary bodies standing on it, and they are not kills', () => {

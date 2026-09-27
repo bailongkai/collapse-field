@@ -1,7 +1,7 @@
 export type SimEventType =
   | 'hit' | 'death' | 'spawn' | 'gem' | 'levelUp' | 'levelUpOpen' | 'bossSpawned' | 'bossKilled'
   | 'pickup' | 'hurt' | 'final' | 'enrage' | 'died' | 'survived' | 'rush' | 'chest' | 'elite' | 'shield' | 'signature' | 'explode' | 'shot' | 'revivePrompt' | 'heal' | 'nuke' | 'vacuum' | 'revive'
-  | 'evolve' | 'telegraph' | 'enemyShot' | 'collapseWarn' | 'collapse' | 'swallowed';
+  | 'evolve' | 'telegraph' | 'enemyShot' | 'collapseWarn' | 'collapse' | 'swallowed' | 'collapseResult';
 
 export interface SimEvent {
   type: SimEventType;

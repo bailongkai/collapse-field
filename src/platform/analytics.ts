@@ -39,6 +39,8 @@ export type AnalyticsEvent =
    */
   | { name: 'levelup_pick'; action: string; kind: string; id: string; toLevel: number; level: number; offered: string }
   | { name: 'chest_open'; grade: string; rewards: number }
+  /** one per collapsing floor: whether its cache was taken, and whether the player was on it when it went */
+  | { name: 'collapse'; stage: string; minute: number; taken: boolean; caught: boolean }
   | { name: 'weapon_evolved'; id: string; timeSec: number; level: number }
   | { name: 'unlock'; kind: string; id: string }
   | { name: 'ad_offer'; kind: string }

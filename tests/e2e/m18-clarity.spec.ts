@@ -86,3 +86,15 @@ test('clarity: the clock gives way to the objective once the final boss is on th
   await snap(page, 'clarity-final');
   expect(errors, errors.join('\n')).toEqual([]);
 });
+
+test('clarity: losing focus pauses the run, the way hiding the tab does', async ({ page }) => {
+  const errors = await openGame(page, '?test=1&seed=64');
+  await startRun(page, 64);
+  await waitScene(page, 'game');
+  expect((await page.evaluate(() => window.__game.getState())).phase).toBe('running');
+  // what the browser sends when a click lands outside the game's iframe
+  await page.evaluate(() => window.dispatchEvent(new Event('blur')));
+  await waitScene(page, 'pause');
+  expect((await page.evaluate(() => window.__game.getState())).phase).toBe('paused');
+  expect(errors, errors.join('\n')).toEqual([]);
+});
