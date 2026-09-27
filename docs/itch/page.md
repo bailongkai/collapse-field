@@ -26,6 +26,19 @@ On the project's **Edit game** page:
 | Enable scrollbars | off | |
 | SharedArrayBuffer support | off | not used |
 
+**AI disclosure.** Most of the game's art — characters, enemies, bosses, props, floors — was generated
+with AI image models (FLUX, via fal.ai). itch.io asks creators to disclose generative AI: on the Edit
+game page, under **AI generation disclosure**, choose that the project contains AI-generated content
+and tick **Graphics**. Sound effects are Kenney's CC0 packs and the music is synthesised in code, so
+leave the audio boxes unticked.
+
+**Credits.** The zip carries `CREDITS.txt`, and the settings screen shows a one-line credit. Kenney
+Future is CC BY-SA 3.0 and the two display fonts are OFL; put this line at the end of the page:
+
+> Credits: interface pieces, particles and sound effects by Kenney (CC0) · Kenney Future font by
+> Kenney (CC BY-SA 3.0) · Smiley Sans by atelierAnchor and Orbitron by The Orbitron Project Authors
+> (SIL OFL 1.1, shipped renamed) · all other art AI-generated for this game.
+
 Analytics: the build sends anonymous run events to PostHog when `VITE_POSTHOG_KEY` is set in
 `.env.local` at build time. `public/privacy.html` ships in the zip and says so; link it from the page.
 Build without the key if the itch build should send nothing.

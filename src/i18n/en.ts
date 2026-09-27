@@ -49,6 +49,7 @@ export const en: Partial<Record<I18nKey, string>> = {
   'settings.damageNumbers': 'Damage numbers',
   'settings.on': 'On',
   'settings.off': 'Off',
+  'settings.credits': 'Art: AI-generated (FLUX) · UI and sound: Kenney (CC0) · Fonts: Smiley Sans, Orbitron (OFL), Kenney Future (CC BY-SA 3.0) · See CREDITS.txt',
   'settings.lang.zh': '中文',
   'settings.lang.en': 'English',
   'settings.volume.value': '{n}%',

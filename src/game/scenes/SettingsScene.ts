@@ -62,6 +62,11 @@ export class SettingsScene extends Phaser.Scene {
     label(4, 'settings.damageNumbers');
     this.numbersButton = new UiButton(this, cx + col * 0.45, rowY(4), { id: 'settings.damageNumbers', label: '', width: 130, height: bh, fontSize: 18, onPress: () => this.toggle('damageNumbers') });
 
+    // who made what: the fonts' and Kenney Future's licences ask for it, and a player may too
+    this.add
+      .text(cx, top + panel.h - 96 * k, t('settings.credits'), textStyle(Math.round(11 * Math.max(k, 0.8)), { color: COLORS.dim, align: 'center', wrapWidth: panel.w - 48 }))
+      .setOrigin(0.5)
+      .setAlpha(0.85);
     new UiButton(this, cx, top + panel.h - 50 * k, { id: 'settings.back', label: t('common.back'), width: 200, height: Math.round(56 * k), onPress: () => this.close() });
     this.input.keyboard?.on('keydown-ESC', () => this.close());
 

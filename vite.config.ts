@@ -1,4 +1,6 @@
-import { defineConfig, loadEnv } from 'vite';
+import { copyFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { defineConfig, loadEnv, type Plugin } from 'vite';
 
 /**
  * PostHog issues three kinds of key and only one of them may be built into this bundle. `phc_` is
@@ -21,11 +23,30 @@ function projectKey(raw: string): { key: string; rejected: boolean } {
   return { key: '', rejected: true };
 }
 
+/**
+ * CREDITS.md is the one place that says where the art, sound and fonts came from and under what
+ * licence. The fonts' licences require it to travel with them, so every build carries a copy.
+ */
+function shipCredits(): Plugin {
+  let outDir = 'dist';
+  return {
+    name: 'ship-credits',
+    apply: 'build',
+    configResolved(config) {
+      outDir = config.build.outDir;
+    },
+    closeBundle() {
+      copyFileSync('CREDITS.md', join(outDir, 'CREDITS.txt'));
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const { key, rejected } = projectKey(env.VITE_POSTHOG_KEY ?? '');
   return {
     base: './',
+    plugins: [shipCredits()],
     server: { port: 5173, strictPort: false },
     define: {
       __POSTHOG_KEY__: JSON.stringify(key),

@@ -46,6 +46,7 @@ export const zhCN = {
   'settings.damageNumbers': '伤害数字',
   'settings.on': '开',
   'settings.off': '关',
+  'settings.credits': '美术：AI 生成（FLUX）· 界面与音效：Kenney（CC0）· 字体：得意黑、Orbitron（OFL）、Kenney Future（CC BY-SA 3.0）· 详见 CREDITS.txt',
   'settings.lang.zh': '中文',
   'settings.lang.en': 'English',
   'settings.volume.value': '{n}%',

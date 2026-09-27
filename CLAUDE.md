@@ -103,7 +103,8 @@ for the other.
 The interface has one look and one place to change it: `ui/panel.ts` draws every overlay (glass
 slab, hairline, corner brackets, heading rule) and `button_tech` in the ui atlas is every button,
 both generated in `build-atlas.mjs` rather than taken from an art pack. Two bundled faces carry
-the type: Smiley Sans for headings and anything bold, Orbitron for latin display and numbers,
+the type: Smiley Sans for headings and anything bold, Orbitron for latin display and numbers, shipped
+renamed as CF Heading and CF Display because the OFL reserves their names (`scripts/font-names.py`),
 both subset in `public/assets/fonts` and loaded in `BootScene`. `textStyle` routes them, so
 `bold: true` is a heading unless it says `plain`.
 

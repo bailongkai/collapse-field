@@ -120,9 +120,16 @@ Headings use Smiley Sans (得意黑) and latin display uses Orbitron, both SIL O
 the game's strings in `public/assets/fonts`. Re-subset with `fontTools.subset` if new strings add
 characters; a missing glyph falls back to the system CJK stack, it never breaks the layout.
 
+Both fonts reserve their names, and the OFL does not let a subset (a Modified Version) use them, so
+the files ship as **CF Heading** and **CF Display**. After any re-subset, run
+`python3 scripts/font-names.py` to rename them again; the licence texts sit beside them.
+
 ## Credits
 
-All art and sound effects by [Kenney](https://kenney.nl), CC0. See `CREDITS.md`.
+The characters, enemies, bosses, props and floors are AI-generated (FLUX, through
+`scripts/gen-art.mjs`); interface pieces, particles and sound effects are by
+[Kenney](https://kenney.nl), CC0. `CREDITS.md` has the detail and ships in every build as
+`CREDITS.txt`.
 The score is synthesised at runtime in `src/game/audio/music.ts` rather than
 shipped as a file: the Kenney packs have no music, and generating it keeps the
 project free of any third-party licence to track.
