@@ -3,7 +3,8 @@
 A sci-fi bullet-heaven in the shape of Vampire Survivors: you hold position on a
 station overrun by alien swarms, your weapons fire themselves, and you live or
 die on where you stand. Built with Phaser 4 and TypeScript, playable in a
-browser, Chinese interface with English available in the settings.
+browser, in English and Chinese: a first visit follows the browser's language, and the settings
+switch it.
 
 ## Running it
 
@@ -109,10 +110,13 @@ unwinnable fails a test rather than waiting to be noticed.
 
 ## Publishing
 
-`.github/workflows/ci.yml` runs the whole verification pipeline on every push
-and, on `main`, deploys the built game to GitHub Pages. Enable Pages with
-"GitHub Actions" as the source; the build uses relative asset paths, so it works
-from a repository subpath without configuration.
+`.github/workflows/ci.yml` runs the verification pipeline on every push. It does
+not deploy: GitHub Pages serves the `gh-pages` branch, and a deploy is a commit of
+the built `dist/` onto it. The build uses relative asset paths, so it works from a
+repository subpath, or from itch.io's, without configuration.
+
+For itch.io, `npm run package:itch` writes `release/collapse-field-html5.zip`, and
+`docs/itch/page.md` has the embed settings, the store text and the AI disclosure.
 
 ## Fonts
 
