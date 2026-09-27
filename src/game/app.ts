@@ -2,7 +2,7 @@ import type { SaveData, SaveStorage } from '../core/save/saveData';
 import { loadSave } from '../core/save/saveData';
 import { MemoryStorage } from '../core/save/memoryStorage';
 import { LocalStorageAdapter } from './save/localStorageAdapter';
-import { isLocale, setLocale } from '../i18n';
+import { isLocale, localeForLanguages, setLocale } from '../i18n';
 import { TouchDetector } from './input/touchControls';
 import { initPlatform } from '../platform';
 
@@ -24,7 +24,12 @@ export function initApp(search: string = typeof location !== 'undefined' ? locat
   const q = new URLSearchParams(search);
   const testMode = q.get('test') === '1';
   const storage: SaveStorage = testMode ? new MemoryStorage() : nativeStorage ?? new LocalStorageAdapter();
+  const firstVisit = !testMode && storage.read() === null;
   const save = loadSave(storage);
+  // tests keep the save's own default, so every browser test still sees the language it was written in
+  if (firstVisit && typeof navigator !== 'undefined') {
+    save.settings.locale = localeForLanguages(navigator.languages?.length ? navigator.languages : [navigator.language ?? '']);
+  }
   // tests drive the game through the hook and must not be met by the walkthrough: ?tutorial=1 opts a
   // test in, and ?tutorial=0 opts a real-storage session out
   if ((testMode && q.get('tutorial') !== '1') || q.get('tutorial') === '0') save.tutorialDone = true;

@@ -18,6 +18,21 @@ export function isLocale(v: unknown): v is Locale {
   return v === 'zh-CN' || v === 'en';
 }
 
+/**
+ * The language a first visit starts in, from the browser's preference list: Chinese for any
+ * Chinese preference, English for everything else. The game used to start everyone in Chinese,
+ * which is the wrong default for a page most of whose visitors cannot read it. Once the player
+ * has a save, the language in it wins.
+ */
+export function localeForLanguages(languages: readonly string[]): Locale {
+  for (const lang of languages) {
+    const l = lang.toLowerCase();
+    if (l.startsWith('zh')) return 'zh-CN';
+    if (l.startsWith('en')) return 'en';
+  }
+  return 'en';
+}
+
 export function setLocale(locale: Locale): void {
   if (locale === current) return;
   current = locale;

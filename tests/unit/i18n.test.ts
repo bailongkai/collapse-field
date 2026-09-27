@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { t, setLocale, formatTime, allKeys } from '../../src/i18n';
+import { t, setLocale, formatTime, allKeys, localeForLanguages } from '../../src/i18n';
 import { en } from '../../src/i18n/en';
 
 function walk(dir: string, out: string[] = []): string[] {
@@ -56,5 +56,17 @@ describe('i18n', () => {
       if (/[㐀-鿿]/.test(code)) bad.push(f);
     }
     expect(bad).toEqual([]);
+  });
+});
+
+
+describe('the language of a first visit', () => {
+  it('follows the browser, Chinese for any Chinese preference and English otherwise', () => {
+    expect(localeForLanguages(['zh-CN', 'en'])).toBe('zh-CN');
+    expect(localeForLanguages(['zh-TW'])).toBe('zh-CN');
+    expect(localeForLanguages(['en-US', 'zh-CN'])).toBe('en');
+    expect(localeForLanguages(['de-DE', 'zh-CN'])).toBe('zh-CN');
+    expect(localeForLanguages(['de-DE', 'fr'])).toBe('en');
+    expect(localeForLanguages([])).toBe('en');
   });
 });
