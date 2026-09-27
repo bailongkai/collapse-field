@@ -1,7 +1,8 @@
 /** Default locale. Every I18nKey is derived from this object; add strings here first. */
 export const zhCN = {
   'menu.title': '塌缩带',
-  'menu.subtitle': '空间站失守，撑到救援抵达',
+  'menu.mark': 'COLLAPSE FIELD',
+  'menu.subtitle': '空间站正在塌缩，杀出一条生路',
   'menu.start': '开始游戏',
   'menu.settings': '设置',
   'menu.shop': '升级舱',

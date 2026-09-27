@@ -3,7 +3,9 @@ import type { I18nKey } from './types';
 /** English strings. Missing keys fall back to zh-CN. */
 export const en: Partial<Record<I18nKey, string>> = {
   'menu.title': 'Collapse Field',
-  'menu.subtitle': 'The station has fallen. Hold out until rescue arrives.',
+  // the small line over the title: the latin name under a Chinese title, a genre tag over a latin one
+  'menu.mark': 'A SURVIVORS-LIKE',
+  'menu.subtitle': 'The station is coming apart. Fight your way out.',
   'menu.start': 'Start',
   'menu.settings': 'Settings',
   'menu.shop': 'Upgrades',
