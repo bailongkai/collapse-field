@@ -220,11 +220,43 @@ describe('view size and wave density', () => {
     console.log(`average survival: reference ${refAvg.toFixed(0)}s, wide ${wideAvg.toFixed(0)}s`);
     expect(wideAvg, `reference ${refAvg.toFixed(0)}s vs wide ${wideAvg.toFixed(0)}s`).toBeLessThan(refAvg * 1.8);
     expect(wideAvg, `reference ${refAvg.toFixed(0)}s vs wide ${wideAvg.toFixed(0)}s`).toBeGreaterThan(refAvg * 0.5);
-    // A wide view must not hand out a bigger build. densityScale gives it proportionally more
-    // bodies and the simulation scales the experience those bodies drop back by the same factor,
-    // so the level a run reaches should not depend on the screen it was played on. The tolerance
-    // is for seed noise, not for a gap: before the scaling, a wide view ended three levels higher.
-    const med = (rs: RunResult[]): number => rs.map((r) => r.level).sort((a, b) => a - b)[Math.floor(rs.length / 2)];
-    expect(med(wide), `reference level ${med(referenceRuns)} vs wide ${med(wide)}`).toBeLessThanOrEqual(med(referenceRuns) + 8);
+    // A wide view must not hand out a bigger build either, checked as loosely as survival is. The
+    // mechanism that keeps it so is tested exactly below; this only catches a view size that turns
+    // into a different game. It used to compare median levels with a margin of eight, which flipped
+    // with a single seed: a run either dies near level ten or clears the stage past fifty, and the
+    // median of eight runs lands in whichever group holds the fifth. The same code measured 17 on
+    // one machine and 27 on another.
+    const avgLevel = (rs: RunResult[]): number => rs.reduce((n, r) => n + r.level, 0) / rs.length;
+    expect(avgLevel(wide), `reference level ${avgLevel(referenceRuns).toFixed(1)} vs wide ${avgLevel(wide).toFixed(1)}`).toBeLessThan(avgLevel(referenceRuns) * 1.8);
+  });
+
+  it('a wide view pays out experience divided by the same factor it multiplies bodies by', () => {
+    // densityScale gives a wider view proportionally more bodies, so each body's experience is
+    // scaled back by the same area ratio; without that, a wide screen levelled faster. The same
+    // gems, collected on each view, must pay exactly that ratio.
+    const gained = (viewW: number): number => {
+      const s = new Simulation({ seed: 5, characterId: 'survivor', stageId: 'station', viewW, viewH: REF_H });
+      s.run.god = true;
+      s.setStatOverride('growth', 1);
+      s.run.weapons.length = 0;
+      s.world.weaponInstances.length = 0;
+      // every amount the run is credited, as the harvest hands it over
+      let xp = 0;
+      const credit = s.addXp.bind(s);
+      s.addXp = (amount: number): void => {
+        xp += amount;
+        credit(amount);
+      };
+      s.spawnGems(40, 'green', { x: s.world.player.x, y: s.world.player.y });
+      for (let i = 0; i < 60; i++) {
+        if (s.run.phase === 'levelup') s.applyChoice(0);
+        else s.step();
+      }
+      return xp;
+    };
+    const ref = gained(REF_W);
+    const wide = gained(1760);
+    expect(ref).toBeGreaterThan(0);
+    expect(wide / ref).toBeCloseTo(Math.min(1, REF_AREA / (1760 * REF_H)), 3);
   });
 });
