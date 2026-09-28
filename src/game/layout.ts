@@ -43,6 +43,17 @@ export function centerY(scene: Phaser.Scene): number {
   return viewOf(scene).height / 2;
 }
 
+/**
+ * Whether the game fills the screen. On itch.io the page puts the game's iframe into fullscreen,
+ * and a document inside an iframe cannot ask the parent which element is fullscreen, so it is read
+ * from the one thing the frame does know: its own size against the screen's.
+ */
+export function isFullscreen(): boolean {
+  if (typeof window === 'undefined' || typeof screen === 'undefined') return false;
+  if (document.fullscreenElement) return true;
+  return window.innerWidth >= screen.width - 2 && window.innerHeight >= screen.height - 2;
+}
+
 /** True when this scene's view is taller than it is wide. */
 export function isPortraitScene(scene: Phaser.Scene): boolean {
   const v = viewOf(scene);

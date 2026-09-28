@@ -46,7 +46,14 @@ export function installRenderScale(game: Phaser.Game): void {
     }
     for (const scene of game.scene.getScenes(true)) applyRenderScale(scene);
   });
+  // Every scene that is alive, not only the running ones. The pause menu pauses the game scene, and
+  // on itch.io Esc does two things at once: it opens that menu and leaves fullscreen, so the canvas
+  // shrinks while the battlefield is paused. It kept the old zoom, and back in fullscreen the floor
+  // filled an inner rectangle with black bands around it.
   game.scale.on(Phaser.Scale.Events.RESIZE, () => {
-    for (const scene of game.scene.getScenes(true)) applyRenderScale(scene);
+    for (const scene of game.scene.getScenes(false)) {
+      const sys = scene.sys;
+      if (sys.isActive() || sys.isPaused() || sys.isSleeping()) applyRenderScale(scene);
+    }
   });
 }

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openGame, startRun, waitScene, snap, step, realWait } from './helpers';
+import { openGame, startRun, waitScene, snap, step, realWait, events } from './helpers';
 
 test('clarity: the comfort switches are saved and the launch screen explains the challenge', async ({ page }) => {
   const errors = await openGame(page, '?test=1');
@@ -97,4 +97,38 @@ test('clarity: losing focus pauses the run, the way hiding the tab does', async 
   await waitScene(page, 'pause');
   expect((await page.evaluate(() => window.__game.getState())).phase).toBe('paused');
   expect(errors, errors.join('\n')).toEqual([]);
+});
+
+test('clarity: a resize while paused reaches the battlefield too', async ({ page }) => {
+  // On itch.io, Esc in fullscreen opens the pause menu and shrinks the frame at the same moment. The
+  // paused battlefield used to keep its old zoom, and the floor filled only part of the screen.
+  const errors = await openGame(page, '?test=1&seed=65');
+  await startRun(page, 65);
+  await waitScene(page, 'game');
+  await page.keyboard.press('Escape');
+  await waitScene(page, 'pause');
+  for (const [w, h] of [[1440, 900], [960, 540], [1280, 720]]) {
+    await page.setViewportSize({ width: w, height: h });
+    await realWait(400);
+    const cam = await page.evaluate(() => ({
+      zoom: (window.__game.phaser.scene.getScene('Game') as Phaser.Scene).cameras.main.zoom,
+      scale: window.__game.viewSize().renderScale,
+    }));
+    expect(cam.zoom, `battlefield zoom at ${w}x${h}`).toBeCloseTo(cam.scale, 3);
+  }
+  expect(errors, errors.join('\n')).toEqual([]);
+});
+
+test('clarity: going fullscreen says how to pause without leaving it', async ({ browser }) => {
+  const ctx = await browser.newContext({ viewport: { width: 1000, height: 600 }, screen: { width: 1280, height: 720 } });
+  const page = await ctx.newPage();
+  const errors = await openGame(page, '?test=1&seed=66');
+  await startRun(page, 66);
+  await waitScene(page, 'game');
+  expect(await events(page)).not.toContain('hint:fullscreen');
+  // the frame grows to the size of the screen, as itch's fullscreen button makes it
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.waitForFunction(() => window.__game.getEvents().includes('hint:fullscreen'));
+  expect(errors, errors.join('\n')).toEqual([]);
+  await ctx.close();
 });

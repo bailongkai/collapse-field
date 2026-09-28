@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { shake, viewOf } from '../layout';
+import { isFullscreen, shake, viewOf } from '../layout';
 import { FIXED_DT_MS, GAME_H, GAME_W, MAX_FRAME_DELTA_MS, MAX_STEPS_PER_FRAME, RUN_SECONDS } from '../../config';
 import { Simulation } from '../../core/sim/simulation';
 import { DEFAULT_CHARACTER_ID } from '../../data/characters';
@@ -145,6 +145,10 @@ export class GameScene extends Phaser.Scene {
     this.projectileView = new ProjectileView(this, this.layers.projectiles, this.layers.fx);
     this.damageNumbers = new DamageNumbers(this, this.layers.numbers);
     this.showDamageNumbers = app().save.settings.damageNumbers;
+    // the scene instance is reused between runs; a run that starts already fullscreen gets the hint
+    // once it is under way, since no resize will arrive to show it
+    this.wasFullscreen = isFullscreen();
+    if (this.wasFullscreen) this.time.delayedCall(1500, () => this.toast(t('toast.fullscreen'), 3600));
     this.fxView = new FxView(this, this.layers.fx);
     this.input_ = new InputController(this);
     // the stick draws above every world layer but below the HUD scene
@@ -216,7 +220,18 @@ export class GameScene extends Phaser.Scene {
   /** A wider window shows more of the map, so the wave density follows it to keep the pressure. */
   private onResize = (): void => {
     this.sim.setViewSize(viewOf(this).width, viewOf(this).height);
+    // Going fullscreen changes what Esc means: the browser takes it to leave fullscreen, and no page
+    // inside an iframe can take it back. It still pauses, which is the safe half of the two, but a
+    // player who only wanted the pause needs to know P does that without the rest.
+    const full = isFullscreen();
+    if (full && !this.wasFullscreen) {
+      this.toast(t('toast.fullscreen'), 3600);
+      window.__game?.pushEvent('hint:fullscreen');
+    }
+    this.wasFullscreen = full;
   };
+  /** so the fullscreen hint is shown on the way in, not on every resize while there */
+  private wasFullscreen = false;
 
   /** Android's back button: pause a running game; overlays already have their own buttons. */
   private onBack = (): void => {
