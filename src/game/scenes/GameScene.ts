@@ -148,7 +148,7 @@ export class GameScene extends Phaser.Scene {
     // the scene instance is reused between runs; a run that starts already fullscreen gets the hint
     // once it is under way, since no resize will arrive to show it
     this.wasFullscreen = isFullscreen();
-    if (this.wasFullscreen) this.time.delayedCall(1500, () => this.toast(t('toast.fullscreen'), 3600));
+    if (this.wasFullscreen && !app().touch.active) this.time.delayedCall(1500, () => this.toast(t('toast.fullscreen'), 3600));
     this.fxView = new FxView(this, this.layers.fx);
     this.input_ = new InputController(this);
     // the stick draws above every world layer but below the HUD scene
@@ -224,7 +224,8 @@ export class GameScene extends Phaser.Scene {
     // inside an iframe can take it back. It still pauses, which is the safe half of the two, but a
     // player who only wanted the pause needs to know P does that without the rest.
     const full = isFullscreen();
-    if (full && !this.wasFullscreen) {
+    // a touch player has no P key, and a phone filling its screen is not the fullscreen this is about
+    if (full && !this.wasFullscreen && !app().touch.active) {
       this.toast(t('toast.fullscreen'), 3600);
       window.__game?.pushEvent('hint:fullscreen');
     }
