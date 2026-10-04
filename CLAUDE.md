@@ -209,6 +209,17 @@ nothing left to raise or evolve teaches a random unfinished verb one stack (`rol
 old 120 gold is paid only once every verb is maxed, because the gold was the chest admitting it had
 nothing for the build.
 
+Protocols (`src/data/protocols.ts`) are the launch screen's third choice: one rule change a run may
+carry, each opened by an achievement (`isProtocolUnlocked`), remembered as `save.lastProtocol` and
+reported on `run_start` and `run_end`. They are applied inside `Simulation` like everything else:
+塌缩加剧 borrows the station's three collapses for a stage without them (a per-run `stageOverride`)
+and multiplies a cache's reward count by 1.5; 单向火控 refuses weapon damage behind the player in
+`damageEnemy` (and the blade skips its mirrored sweep, the laser a target behind) for +40% might;
+无磁力 shrinks the magnet to a touch for +30% growth; 回身冲刺 makes a turn a 40-unit step with
+150 ms of i-frames every 2 s. That last one stays a protocol rather than a base rule on purpose: a
+free dodge on every turn shifts the whole curve the balance gates were derived on, and as an
+opt-in its telemetry can say whether it deserves promoting.
+
 Stages can carry `props` (breakable scenery: prop enemies that do not bite and
 do not count as kills), `relics` (persistent, non-magnetic pickups at fixed
 coordinates, pointed at by `RelicView`) and `obstacles` (solid rectangles;

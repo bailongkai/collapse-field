@@ -5,7 +5,7 @@
  */
 export type AnalyticsEvent =
   /** `runIndex` is how many runs this save has ever started, `sessionRun` how many since launch */
-  | { name: 'run_start'; stage: string; character: string; curse: number; runIndex: number; sessionRun: number }
+  | { name: 'run_start'; stage: string; character: string; curse: number; protocol: string; runIndex: number; sessionRun: number }
   /**
    * One wide event per run, and the only one that has to be complete: every started run ends here,
    * including the ones abandoned from the pause menu, or the funnel is open and the survival curve
@@ -24,6 +24,8 @@ export type AnalyticsEvent =
       /** the enemy id that landed the last hit of a death, or '' */
       killedBy: string;
       curse: number;
+      /** the launch screen's protocol, '' for none */
+      protocol: string;
       runIndex: number;
       build: string;
       evolutions: number;

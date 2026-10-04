@@ -1,4 +1,5 @@
 import { ACHIEVEMENT_LIST, LOCKED_BY_DEFAULT, conditionMet, type RunFacts } from '../../data/achievements';
+import { isProtocolId } from '../../data/protocols';
 export interface SaveData {
   version: 2;
   gold: number;
@@ -22,6 +23,8 @@ export interface SaveData {
   lastStageId: string;
   /** the challenge fraction last chosen on the launch screen */
   lastCurse: number;
+  /** the protocol last chosen on the launch screen, '' for none; absent from older saves */
+  lastProtocol: string;
   /** bought: no interstitials between runs */
   removeAds: boolean;
   /** the first-run walkthrough has been seen */
@@ -46,6 +49,7 @@ export const DEFAULT_SAVE: SaveData = {
   lastCharacterId: 'survivor',
   lastStageId: 'station',
   lastCurse: 0,
+  lastProtocol: '',
   removeAds: false,
   tutorialDone: false,
   runsSinceAd: 0,
@@ -99,6 +103,7 @@ export function loadSave(st: SaveStorage): SaveData {
     if (typeof parsed.lastCharacterId === 'string') d.lastCharacterId = parsed.lastCharacterId;
     if (typeof parsed.lastStageId === 'string') d.lastStageId = parsed.lastStageId;
     if (typeof parsed.lastCurse === 'number' && parsed.lastCurse >= 0) d.lastCurse = Math.min(1, parsed.lastCurse);
+    if (typeof parsed.lastProtocol === 'string' && (parsed.lastProtocol === '' || isProtocolId(parsed.lastProtocol))) d.lastProtocol = parsed.lastProtocol;
     if (typeof parsed.removeAds === 'boolean') d.removeAds = parsed.removeAds;
     if (typeof parsed.tutorialDone === 'boolean') d.tutorialDone = parsed.tutorialDone;
     if (typeof parsed.runsSinceAd === 'number' && parsed.runsSinceAd >= 0) d.runsSinceAd = Math.floor(parsed.runsSinceAd);

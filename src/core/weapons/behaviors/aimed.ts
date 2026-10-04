@@ -22,6 +22,8 @@ export const aimed: WeaponBehavior = {
   onVolleyShot(ctx, inst, eff, index) {
     const target = ctx.volleyTarget(ctx.player.x, ctx.player.y, RANGE, index);
     if (!target) return;
+    // 单向火控: a body behind her is not a target
+    if (ctx.oneSided && (target.x - ctx.player.x) * Math.cos(ctx.player.facing) < 0) return;
     const p = ctx.spawnProjectile();
     if (!p) return;
     const dx = target.x - ctx.player.x;

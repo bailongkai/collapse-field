@@ -1,5 +1,6 @@
 import { CONTENT } from '../content/registry';
 import { STAGE_ORDER } from '../../data/stages';
+import { PROTOCOLS, isProtocolId } from '../../data/protocols';
 import { writeSave, type SaveData, type SaveStorage } from './saveData';
 
 /** A character is playable when it has no price or has been bought. */
@@ -16,6 +17,11 @@ export function isStageUnlocked(save: SaveData, id: string): boolean {
   if (def.order === 0) return true;
   const previous = STAGE_ORDER[def.order - 1];
   return previous !== undefined && save.unlocks.stages.includes(previous.id);
+}
+
+/** A protocol is open once the achievement it names has been earned. */
+export function isProtocolUnlocked(save: SaveData, id: string): boolean {
+  return isProtocolId(id) && save.achievements.includes(PROTOCOLS[id].achievement);
 }
 
 export type BuyCharacterResult = 'bought' | 'owned' | 'poor' | 'unknown';

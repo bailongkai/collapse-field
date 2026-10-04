@@ -37,12 +37,15 @@ import { t } from '../../i18n';
 import { analytics, getPlatform } from '../../platform';
 import { haptic } from '../../platform/haptics';
 import type { HudScene } from './HudScene';
+import type { ProtocolId } from '../../data/protocols';
 
 export interface GameSceneData {
   seed?: number;
   characterId?: string;
   stageId?: string;
   curse?: number;
+  /** the protocol chosen on the launch screen */
+  protocol?: ProtocolId | null;
 }
 
 /**
@@ -134,6 +137,7 @@ export class GameScene extends Phaser.Scene {
       metaBonuses: metaBonuses(app().save),
       charges: metaCharges(app().save),
       curse: data.curse ?? 0,
+      protocol: data.protocol ?? null,
       lockedItems: lockedItems(app().save),
       // a rewarded ad can only be offered where one can be shown; the headless harness never sees it
       adRevive: getPlatform().ads.available(),
@@ -141,7 +145,7 @@ export class GameScene extends Phaser.Scene {
     // run 1 and run 40 are different games: every number below is read per-cohort or not at all
     runsThisSession++;
     this.runEndReported = false;
-    analytics.track({ name: 'run_start', stage: this.sim.stage.id, character: this.sim.character.id, curse: this.sim.run.curse, runIndex: app().save.runsPlayed + 1, sessionRun: runsThisSession });
+    analytics.track({ name: 'run_start', stage: this.sim.stage.id, character: this.sim.character.id, curse: this.sim.run.curse, protocol: this.sim.run.protocol, runIndex: app().save.runsPlayed + 1, sessionRun: runsThisSession });
 
     this.cameras.main.setBackgroundColor('#05070c');
     this.layers = {
@@ -540,6 +544,7 @@ export class GameScene extends Phaser.Scene {
       cause,
       killedBy: run.ended === 'died' ? run.killedBy ?? '' : '',
       curse: run.curse,
+      protocol: run.protocol,
       runIndex: app().save.runsPlayed + 1,
       build,
       evolutions,
@@ -599,6 +604,7 @@ export class GameScene extends Phaser.Scene {
       characterId: run.characterId,
       stageId: run.stageId,
       curse: run.curse,
+      protocol: run.protocol,
       chestsOpened: run.chestsOpened,
       bossKills: run.bossKills,
       damageByWeapon: run.weapons.map((w, i) => ({ id: w.id, damage: run.damageBySlot[i] ?? 0 })),
@@ -826,6 +832,10 @@ export class GameScene extends Phaser.Scene {
             sfx.play('explode', { volume: 0.35, rate: 1.3 });
           }
           break;
+        case 'dash':
+          this.fxView.death(e.x - Math.cos(this.sim.world.player.facing) * e.n, e.y, false);
+          sfx.play('laser', { volume: 0.25, rate: 2 });
+          break;
         case 'auraPulse':
           this.fxView.auraPulse(e.n);
           sfx.play('emp', { volume: 0.35, rate: 1.4 });
@@ -910,6 +920,7 @@ export class GameScene extends Phaser.Scene {
       adRevived: run.adRevived,
       charges: { reroll: run.rerolls, skip: run.skips, banish: run.banishes, banished: [...run.banished] },
       curse: run.curse,
+      protocol: run.protocol,
       signature: {
         kind: sim.character.signature.kind,
         ready: sim.signature.cooldownMs === 0 && sim.signature.activeMs === 0,

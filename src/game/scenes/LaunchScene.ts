@@ -12,9 +12,11 @@ import { music } from '../audio/music';
 import { audioContextOf } from '../audio/context';
 import { CHARACTER_LIST } from '../../data/characters';
 import { STAGE_ORDER } from '../../data/stages';
-import { isCharacterUnlocked, isStageUnlocked } from '../../core/save/unlocks';
+import { isCharacterUnlocked, isProtocolUnlocked, isStageUnlocked } from '../../core/save/unlocks';
 import { writeSave } from '../../core/save/saveData';
 import type { CharacterDef, StageDef } from '../../data/types';
+import { PROTOCOLS, PROTOCOL_LIST, isProtocolId, type ProtocolId } from '../../data/protocols';
+import { ACHIEVEMENTS, type AchievementDef } from '../../data/achievements';
 
 const PANEL_TINT = 0x16243a;
 const CARD_TINT = 0x2a3a52;
@@ -51,6 +53,11 @@ export class LaunchScene extends Phaser.Scene {
   private charDetail: Phaser.GameObjects.Text[] = [];
   private stageDetail: Phaser.GameObjects.Text[] = [];
   private curseNote!: Phaser.GameObjects.Text;
+  /** the protocol taken into the run, and the one the note describes (a locked one can be read) */
+  private protocol: ProtocolId | '' = '';
+  private shownProtocol: ProtocolId | '' = '';
+  private protocolBtns: UiButton[] = [];
+  private protocolNote!: Phaser.GameObjects.Text;
   private k = 1;
 
   constructor() {
@@ -65,6 +72,9 @@ export class LaunchScene extends Phaser.Scene {
     const save = app().save;
     this.curse = save.lastCurse;
     this.curseBtns = [];
+    this.protocolBtns = [];
+    this.protocol = isProtocolId(save.lastProtocol) && isProtocolUnlocked(save, save.lastProtocol) ? save.lastProtocol : '';
+    this.shownProtocol = this.protocol;
     this.characterId = isCharacterUnlocked(save, save.lastCharacterId) ? save.lastCharacterId : 'survivor';
     this.stageId = isStageUnlocked(save, save.lastStageId) ? save.lastStageId : 'station';
     this.shownCharacter = this.characterId;
@@ -85,8 +95,9 @@ export class LaunchScene extends Phaser.Scene {
     const gridH = (n: number): number => rowsOf(n) * (TILE_H + GAP) - GAP;
     const halfH = (n: number, detail: number): number => LABEL_H + gridH(n) + 12 + detail;
     const charDetailH = portrait ? 104 : 96;
-    const stageDetailH = portrait ? 62 : 96;
-    const footerH = (portrait ? 96 : 60) + 64;
+    const stageDetailH = portrait ? 72 : 96;
+    const protocolH = portrait ? 92 : 46;
+    const footerH = (portrait ? 96 : 60) + 64 + protocolH;
     const body = portrait ? halfH(chars.length, charDetailH) + 14 + halfH(stages.length, stageDetailH) : Math.max(halfH(chars.length, charDetailH), halfH(stages.length, stageDetailH));
     const wantH = HEADER_H + body + 14 + footerH;
     const panel = fitPanel(this, portrait ? 520 : 940, wantH);
@@ -144,6 +155,25 @@ export class LaunchScene extends Phaser.Scene {
     const noteY = portrait ? curseY + 40 * k : curseY;
     const noteW = portrait ? panel.w - 48 : cx + panel.w / 2 - 24 - noteX;
     this.curseNote = this.add.text(noteX, noteY, '', textStyle(Math.round(13 * k), { color: COLORS.dim, wrapWidth: noteW })).setOrigin(0, 0.5);
+
+    // protocols: one rule change a run may carry, opened by achievements. A locked one can be
+    // tapped to read what opens it, the way a locked tile can; it cannot be taken.
+    const protoY = curseY - protocolH * k;
+    this.add.text(leftX, protoY, t('launch.protocol'), textStyle(Math.round(15 * k), { bold: true, color: COLORS.dim })).setOrigin(0, 0.5);
+    const options: (ProtocolId | '')[] = ['', ...PROTOCOL_LIST.map((p) => p.id)];
+    const pw = Math.min(104, (panel.w - 48 - 80 * k - 18) / options.length);
+    options.forEach((id, i) => {
+      const bx = leftX + 80 * k + i * (pw + 6) + pw / 2;
+      const label = id ? t(PROTOCOLS[id].nameKey) : t('launch.protocol_off');
+      const btn = new UiButton(this, bx, protoY, { id: `launch.protocol.${id || 'none'}`, label, width: pw, height: Math.round(34 * k), fontSize: 12, onPress: () => this.setProtocol(id) });
+      btn.setData('protocol', id);
+      if (id && !isProtocolUnlocked(save, id)) btn.setAlpha(0.5);
+      this.protocolBtns.push(btn);
+    });
+    const pNoteX = portrait ? leftX : leftX + 80 * k + options.length * (pw + 6) + 14;
+    const pNoteY = portrait ? protoY + 40 * k : protoY;
+    const pNoteW = portrait ? panel.w - 48 : cx + panel.w / 2 - 24 - pNoteX;
+    this.protocolNote = this.add.text(pNoteX, pNoteY, '', textStyle(Math.round(13 * k), { color: COLORS.dim, wrapWidth: pNoteW })).setOrigin(0, 0.5);
 
     const btnY = bottom - 40 * k;
     const btnW = Math.min(220, panel.w / 2 - 30);
@@ -232,6 +262,13 @@ export class LaunchScene extends Phaser.Scene {
     );
   }
 
+  private setProtocol(id: ProtocolId | ''): void {
+    sfx.play('click');
+    this.shownProtocol = id;
+    if (!id || isProtocolUnlocked(app().save, id)) this.protocol = id;
+    this.refresh();
+  }
+
   private setCurse(value: number): void {
     this.curse = value;
     sfx.play('click');
@@ -266,13 +303,22 @@ export class LaunchScene extends Phaser.Scene {
       else status.setText(best ? t('launch.best', { t: formatTime(best) }) : '');
       text.setText(`${t(st.descKey)}\n${t('launch.goal')}`);
     }
+    for (const b of this.protocolBtns) b.setSelected((b.getData('protocol') as string) === this.protocol);
+    const shown = this.shownProtocol;
+    if (!shown) this.protocolNote.setText(t('launch.protocol_note_off'));
+    else {
+      const def = PROTOCOLS[shown];
+      const ach = (ACHIEVEMENTS as Record<string, AchievementDef>)[def.achievement];
+      const locked = isProtocolUnlocked(save, shown) ? '' : `\n${t('launch.protocol_locked', { name: ach ? t(ach.nameKey) : def.achievement, cond: ach ? t(ach.descKey) : '' })}`;
+      this.protocolNote.setText(t('launch.protocol_line', { name: t(def.nameKey), desc: t(def.descKey) }) + locked);
+    }
     this.curseNote.setText(this.curse > 0 ? t('launch.challenge_note', { n: Math.round(this.curse * 100) }) : t('launch.challenge_note_off'));
   }
 
   private start(): void {
     const ctx = app();
     if (!isCharacterUnlocked(ctx.save, this.characterId) || !isStageUnlocked(ctx.save, this.stageId)) return;
-    ctx.save = { ...ctx.save, lastCharacterId: this.characterId, lastStageId: this.stageId, lastCurse: this.curse };
+    ctx.save = { ...ctx.save, lastCharacterId: this.characterId, lastStageId: this.stageId, lastCurse: this.curse, lastProtocol: this.protocol };
     writeSave(ctx.storage, ctx.save);
     // this press is the user gesture browsers require before audio may start; audio must never be
     // able to stop a run from starting
@@ -284,7 +330,7 @@ export class LaunchScene extends Phaser.Scene {
       console.warn('music failed to start', error);
     }
     const seed = ctx.seed ?? (Date.now() >>> 0);
-    const selection = { seed, characterId: this.characterId, stageId: this.stageId, curse: this.curse };
+    const selection = { seed, characterId: this.characterId, stageId: this.stageId, curse: this.curse, protocol: this.protocol || null };
     // the menu owns the transition: starting Game from here would leave the menu underneath it
     this.scene.stop();
     this.scene.get('Menu').scene.start('Game', selection);

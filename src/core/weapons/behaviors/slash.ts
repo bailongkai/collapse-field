@@ -25,6 +25,8 @@ export const slash: WeaponBehavior = {
     return 'cooldown';
   },
   onVolleyShot(ctx, inst, eff, index) {
+    // 单向火控: the mirrored swing is not made at all
+    if (ctx.oneSided && index % 2 === 1) return;
     const p = ctx.spawnProjectile();
     if (!p) return;
     // shot 0 goes where the character faced when the swing started, shot 1 the other way

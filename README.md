@@ -162,7 +162,9 @@ ricochets, a laser bolt splits on a kill, a drone detonates where it expires, th
 field pulses, a stake grounds into the nearest body, the conduit leaves a mark
 that bursts, the lance echoes behind you), three stacks each — and then the
 old cards, one weapon, one stat, no cap. The
-launch screen has a challenge toggle (curse +20/40/60%, paid back in experience
+launch screen has four protocols, opened by achievements, one per run: collapsing
+floor on every stage, every weapon firing one way for +40%, no magnet for +30%
+experience, or a dash on every turn. It also has a challenge toggle (curse +20/40/60%, paid back in experience
 and gold), and the results screen ends on which weapon did the work. A bestiary
 behind the achievements screen lights every enemy a run has met.
 

@@ -67,6 +67,8 @@ export interface WeaponContext {
   /** Visits the projectiles this weapon slot currently owns (orbiters). */
   forEachProjectile(slot: number, fn: (p: Projectile) => void): void;
   hitEnemy(e: Enemy, dmg: number, dirX: number, dirY: number, kb: number, src: WeaponInstance): void;
+  /** 单向火控: weapons fire only to the side she faces (damage behind her is refused anyway) */
+  oneSided: boolean;
 }
 
 export interface WeaponBehavior {

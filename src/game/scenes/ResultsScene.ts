@@ -15,6 +15,7 @@ import { ACHIEVEMENTS as CONTENT_ACHIEVEMENTS, type AchievementDef } from '../..
 import { stageUnlockedBySurviving } from '../../core/save/unlocks';
 import { CONTENT } from '../../core/content/registry';
 import { app } from '../app';
+import { PROTOCOLS, isProtocolId } from '../../data/protocols';
 import type { OwnedItem, RunEnd } from '../../core/sim/runState';
 
 export interface ResultsData {
@@ -29,6 +30,8 @@ export interface ResultsData {
   characterId: string;
   stageId: string;
   curse: number;
+  /** the protocol the run was played under, '' for none */
+  protocol?: string;
   chestsOpened: number;
   bossKills: number;
   damageByWeapon: { id: string; damage: number }[];
@@ -111,6 +114,8 @@ export class ResultsScene extends Phaser.Scene {
       [t('results.kills'), String(data.kills ?? 0)],
       [t('results.gold'), doubled ? t('results.doubled', { n: data.gold ?? 0 }) : String(data.gold ?? 0)],
     ];
+    const protocol = data.protocol && isProtocolId(data.protocol) ? PROTOCOLS[data.protocol] : null;
+    if (protocol) rows.splice(1, 0, [t('results.protocol'), t(protocol.nameKey)]);
     // the one line a new player needs after a death: what to look out for next time
     if (!survived && data.killedBy) rows.push([t('results.killedBy'), this.causeName(data.killedBy)]);
     rows.forEach(([label, value], i) => {
@@ -264,6 +269,6 @@ export class ResultsScene extends Phaser.Scene {
     // to play the menu theme until its first boss
     music.setMood('battle');
     music.setIntensity(0.15);
-    this.scene.start('Game', { seed, characterId: data.characterId, stageId: data.stageId });
+    this.scene.start('Game', { seed, characterId: data.characterId, stageId: data.stageId, curse: data.curse, protocol: data.protocol || null });
   }
 }

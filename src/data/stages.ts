@@ -57,7 +57,7 @@ const WAVES: readonly WaveEntry[] = [
  * piece is a death nobody could have read. The damage is a little under half a starting health
  * bar, so being caught is a mistake and not the end of the run.
  */
-const COLLAPSE = (at: number): WaveEvent => ({ at, kind: 'collapse', radius: 170, distance: 360, warnMs: 5500, damage: 45, reward: 'riftCache' });
+export const COLLAPSE = (at: number): WaveEvent => ({ at, kind: 'collapse', radius: 170, distance: 360, warnMs: 5500, damage: 45, reward: 'riftCache' });
 
 const EVENTS: readonly WaveEvent[] = byTime([
   { at: 90, kind: 'swarm', enemy: 'interceptor', count: 25, pattern: 'hLine' },

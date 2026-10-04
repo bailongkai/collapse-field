@@ -35,6 +35,15 @@ import { ENEMY_CAP, WEAPON_SLOTS, PASSIVE_SLOTS } from '../../config';
 import type { Enemy } from './entities/enemy';
 import { resetProjectileExtras } from './entities/projectile';
 import { VERBS, VERB_TUNING } from '../../data/verbs';
+import { PROTOCOLS, PROTOCOL_TUNING, type ProtocolId } from '../../data/protocols';
+import { COLLAPSE } from '../../data/stages';
+import { GEM_COLLECT_RADIUS, MAGNET_BASE_RADIUS } from '../../config';
+import type { StageDef } from '../../data/types';
+
+/** 无磁力's magnet: a gem is drawn in only from just outside the pickup radius, i.e. on contact */
+const NO_MAGNET = (GEM_COLLECT_RADIUS * 1.5) / MAGNET_BASE_RADIUS;
+/** the collapse's cache, whose rewards 塌缩加剧 multiplies */
+const COLLAPSE_REWARD = 'riftCache';
 import { BIG_HIT_MIN_HP, PLAYER_RADIUS } from '../../config';
 import type { ChestResult, LevelUpChoice, OwnedItem, RunEnd, RunPhase } from './runState';
 
@@ -65,6 +74,8 @@ export interface SimulationOptions {
    * a rewarded ad can be shown; headless runs never do, so the balance harness never sees it.
    */
   adRevive?: boolean;
+  /** a rule change chosen on the launch screen (data/protocols.ts); none when absent */
+  protocol?: ProtocolId | null;
 }
 
 export interface RunState {
@@ -73,6 +84,8 @@ export interface RunState {
   stageId: string;
   /** the challenge fraction the run was started with, for the results screen */
   curse: number;
+  /** the protocol the run was started with, or '' */
+  protocol: ProtocolId | '';
   timeMs: number;
   tick: number;
   phase: RunPhase;
@@ -145,6 +158,17 @@ export class Simulation {
     this.adRevive = opts.adRevive ?? false;
     const curse = opts.curse ?? 0;
     this.metaBonuses = { ...(opts.metaBonuses ?? {}) };
+    const protocol = opts.protocol && PROTOCOLS[opts.protocol] ? opts.protocol : '';
+    for (const [k, v] of Object.entries((protocol && PROTOCOLS[protocol].bonus) || {})) {
+      const mb = this.metaBonuses as Record<string, number>;
+      mb[k] = (mb[k] ?? 0) + (v as number);
+    }
+    // 塌缩加剧: a stage without collapsing floor borrows the station's three
+    const base = stageDef(opts.stageId);
+    if (protocol === 'collapse' && !base.events.some((e) => e.kind === 'collapse')) {
+      const events = [...base.events, ...PROTOCOL_TUNING.collapse.at.map((at) => COLLAPSE(at))].sort((a, b) => a.at - b.at);
+      this.stageOverride = { ...base, events };
+    }
     if (curse > 0) {
       const mb = this.metaBonuses as Record<string, number>;
       mb.curse = (mb.curse ?? 0) + curse;
@@ -158,6 +182,7 @@ export class Simulation {
       characterId: opts.characterId,
       stageId: opts.stageId,
       curse: opts.curse ?? 0,
+      protocol,
       timeMs: 0,
       tick: 0,
       phase: 'running',
@@ -222,6 +247,7 @@ export class Simulation {
         }
       },
       hitEnemy: (e, dmg, dirX, dirY, kb, src) => this.damageEnemy(e, dmg, dirX, dirY, kb, src.slot),
+      oneSided: this.run.protocol === 'oneSide',
     };
     this.giveWeapon(ch.startingWeapon, 1);
   }
@@ -230,9 +256,14 @@ export class Simulation {
     return this.cachedStats;
   }
 
-  get stage() {
-    return stageDef(this.run.stageId);
+  get stage(): StageDef {
+    return this.stageOverride ?? stageDef(this.run.stageId);
   }
+
+  /** the stage as this run plays it, when a protocol changed its events */
+  private stageOverride: StageDef | null = null;
+  /** 回身冲刺: ms until the next turn may dash */
+  private dashCdMs = 0;
 
   get character() {
     return characterDef(this.run.characterId);
@@ -242,7 +273,9 @@ export class Simulation {
     const bonus = signatureBonus(this.signature, this.character.signature);
     const extra: StatBlock = bonus ? { ...this.metaBonuses } : this.metaBonuses;
     if (bonus) for (const k of Object.keys(bonus) as StatKey[]) (extra as Record<StatKey, number>)[k] = ((extra as Record<StatKey, number>)[k] ?? 0) + (bonus[k] ?? 0);
-    const stats = composeStats(this.character, this.run.passives, this.reg, this.run.level, extra);
+    let stats = composeStats(this.character, this.run.passives, this.reg, this.run.level, extra);
+    // 无磁力: a gem comes to the player only once she is standing on it
+    if (this.run.protocol === 'noMagnet') stats = { ...stats, magnet: NO_MAGNET };
     const forced = this.forcedStats;
     if (Object.keys(forced).length === 0) return stats;
     const out = { ...stats } as Record<StatKey, number>;
@@ -309,6 +342,7 @@ export class Simulation {
     if (this.autopilot) driveAutopilot(this.world, run.tick);
     const facingBefore = world.player.facing;
     stepPlayer(world.player, stats, dt);
+    if (run.protocol === 'dash') this.dashOnTurn(facingBefore);
     if (world.obstacles.length > 0 && resolveCircle(world.obstacles, world.player.x, world.player.y, PLAYER_RADIUS, this.scratch)) {
       world.player.x = this.scratch.x;
       world.player.y = this.scratch.y;
@@ -426,10 +460,31 @@ export class Simulation {
     world.events.push('died', world.player.x, world.player.y, run.timeMs / 1000, run.killedBy);
   }
 
+  /**
+   * 回身冲刺: a turn is a dodge. The player system has already moved her this tick; the dash is a
+   * step on top, along the new facing, and the i-frames are the same ones a hit grants.
+   */
+  private dashOnTurn(facingBefore: number): void {
+    const p = this.world.player;
+    this.dashCdMs = Math.max(0, this.dashCdMs - FIXED_DT_MS);
+    if (p.facing === facingBefore || this.dashCdMs > 0) return;
+    const t = PROTOCOL_TUNING.dash;
+    this.dashCdMs = t.cooldownMs;
+    p.iframesMs = Math.max(p.iframesMs, t.iframesMs);
+    p.x += Math.cos(p.facing) * t.px;
+    if (this.world.obstacles.length > 0 && resolveCircle(this.world.obstacles, p.x, p.y, PLAYER_RADIUS, this.scratch)) {
+      p.x = this.scratch.x;
+      p.y = this.scratch.y;
+    }
+    this.world.events.push('dash', p.x, p.y, t.px, this.run.characterId);
+  }
+
   /** Damage entry point shared by every weapon; handles knockback, flash, death and drops. */
   damageEnemy(e: Enemy, dmg: number, dirX: number, dirY: number, knockback: number, slot = -1): void {
     const def = e.def;
     if (!def || def.invulnerable) return;
+    // 单向火控: no weapon lands behind her, whatever its archetype
+    if (slot >= 0 && this.run.protocol === 'oneSide' && (e.x - this.world.player.x) * Math.cos(this.world.player.facing) < 0) return;
     // a shield in the way takes almost all of it; the answer to a bulwark is an angle, not a number
     const rounded = Math.max(1, Math.round(dmg * bulwarkScale(e, dirX, dirY) * bossArmourScale(e, dirX, dirY)));
     // a 残留 mark goes off on the next hit from anything; the burst cannot set off another
@@ -588,7 +643,13 @@ export class Simulation {
       }
       case 'chest':
         // a cache taken off a marked floor in its last seconds pays as a boss chest
-        this.openChest(collapseRewardGrade(world, c.def.id, c.x, c.y, effect.grade), c.x, c.y);
+        this.openChest(
+          collapseRewardGrade(world, c.def.id, c.x, c.y, effect.grade),
+          c.x,
+          c.y,
+          // 塌缩加剧: the floor's caches pay half as much again
+          run.protocol === 'collapse' && c.def.id === COLLAPSE_REWARD ? PROTOCOL_TUNING.collapse.rewardMult : 1,
+        );
         break;
     }
   }
@@ -704,13 +765,14 @@ export class Simulation {
    * run. Levels are granted first now, and then every weapon that has become eligible evolves, as a
    * bonus on top rather than instead.
    */
-  openChest(grade: ChestGrade, x: number, y: number): ChestResult {
+  openChest(grade: ChestGrade, x: number, y: number, countMult = 1): ChestResult {
     const run = this.run;
     this.chestDuringBossChecks();
     const rewards = rollChestRewards({
       weapons: run.weapons,
       passives: run.passives,
       grade,
+      countMult,
       luck: this.cachedStats.luck,
       rng: this.world.rng,
       reg: this.reg,

@@ -11,6 +11,8 @@ export interface ChestRollInput {
   luck: number;
   rng: Rng;
   reg: ContentRegistry;
+  /** multiplies the count rolled, rounded: 塌缩加剧's caches pay half as much again */
+  countMult?: number;
 }
 
 /**
@@ -50,7 +52,7 @@ export function rollChestCount(grade: ChestGrade, luck: number, rng: Rng): 1 | 3
  */
 export function rollChestRewards(input: ChestRollInput): LevelUpChoice[] {
   const { rng, reg } = input;
-  const count = rollChestCount(input.grade, input.luck, rng);
+  const count = Math.round(rollChestCount(input.grade, input.luck, rng) * (input.countMult ?? 1));
   const weapons = input.weapons.map((w) => ({ ...w }));
   const passives = input.passives.map((p) => ({ ...p }));
   const out: LevelUpChoice[] = [];

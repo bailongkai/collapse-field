@@ -91,7 +91,7 @@ on the new `html5` upload, delete the old one, and save. Every push after that r
 > - 8 characters, each with a starting weapon and a signature ability
 > - 16 weapons, 8 of them evolutions, and 11 items
 > - 8 stages, each with its own enemies and three bosses of its own
-> - An upgrade bay, 24 achievements, a bestiary, and a challenge setting for more gold
+> - An upgrade bay, 24 achievements, a bestiary, four rule-changing protocols, and a challenge setting for more gold
 > - Keyboard or touch; English and Chinese
 >
 > **Controls:** WASD or arrow keys to move · weapons fire on their own · Esc or P to pause.
@@ -123,7 +123,7 @@ on the new `html5` upload, delete the old one, and save. Every push after that r
 > - 8 名角色，各有起始武器和专属能力
 > - 16 种武器（其中 8 种是进化形态）、11 种装备
 > - 8 个关卡，各有专属敌人和三个专属 Boss
-> - 升级舱、24 项成就、敌人图鉴，以及换取更多金币的挑战模式
+> - 升级舱、24 项成就、敌人图鉴、四种改变规则的协议，以及换取更多金币的挑战模式
 > - 支持键盘和触屏；中文 / 英文
 >
 > **操作：** WASD 或方向键移动 · 武器自动攻击 · Esc 或 P 暂停。手机上在屏幕左侧拖动即可。
