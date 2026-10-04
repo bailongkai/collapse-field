@@ -14,6 +14,7 @@ import { sfx } from '../audio/sfx';
 import { analytics, getPlatform } from '../../platform';
 import { PRODUCT_IDS, applyPurchase, productOwned, type ProductId } from '../../core/save/purchases';
 import { tDynamic as td } from '../../i18n';
+import { upgradeValue, weaponLine } from '../ui/shopNumbers';
 
 const ROW_H = 58;
 
@@ -73,18 +74,27 @@ export class ShopScene extends Phaser.Scene {
       const textX = left + 44;
       const levelLabel = t('shop.level', { a: level, b: def.maxLevel });
       const levelColor = level >= def.maxLevel ? COLORS.good : COLORS.text;
+      // what it is worth, not only what one level adds. Where the row has no room for both, the
+      // worth wins: the name already says what it is, and the numbers are why it is bought
+      const value = upgradeValue(def, level);
+      const fit = (text: Phaser.GameObjects.Text, room: number, prefix = ''): void => {
+        if (text.width > room) text.setText(`${prefix}${value}`);
+        text.setName(`shop.value.${def.id}`);
+      };
+      const desc = `${t(def.descKey)} · ${value}`;
+      const levelX = left + colW - btnW - 96;
       if (narrow) {
         // on a phone the description moves next to the level, since there is no room for a column
         this.add.text(textX, y - 11, t(def.nameKey), textStyle(17, { bold: true })).setOrigin(0, 0.5);
-        this.add.text(textX, y + 11, `${levelLabel}  ${t(def.descKey)}`, textStyle(13, { color: COLORS.dim })).setOrigin(0, 0.5);
+        fit(this.add.text(textX, y + 11, `${levelLabel}  ${desc}`, textStyle(13, { color: COLORS.dim })).setOrigin(0, 0.5), buyX - btnW / 2 - 8 - textX, `${levelLabel}  `);
       } else if (tight) {
         const name = this.add.text(textX, y, t(def.nameKey), textStyle(17, { bold: true })).setOrigin(0, 0.5);
-        this.add.text(textX + name.width + 10, y, t(def.descKey), textStyle(13, { color: COLORS.dim })).setOrigin(0, 0.5);
-        this.add.text(left + colW - btnW - 96, y, levelLabel, textStyle(15, { color: levelColor })).setOrigin(0, 0.5);
+        fit(this.add.text(textX + name.width + 10, y, desc, textStyle(13, { color: COLORS.dim })).setOrigin(0, 0.5), levelX - 8 - (textX + name.width + 10));
+        this.add.text(levelX, y, levelLabel, textStyle(15, { color: levelColor })).setOrigin(0, 0.5);
       } else {
         this.add.text(textX, y - 12, t(def.nameKey), textStyle(19, { bold: true })).setOrigin(0, 0.5);
-        this.add.text(textX, y + 12, t(def.descKey), textStyle(14, { color: COLORS.dim })).setOrigin(0, 0.5);
-        this.add.text(left + colW - btnW - 96, y, levelLabel, textStyle(16, { color: levelColor })).setOrigin(0, 0.5);
+        fit(this.add.text(textX, y + 12, desc, textStyle(14, { color: COLORS.dim })).setOrigin(0, 0.5), levelX - 8 - textX);
+        this.add.text(levelX, y, levelLabel, textStyle(16, { color: levelColor })).setOrigin(0, 0.5);
       }
       const btn = new UiButton(this, buyX, y, {
         id: `shop.buy.${def.id}`,
@@ -110,19 +120,26 @@ export class ShopScene extends Phaser.Scene {
       const owned = isCharacterUnlocked(ctx.save, def.id);
       this.add.image(cellX + 16, y, 'game', def.frame).setDisplaySize(charCols === 1 ? 32 : 26, charCols === 1 ? 32 : 26);
       const textX = cellX + (charCols === 1 ? 44 : 34);
-      const weapon = tDynamic(`weapon.${def.startingWeapon}.name`);
+      // the starting weapon in numbers: what the gold buys
+      const weapon = weaponLine(def.startingWeapon) || tDynamic(`weapon.${def.startingWeapon}.name`);
+      // a line that would run under the buy button falls back to the numbers alone, then the name
+      const room = cellX + charCellW - charBtnW - 6 - textX;
+      const fitWeapon = (text: Phaser.GameObjects.Text): void => {
+        if (text.width > room) text.setText(weaponLine(def.startingWeapon, true));
+        if (text.width > room) text.setText(tDynamic(`weapon.${def.startingWeapon}.name`));
+      };
       if (charCols > 1) {
         this.add.text(textX, y - 10, t(def.nameKey), textStyle(14, { bold: true })).setOrigin(0, 0.5);
-        this.add.text(textX, y + 10, weapon, textStyle(11, { color: COLORS.dim })).setOrigin(0, 0.5);
+        fitWeapon(this.add.text(textX, y + 10, weapon, textStyle(11, { color: COLORS.dim })).setOrigin(0, 0.5));
       } else if (narrow) {
         this.add.text(textX, y - 11, t(def.nameKey), textStyle(17, { bold: true })).setOrigin(0, 0.5);
-        this.add.text(textX, y + 11, weapon, textStyle(13, { color: COLORS.dim })).setOrigin(0, 0.5);
+        fitWeapon(this.add.text(textX, y + 11, weapon, textStyle(13, { color: COLORS.dim })).setOrigin(0, 0.5));
       } else if (tight) {
         const name = this.add.text(textX, y, t(def.nameKey), textStyle(17, { bold: true })).setOrigin(0, 0.5);
         this.add.text(textX + name.width + 10, y, weapon, textStyle(13, { color: COLORS.dim })).setOrigin(0, 0.5);
       } else {
         this.add.text(textX, y - 12, t(def.nameKey), textStyle(19, { bold: true })).setOrigin(0, 0.5);
-        this.add.text(textX, y + 12, weapon, textStyle(14, { color: COLORS.dim })).setOrigin(0, 0.5);
+        fitWeapon(this.add.text(textX, y + 12, weapon, textStyle(14, { color: COLORS.dim })).setOrigin(0, 0.5));
       }
       const btn = new UiButton(this, cellX + charCellW - charBtnW / 2, y, {
         id: `shop.buyChar.${def.id}`,

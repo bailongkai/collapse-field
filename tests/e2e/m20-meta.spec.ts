@@ -103,3 +103,24 @@ test('score: the results name the score against the stage best, and the launch t
   await snap(page, 'm20-launch-score');
   expect(errors, errors.join('\n')).toEqual([]);
 });
+
+test('shop: an upgrade says what it is worth now and next, a character what its weapon does', async ({ page }) => {
+  const errors = await openGame(page, '?test=1&lang=zh-CN');
+  await page.evaluate(() => window.__game.save.addGold(500));
+  expect(await page.evaluate(() => window.__game.ui.press('menu.shop'))).toBe(true);
+  await page.waitForFunction(() => window.__game.ui.buttons().some((b) => b.id === 'shop.buy.hull' && b.enabled));
+  const value = (): Promise<string | null> =>
+    page.evaluate(() => {
+      const scene = window.__game.phaser.scene.getScene('Shop') as unknown as { children: { getByName(n: string): { text: string } | null } };
+      return scene.children.getByName('shop.value.hull')?.text ?? null;
+    });
+  expect(await value()).toContain('当前 0 → +10%');
+  expect(await page.evaluate(() => window.__game.ui.press('shop.buy.hull'))).toBe(true);
+  await page.waitForFunction(() => window.__game.save.get().upgrades.hull === 1);
+  await page.waitForFunction(() => window.__game.ui.buttons().some((b) => b.id === 'shop.buy.hull'));
+  await expect.poll(value).toContain('当前 +10% → +20%');
+  const texts = await sceneTexts(page, 'Shop');
+  expect(texts.some((x) => x.startsWith('磁轨炮 · 伤害 6.5 · 1.0 秒 · ×2'))).toBe(true);
+  await snap(page, 'm20-shop-numbers');
+  expect(errors, errors.join('\n')).toEqual([]);
+});

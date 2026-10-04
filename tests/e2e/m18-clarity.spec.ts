@@ -218,7 +218,9 @@ test('clarity: a railgun pointed away from the crowd for five seconds earns a tu
   });
   await realWait(2500);
   expect(await events(page)).not.toContain('hint:turn');
-  await page.waitForFunction(() => window.__game.getEvents().includes('hint:turn'), undefined, { timeout: 6000 });
+  // the hold is counted in frame deltas, which are clamped, so under four workers five seconds of
+  // hold can take well over five seconds of wall clock
+  await page.waitForFunction(() => window.__game.getEvents().includes('hint:turn'), undefined, { timeout: 15000 });
   expect(await hudToasts(page)).toContain(await page.evaluate(() => window.__game.i18n.t('toast.turn')));
   await snap(page, 'clarity-turn-hint');
 

@@ -225,6 +225,11 @@ The results screen ends on a score (`runScore` in `src/core/save/score.ts`, weig
 times one plus the curse. It is a plain sum on purpose, so a player can see why it moved. The best
 per stage is `save.stageBestScore`, compared on the results screen and shown on the stage's tile.
 
+The shop says what an upgrade is worth, not only what one level adds ("当前 +10% → +20%"), and a
+character what its starting weapon does (damage, how often, how many), both from
+`src/game/ui/shopNumbers.ts` over the same `weaponParams` the cards read. A row with no room for
+both falls back to the numbers, because the name already says what it is.
+
 Stages can carry `props` (breakable scenery: prop enemies that do not bite and
 do not count as kills), `relics` (persistent, non-magnetic pickups at fixed
 coordinates, pointed at by `RelicView`) and `obstacles` (solid rectangles;
