@@ -106,7 +106,13 @@ autopilot and a person at six times its level killed every boss in ten to thirty
 twice the autopilot's level the fight is exactly as authored, so unit tests that spawn a boss at
 level 1 see the numbers in `enemies.ts`; past that it grows to a cap, lower for the final because
 it enrages. A flat multiplier is the wrong tool: whatever suits one of those two players is wrong
-for the other.
+for the other. Level still under-read a strong build, so once a boss is being hit it measures its
+own intake in four-second windows (`bossIntake` in `bossScale.ts`, called from `damageEnemy`) and,
+if that rate would kill it inside 25 / 40 / 60 s from its first hit, multiplies health and maximum
+together so the bar does not jump. Only ever upwards, so a slow build meets the fight as written.
+It measures the boss rather than the run because the run's damage to the crowd read a fighting
+build at a third of its boss damage and a kiting one at seven times. A chest during the check is
+kept out of it, or the reward would vanish into the boss.
 
 The interface has one look and one place to change it: `ui/panel.ts` draws every overlay (glass
 slab, hairline, corner brackets, heading rule) and `button_tech` in the ui atlas is every button,

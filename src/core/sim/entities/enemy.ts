@@ -50,6 +50,17 @@ export interface Enemy {
   /** ms until the next volley or mine; the boss extras have their own clock */
   aiTimer3: number;
   enraged: boolean;
+  /**
+   * A boss checks the health it arrived with against what it is actually taking: `scaleTargetMs`
+   * is how long its fight is meant to last (0 for every other body, and once the check is over),
+   * `scaleCapHp` the most health the check may give it, `intakeStartMs` its first hit and
+   * `intakeMarkMs` / `intakeDealt` the window being measured. See bossIntake.
+   */
+  scaleTargetMs: number;
+  scaleCapHp: number;
+  intakeStartMs: number;
+  intakeMarkMs: number;
+  intakeDealt: number;
 }
 
 export function createEnemy(id: number): Enemy {
@@ -58,5 +69,6 @@ export function createEnemy(id: number): Enemy {
     x: 0, y: 0, hp: 0, maxHp: 0, radius: 0, kbx: 0, kby: 0, flashMs: 0,
     dirX: 0, dirY: 0, lineSpeed: 0, speedMult: 1, lifeMs: 0, isEvent: false, dmgMult: 1, facing: 0,
     aiState: 0, aiTimer: 0, aiTimer2: 0, aiTimer3: 0, aiTimer4: 0, aiTimer5: 0, aiState2: 0, aiAngle: 0, ageMs: 0, enraged: false,
+    scaleTargetMs: 0, scaleCapHp: 0, intakeStartMs: -1, intakeMarkMs: -1, intakeDealt: 0,
   };
 }

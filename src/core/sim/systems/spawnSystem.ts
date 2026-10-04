@@ -84,6 +84,11 @@ export function spawnEnemy(world: World, defId: string, o: SpawnOptions = {}): E
   e.aiAngle = 0;
   e.ageMs = 0;
   e.enraged = false;
+  e.scaleTargetMs = 0;
+  e.scaleCapHp = 0;
+  e.intakeStartMs = -1;
+  e.intakeMarkMs = -1;
+  e.intakeDealt = 0;
   // a body that lands inside a wall is nudged out, so a wall is never a spawn cage
   if (world.obstacles.length > 0 && resolveCircle(world.obstacles, e.x, e.y, e.radius, scratch)) {
     e.x = scratch.x;

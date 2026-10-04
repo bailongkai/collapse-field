@@ -5,7 +5,9 @@ export type SimEventType =
   /** a shooter has begun its wind-up: `n` is its slot, so the view can draw the aim from where it stands */
   | 'windup'
   /** the EMP field drew the crowd in: `n` is the reach it pulled from */
-  | 'auraPulse';
+  | 'auraPulse'
+  /** a boss settled its health against what it was taking: `n` is its new maximum */
+  | 'bossScaled';
 
 export interface SimEvent {
   type: SimEventType;

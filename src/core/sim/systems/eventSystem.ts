@@ -1,8 +1,9 @@
 
 import type { StageDef, WaveEvent } from '../../../data/types';
 import { densityScale, spawnEnemy, spawnRing, spawnRingRadius } from './spawnSystem';
+import { enemyDef } from '../../content/registry';
 import type { World } from '../world';
-import { bossLevelScale } from '../../enemies/bossScale';
+import { armBossCheck, bossLevelScale } from '../../enemies/bossScale';
 import { openCollapse } from './collapseSystem';
 
 /**
@@ -29,7 +30,8 @@ export class EventScheduler {
 
   /**
    * Returns true when the final boss event fired this step. `level` is the player's, which is
-   * what a boss's health is scaled by on the tick it arrives.
+   * what a boss's health is scaled by on the tick it arrives; once it is being hit it checks that
+   * figure against what it is actually taking (armBossCheck).
    */
   step(world: World, stage: StageDef, timeMs: number, viewW: number, viewH: number, level: number): boolean {
     const sec = timeMs / 1000;
@@ -67,7 +69,10 @@ export class EventScheduler {
           isEvent: true,
           hpMult: event.hpMult * bossLevelScale('boss', event.at, level),
         });
-        if (boss) world.events.push('bossSpawned', boss.x, boss.y, boss.maxHp, event.enemy, true);
+        if (boss) {
+          armBossCheck(boss, 'boss', event.at, enemyDef(event.enemy).hp * event.hpMult);
+          world.events.push('bossSpawned', boss.x, boss.y, boss.maxHp, event.enemy, true);
+        }
         break;
       }
       case 'encircle': {
@@ -115,6 +120,7 @@ export class EventScheduler {
           hpMult: event.hpMult * bossLevelScale('final', event.at, level),
         });
         if (boss) {
+          armBossCheck(boss, 'final', event.at, enemyDef(event.enemy).hp * event.hpMult);
           world.events.push('bossSpawned', boss.x, boss.y, boss.maxHp, event.enemy, true);
           world.events.push('final', boss.x, boss.y, 0, event.enemy, true);
         }
