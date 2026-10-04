@@ -64,3 +64,42 @@ test('protocols: a locked protocol in the save is not taken into the run', async
   expect((await state(page)).protocol).toBe('');
   expect(errors, errors.join('\n')).toEqual([]);
 });
+
+test('score: the results name the score against the stage best, and the launch tile shows the best', async ({ page }) => {
+  const errors = await openGame(page, '?test=1&seed=22&lang=zh-CN');
+  await page.evaluate(() => window.__game.save.set({ ...window.__game.save.get(), stageBestScore: {}, tutorialDone: true }));
+  await page.evaluate(() => window.__game.startRun({ seed: 22 }));
+  await waitScene(page, 'game');
+  await page.evaluate(() => {
+    window.__game.setTime(120);
+    window.__game.setLevel(10);
+    window.__game.endRun('died');
+  });
+  await waitScene(page, 'results');
+  const texts = await sceneTexts(page, 'Results');
+  expect(texts).toContain(await page.evaluate(() => window.__game.i18n.t('results.score')));
+  const scoreLine = texts.find((x) => x.includes(' · ') && x.includes('新纪录'));
+  expect(scoreLine, texts.join(' | ')).toBeTruthy();
+  const score = Number(scoreLine!.split(' · ')[0]);
+  expect(score).toBeGreaterThanOrEqual(120 * 10 + 10 * 50);
+  expect((await page.evaluate(() => window.__game.save.get())).stageBestScore.station).toBe(score);
+  await snap(page, 'm20-results-score');
+
+  // a second, worse run is compared with the first
+  await page.evaluate(() => window.__game.startRun({ seed: 23 }));
+  await waitScene(page, 'game');
+  await page.evaluate(() => window.__game.endRun('died'));
+  await waitScene(page, 'results');
+  const again = await sceneTexts(page, 'Results');
+  expect(again.some((x) => x.includes(`本关最佳 ${score}`))).toBe(true);
+
+  await page.evaluate(() => window.__game.goto('menu'));
+  await openLaunch(page);
+  const tile = await page.evaluate(() => {
+    const scene = window.__game.phaser.scene.getScene('Launch') as unknown as { children: { getByName(n: string): { text: string } | null } };
+    return scene.children.getByName('launch.score.station')?.text ?? null;
+  });
+  expect(tile).toBe(score >= 10000 ? `${(score / 1000).toFixed(1)}k` : String(score));
+  await snap(page, 'm20-launch-score');
+  expect(errors, errors.join('\n')).toEqual([]);
+});

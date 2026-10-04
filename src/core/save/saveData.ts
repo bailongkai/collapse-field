@@ -1,5 +1,6 @@
 import { ACHIEVEMENT_LIST, LOCKED_BY_DEFAULT, conditionMet, type RunFacts } from '../../data/achievements';
 import { isProtocolId } from '../../data/protocols';
+import { runScore } from './score';
 export interface SaveData {
   version: 2;
   gold: number;
@@ -18,6 +19,8 @@ export interface SaveData {
   totalKills: number;
   /** best survival time per stage id, seconds */
   stageBest: Record<string, number>;
+  /** best end-of-run score per stage id (core/save/score.ts); absent from older saves */
+  stageBestScore: Record<string, number>;
   /** what the launch screen last had selected */
   lastCharacterId: string;
   lastStageId: string;
@@ -46,6 +49,7 @@ export const DEFAULT_SAVE: SaveData = {
   seen: [],
   totalKills: 0,
   stageBest: {},
+  stageBestScore: {},
   lastCharacterId: 'survivor',
   lastStageId: 'station',
   lastCurse: 0,
@@ -62,7 +66,7 @@ export interface SaveStorage {
 }
 
 function cloneDefault(): SaveData {
-  return { ...DEFAULT_SAVE, settings: { ...DEFAULT_SAVE.settings }, upgrades: {}, unlocks: { characters: [], stages: [], items: [] }, achievements: [], seen: [], stageBest: {} };
+  return { ...DEFAULT_SAVE, settings: { ...DEFAULT_SAVE.settings }, upgrades: {}, unlocks: { characters: [], stages: [], items: [] }, achievements: [], seen: [], stageBest: {}, stageBestScore: {} };
 }
 
 const isStringList = (v: unknown): v is string[] => Array.isArray(v) && v.every((x) => typeof x === 'string');
@@ -98,6 +102,11 @@ export function loadSave(st: SaveStorage): SaveData {
     if (parsed.stageBest && typeof parsed.stageBest === 'object') {
       for (const [k, v] of Object.entries(parsed.stageBest)) {
         if (typeof v === 'number' && v > 0) d.stageBest[k] = v;
+      }
+    }
+    if (parsed.stageBestScore && typeof parsed.stageBestScore === 'object') {
+      for (const [k, v] of Object.entries(parsed.stageBestScore)) {
+        if (typeof v === 'number' && v > 0) d.stageBestScore[k] = Math.floor(v);
       }
     }
     if (typeof parsed.lastCharacterId === 'string') d.lastCharacterId = parsed.lastCharacterId;
@@ -141,12 +150,19 @@ export interface RunSummary {
   seen?: readonly string[];
 }
 
+/** The score of a summarised run: see src/data/score.ts. */
+export function summaryScore(run: RunSummary): number {
+  return runScore({ timeSec: run.timeSec, kills: run.kills, level: run.level ?? 1, bossKills: run.bossKills ?? 0, survived: !!run.survived, curse: run.curse ?? 0 });
+}
+
 /** Fold a finished run into the save and persist it. Returns the new save object. */
 export function commitRun(st: SaveStorage, save: SaveData, run: RunSummary): SaveData {
   const stages = [...save.unlocks.stages];
   if (run.survived && run.stageId && !stages.includes(run.stageId)) stages.push(run.stageId);
   const stageBest = { ...save.stageBest };
   if (run.stageId) stageBest[run.stageId] = Math.max(stageBest[run.stageId] ?? 0, run.timeSec);
+  const stageBestScore = { ...save.stageBestScore };
+  if (run.stageId) stageBestScore[run.stageId] = Math.max(stageBestScore[run.stageId] ?? 0, summaryScore(run));
   const next: SaveData = {
     ...save,
     settings: { ...save.settings },
@@ -156,6 +172,7 @@ export function commitRun(st: SaveStorage, save: SaveData, run: RunSummary): Sav
     seen: [...new Set([...save.seen, ...(run.seen ?? [])])],
     totalKills: save.totalKills + Math.max(0, run.kills),
     stageBest,
+    stageBestScore,
     gold: save.gold + Math.max(0, Math.floor(run.gold)),
     runsPlayed: save.runsPlayed + 1,
     bestTimeSec: Math.max(save.bestTimeSec, run.timeSec),
@@ -221,6 +238,7 @@ export function awardAchievements(st: SaveStorage, save: SaveData, run: RunSumma
     settings: { ...save.settings },
     upgrades: { ...save.upgrades },
     stageBest: { ...save.stageBest },
+    stageBestScore: { ...save.stageBestScore },
     unlocks: { ...save.unlocks, characters: [...save.unlocks.characters], stages: [...save.unlocks.stages], items },
     achievements: [...save.achievements, ...earned],
     seen: [...save.seen],

@@ -165,7 +165,9 @@ old cards, one weapon, one stat, no cap. The
 launch screen has four protocols, opened by achievements, one per run: collapsing
 floor on every stage, every weapon firing one way for +40%, no magnet for +30%
 experience, or a dash on every turn. It also has a challenge toggle (curse +20/40/60%, paid back in experience
-and gold), and the results screen ends on which weapon did the work. A bestiary
+and gold), and the results screen ends on which weapon did the work and a score
+(time, kills, level, bosses, a clear, times the challenge) against the stage's best,
+which the stage tile also shows. A bestiary
 behind the achievements screen lights every enemy a run has met.
 
 Every stage scatters breakable scenery, places three relics at fixed

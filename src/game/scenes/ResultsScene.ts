@@ -15,6 +15,7 @@ import { ACHIEVEMENTS as CONTENT_ACHIEVEMENTS, type AchievementDef } from '../..
 import { stageUnlockedBySurviving } from '../../core/save/unlocks';
 import { CONTENT } from '../../core/content/registry';
 import { app } from '../app';
+import { runScore } from '../../core/save/score';
 import { PROTOCOLS, isProtocolId } from '../../data/protocols';
 import type { OwnedItem, RunEnd } from '../../core/sim/runState';
 
@@ -55,7 +56,10 @@ export class ResultsScene extends Phaser.Scene {
 
     // a resize rebuilds the screen with the same summary; the run is only committed once, and the
     // stage it opened is remembered so the rebuilt screen can still say so
-    const carried = data as ResultsData & { committed?: boolean; unlockedStage?: string | null; earned?: string[]; doubled?: boolean };
+    const carried = data as ResultsData & { committed?: boolean; unlockedStage?: string | null; earned?: string[]; doubled?: boolean; prevBestScore?: number };
+    // the stage's best before this run, read before the run is folded in; carried across a resize
+    const prevBestScore = carried.prevBestScore ?? (data.stageId ? ctx.save.stageBestScore[data.stageId] ?? 0 : 0);
+    carried.prevBestScore = prevBestScore;
     let unlockedStage: string | null = carried.unlockedStage ?? null;
     let earned: string[] = carried.earned ?? [];
     if (!carried.committed) {
@@ -89,7 +93,9 @@ export class ResultsScene extends Phaser.Scene {
       if (due.show) void getPlatform().ads.showInterstitial().then(() => analytics.track({ name: 'ad_shown', kind: 'interstitial', earned: false, result: 'completed' }));
     }
     const doubled = carried.doubled ?? false;
-    restartOnResize(this, { ...data, committed: true, unlockedStage, earned, doubled });
+    restartOnResize(this, { ...data, committed: true, unlockedStage, earned, doubled, prevBestScore });
+    const score = runScore({ timeSec: data.timeSec ?? 0, kills: data.kills ?? 0, level: data.level ?? 1, bossKills: data.bossKills ?? 0, survived, curse: data.curse ?? 0 });
+    const newBest = score > prevBestScore;
 
     const view = viewOf(this);
     const cy = view.height / 2;
@@ -113,6 +119,8 @@ export class ResultsScene extends Phaser.Scene {
       [t('results.level'), String(data.level ?? 1)],
       [t('results.kills'), String(data.kills ?? 0)],
       [t('results.gold'), doubled ? t('results.doubled', { n: data.gold ?? 0 }) : String(data.gold ?? 0)],
+      // the number worth comparing: this run against the stage's best before it
+      [t('results.score'), `${score} · ${newBest ? t('results.score_new') : t('results.score_best', { n: prevBestScore })}`],
     ];
     const protocol = data.protocol && isProtocolId(data.protocol) ? PROTOCOLS[data.protocol] : null;
     if (protocol) rows.splice(1, 0, [t('results.protocol'), t(protocol.nameKey)]);

@@ -14,6 +14,7 @@ import { CHARACTER_LIST } from '../../data/characters';
 import { STAGE_ORDER } from '../../data/stages';
 import { isCharacterUnlocked, isProtocolUnlocked, isStageUnlocked } from '../../core/save/unlocks';
 import { writeSave } from '../../core/save/saveData';
+import { shortScore } from '../../core/save/score';
 import type { CharacterDef, StageDef } from '../../data/types';
 import { PROTOCOLS, PROTOCOL_LIST, isProtocolId, type ProtocolId } from '../../data/protocols';
 import { ACHIEVEMENTS, type AchievementDef } from '../../data/achievements';
@@ -209,6 +210,12 @@ export class LaunchScene extends Phaser.Scene {
       if (unlocked) this.stageId = def.id;
       this.refresh();
     });
+    // the stage's best score, opposite the badge: the number a player comes back to beat
+    const best = save.stageBestScore[def.id];
+    if (best) {
+      const k = this.k;
+      this.add.text(x - w / 2 + 6 * k, y - h / 2 + 12 * k, shortScore(best), textStyle(Math.round(11 * k), { bold: true, color: COLORS.accent, stroke: true })).setOrigin(0, 0.5).setName(`launch.score.${def.id}`);
+    }
   }
 
   /**
@@ -301,7 +308,8 @@ export class LaunchScene extends Phaser.Scene {
       if (!isStageUnlocked(save, st.id)) status.setText(t('launch.locked_stage'));
       else if (save.unlocks.stages.includes(st.id)) status.setText(t('launch.cleared'));
       else status.setText(best ? t('launch.best', { t: formatTime(best) }) : '');
-      text.setText(`${t(st.descKey)}\n${t('launch.goal')}`);
+      const bestScore = save.stageBestScore[st.id];
+      text.setText(`${t(st.descKey)}\n${t('launch.goal')}${bestScore ? ` · ${t('launch.best_score', { n: bestScore })}` : ''}`);
     }
     for (const b of this.protocolBtns) b.setSelected((b.getData('protocol') as string) === this.protocol);
     const shown = this.shownProtocol;

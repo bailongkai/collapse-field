@@ -220,6 +220,11 @@ and multiplies a cache's reward count by 1.5; 单向火控 refuses weapon damage
 free dodge on every turn shifts the whole curve the balance gates were derived on, and as an
 opt-in its telemetry can say whether it deserves promoting.
 
+The results screen ends on a score (`runScore` in `src/core/save/score.ts`, weights in
+`src/data/score.ts`): 10 per second, 1 per kill, 50 per level, 1000 per boss and 5000 for a clear,
+times one plus the curse. It is a plain sum on purpose, so a player can see why it moved. The best
+per stage is `save.stageBestScore`, compared on the results screen and shown on the stage's tile.
+
 Stages can carry `props` (breakable scenery: prop enemies that do not bite and
 do not count as kills), `relics` (persistent, non-magnetic pickups at fixed
 coordinates, pointed at by `RelicView`) and `obstacles` (solid rectangles;
