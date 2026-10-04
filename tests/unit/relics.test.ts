@@ -6,6 +6,7 @@ describe('relics', () => {
   it('every stage places its relics at the start, where the data says', () => {
     for (const id of ['station', 'cargo', 'lab', 'orbit']) {
       const s = new Simulation({ seed: 1, characterId: 'survivor', stageId: id });
+      s.world.enemies.clear();
       const relics = stageDef(id).relics!;
       expect(relics.length).toBeGreaterThanOrEqual(3);
       for (const r of relics) {
@@ -17,6 +18,7 @@ describe('relics', () => {
 
   it('a relic waits: it is not pulled in, and it is not swept up as litter', () => {
     const s = new Simulation({ seed: 1, characterId: 'survivor', stageId: 'station' });
+    s.world.enemies.clear();
     s.run.god = true;
     s.setStatOverride('curse', -1);
     const before = s.world.pickups.count;
@@ -28,6 +30,7 @@ describe('relics', () => {
 
   it('walking onto the chest relic opens a boss-grade chest', () => {
     const s = new Simulation({ seed: 1, characterId: 'survivor', stageId: 'station' });
+    s.world.enemies.clear();
     s.run.god = true;
     s.setStatOverride('curse', -1);
     const relic = stageDef('station').relics!.find((r) => r.pickup === 'relicChest')!;

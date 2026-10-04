@@ -2,7 +2,12 @@ import { describe, it, expect } from 'vitest';
 import { Simulation } from '../../src/core/sim/simulation';
 import { FIXED_DT_MS, PLAYER_BASE_SPEED } from '../../src/config';
 
-const newSim = () => new Simulation({ seed: 42, characterId: 'survivor', stageId: 'station' });
+const newSim = () => {
+  const s = new Simulation({ seed: 42, characterId: 'survivor', stageId: 'station' });
+  // the station opens with bodies on both sides of the player; these tests want an empty floor
+  s.world.enemies.clear();
+  return s;
+};
 
 describe('Simulation', () => {
   it('advances the clock by exactly one fixed tick per step', () => {
@@ -111,6 +116,7 @@ describe('a death names what landed the last hit', () => {
   // the marine, because the survivor's second wind fires at one health and buys two seconds
   const dying = (seed = 8) => {
     const s = new Simulation({ seed, characterId: 'marine', stageId: 'station' });
+    s.world.enemies.clear();
     s.setStatOverride('growth', 0);
     s.setStatOverride('curse', -1); // no waves, so the only bodies are the ones placed here
     s.setStatOverride('moveSpeed', 0);

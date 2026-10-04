@@ -43,6 +43,14 @@ at the nearest enemy removes positioning from the game entirely. Changing any of
 this shifts the whole difficulty curve, so re-measure with
 `tests/unit/balance.test.ts` over at least sixteen seeds before believing it.
 
+Nothing in a first run enforces the facing rule: the blade sweeps both sides, so a player who
+never turns loses nothing until they pick up a railgun. The game teaches it in play rather than in
+the briefing: `GameScene.watchFacing` reads `Simulation.facingBalance` and, when a side-facing
+weapon has been pointed away from the crowd for five seconds, shows an arrow beside the character
+for two (`hint:turn` on the hook). The station also opens with three drones on each side of the
+player (`StageDef.opening`), so the first swing lands and the first screen shows the blade going
+both ways; unit tests that want an empty floor clear `world.enemies` after constructing.
+
 Weapons evolve rather than only levelling: a maxed weapon plus its paired
 passive turns the next supply chest into an evolution. Evolutions live in the
 same weapon table with `evolvedOnly`, are never offered on level-up, and replace

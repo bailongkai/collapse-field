@@ -5,6 +5,8 @@ import { COLLAPSE_LATE_MS } from '../../src/core/sim/systems/collapseSystem';
 
 const newSim = (seed = 9) => {
   const s = new Simulation({ seed, characterId: 'survivor', stageId: 'station' });
+  // the station opens with bodies on both sides of the player; these tests want an empty floor
+  s.world.enemies.clear();
   s.setStatOverride('growth', 0);
   // nothing fires, so whatever happens to a body in these tests the floor did
   s.run.weapons.length = 0;
@@ -93,7 +95,9 @@ describe('the floor gives way', () => {
     const outside = newSim();
     outside.run.god = false;
     const z2 = open(outside);
-    // no waves in the first nine seconds reach a player standing still, so any loss is the floor
+    // nothing reaches a player standing still before the floor goes, once the opening bodies are
+    // cleared, so any loss is the floor
+    outside.world.enemies.clear();
     outside.setStatOverride('moveSpeed', 0);
     const hp = outside.world.player.hp;
     outside.stepMany(Math.ceil(z2.totalMs / (1000 / 60)) + 2);

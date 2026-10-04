@@ -4,6 +4,8 @@ import type { Enemy } from '../../src/core/sim/entities/enemy';
 
 const newSim = (seed = 5) => {
   const s = new Simulation({ seed, characterId: 'survivor', stageId: 'station' });
+  // the station opens with bodies on both sides of the player; these tests want an empty floor
+  s.world.enemies.clear();
   s.setStatOverride('growth', 0);
   s.setStatOverride('might', 0); // the weapons must not decide these tests
   s.setStatOverride('curse', -1); // and neither must the wave table: curse -1 stops it spawning

@@ -185,6 +185,13 @@ export class Simulation {
     };
     this.signature = createSignature(ch.signature);
     for (const r of this.stage.relics ?? []) spawnPickup(this.world, r.pickup, r.x, r.y);
+    // something to hit on the first swing, on both sides: see StageDef.opening
+    const opening = this.stage.opening;
+    if (opening) {
+      for (const side of [-1, 1]) {
+        for (let i = 0; i < opening.perSide; i++) spawnEnemy(this.world, opening.enemy, { x: side * opening.distance, y: (i - (opening.perSide - 1) / 2) * 44 });
+      }
+    }
     this.world.obstacles = (this.stage.obstacles ?? []).map((o) => ({ x: o.x, y: o.y, w: o.w, h: o.h }));
     this.cachedStats = this.computeStats();
     this.world.player.hp = this.cachedStats.maxHealth;
@@ -864,6 +871,39 @@ export class Simulation {
       count++;
     }
     return count;
+  }
+
+  /**
+   * How the crowd within `range` divides across the facing: bodies ahead of the player against
+   * bodies behind. The view reads it for the turn hint; a weapon that fires to the side the
+   * character faces is the one thing the briefing says that nothing in the first minutes enforces.
+   */
+  facingBalance(range: number): { ahead: number; behind: number } {
+    const w = this.world;
+    const p = w.player;
+    const q = range + MAX_ENEMY_RADIUS;
+    const n = w.grid.queryInto(p.x - q, p.y - q, p.x + q, p.y + q, w.queryBuf);
+    const fx = Math.cos(p.facing);
+    let ahead = 0;
+    let behind = 0;
+    for (let i = 0; i < n; i++) {
+      const e = w.enemies.items[w.queryBuf[i]];
+      if (!e.active || !e.def || e.def.behavior === 'prop' || e.def.behavior === 'mire') continue;
+      const dx = e.x - p.x;
+      const dy = e.y - p.y;
+      if (dx * dx + dy * dy > range * range) continue;
+      if (dx * fx >= 0) ahead++;
+      else behind++;
+    }
+    return { ahead, behind };
+  }
+
+  /** Whether the build holds a weapon that fires to the side the character faces. */
+  hasSideWeapon(): boolean {
+    return this.run.weapons.some((w) => {
+      const b = this.reg.weapons[w.id]?.behavior;
+      return b === 'stream' || b === 'pivot';
+    });
   }
 
   bossStatus(): { name: string; hp: number; maxHp: number } | null {

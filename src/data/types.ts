@@ -235,6 +235,13 @@ export interface StageDef {
    * here that a kiting policy cannot outrun.
    */
   readonly obstacles?: readonly { readonly x: number; readonly y: number; readonly w: number; readonly h: number; readonly frame: string }[];
+  /**
+   * Bodies placed on both sides of the player on the first tick, `perSide` each at `distance`,
+   * so the first swing has something to hit and the first screen already shows that the blade
+   * sweeps both ways. Without them the first level-up came at a median 29 s and the opening
+   * screen held nine bodies.
+   */
+  readonly opening?: { readonly enemy: string; readonly perSide: number; readonly distance: number };
   readonly gemCap: number;
   readonly spawnMargin: number;
   readonly despawnFactor: number;
@@ -278,6 +285,8 @@ export interface PickupDef {
    * at level 53 with 6,522 kills and about twenty-six of these, while an ordinary run saw one.
    */
   readonly minIntervalMs?: number;
+  /** Never drops before this run time: a chest reveal at 0:25 interrupts the opening before it has begun. */
+  readonly notBeforeMs?: number;
   readonly sfx: string;
 }
 

@@ -12,6 +12,7 @@ test('M4: weapons fire, kill enemies and show damage numbers', async ({ page }) 
   expect((await state(page)).weapons).toEqual([{ id: 'plasmaBlade', level: 1 }]);
 
   await page.evaluate(() => window.__game.giveWeapon('guidedLaser', 3));
+  await page.evaluate(() => window.__game.clearEnemies()); // the station's opening drones
   await page.evaluate(() => window.__game.spawn('drone', 60, { radius: 220 }));
   expect((await state(page)).counts.enemies).toBe(60);
 

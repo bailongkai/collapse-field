@@ -53,6 +53,15 @@ export interface GameSceneData {
  * to run from.
  */
 const DEATH_BEAT_MS = 700;
+/**
+ * The turn hint: a side-facing weapon pointed away from the crowd for this long shows an arrow
+ * beside the character, then not again for the cooldown. The briefing says the railgun fires the
+ * way you face, and the blade sweeps both sides, so nothing in a first run makes a player turn
+ * until they pick a railgun up and keep walking away from the crowd with it.
+ */
+const TURN_HINT_HOLD_MS = 5000;
+const TURN_HINT_COOLDOWN_MS = 15000;
+const TURN_HINT_RANGE = 200;
 
 /** Runs started since the app launched; the second run is the moment the loop caught. */
 let runsThisSession = 0;
@@ -91,6 +100,8 @@ export class GameScene extends Phaser.Scene {
   private gemChime = new GemChime();
   /** performance.now() when the death beat began, or -1 */
   private deathAt = -1;
+  private turnHoldMs = 0;
+  private turnCooldownMs = 0;
   private layers!: Record<
     'floor' | 'decor' | 'shadows' | 'gems' | 'pickups' | 'enemies' | 'player' | 'projectiles' | 'fx' | 'numbers',
     Phaser.GameObjects.Layer
@@ -110,6 +121,8 @@ export class GameScene extends Phaser.Scene {
     this.slotCache = [];
     this.gemChime.reset();
     this.deathAt = -1;
+    this.turnHoldMs = 0;
+    this.turnCooldownMs = 0;
 
     const seed = data.seed ?? app().seed ?? (Date.now() >>> 0);
     this.sim = new Simulation({
@@ -461,6 +474,8 @@ export class GameScene extends Phaser.Scene {
       this.profiler.markSim(0);
     }
 
+    if (run.phase === 'running') this.watchFacing(delta);
+
     // the score thickens with the run: quiet at the start, busy by the reaper
     music.setIntensity(Math.min(1, run.timeMs / (RUN_SECONDS * 1000)) * 0.85 + (run.phase === 'running' ? 0.1 : 0));
 
@@ -536,6 +551,24 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  /** Counts the seconds a side-facing weapon has been pointed away from the crowd; see TURN_HINT_HOLD_MS. */
+  private watchFacing(delta: number): void {
+    this.turnCooldownMs = Math.max(0, this.turnCooldownMs - delta);
+    if (!this.sim.hasSideWeapon()) {
+      this.turnHoldMs = 0;
+      return;
+    }
+    const b = this.sim.facingBalance(TURN_HINT_RANGE);
+    if (b.behind >= 3 && b.behind > b.ahead * 2) this.turnHoldMs += delta;
+    else this.turnHoldMs = 0;
+    if (this.turnHoldMs < TURN_HINT_HOLD_MS || this.turnCooldownMs > 0) return;
+    this.turnHoldMs = 0;
+    this.turnCooldownMs = TURN_HINT_COOLDOWN_MS;
+    this.fxView.turnHint(Math.cos(this.sim.world.player.facing) > 0 ? -1 : 1);
+    this.toast(t('toast.turn'), 2200, 0);
+    window.__game?.pushEvent('hint:turn');
+  }
+
   /** The body goes down over the frozen field; the results follow once it has. */
   private beginDeathBeat(): void {
     this.deathAt = performance.now();
@@ -595,6 +628,7 @@ export class GameScene extends Phaser.Scene {
     this.projectileView.sync(this.sim.world, this.weaponIdBySlot(), cam.midPoint.x, cam.midPoint.y, viewW, viewH);
     this.fxView.updateAura(p.x, p.y, this.sim.auraRadius(), deltaMs);
     this.fxView.syncAims(this.sim.world, deltaMs);
+    this.fxView.syncTurnHint(p.x, p.y, deltaMs);
     this.pumpEvents(true);
     this.damageNumbers.update(deltaMs);
   }

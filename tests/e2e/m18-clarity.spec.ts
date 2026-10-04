@@ -199,3 +199,40 @@ test('clarity: a death is held for a beat, then the results say what did it', as
   expect(names).toContain(await page.evaluate(() => window.__game.i18n.t('enemy.mech.name')));
   expect(errors, errors.join('\n')).toEqual([]);
 });
+
+test('clarity: a railgun pointed away from the crowd for five seconds earns a turn hint, and only then', async ({ page }) => {
+  const errors = await openGame(page, '?test=1&seed=69');
+  await startRun(page, 69);
+  await waitScene(page, 'game');
+  await page.evaluate(() => {
+    const g = window.__game;
+    g.godMode(true);
+    g.clearEnemies();
+    g.giveWeapon('railgun', 1);
+    g.setInput(1, 0); // face right
+    g.step(1);
+    g.setInput(0, 0);
+    g.spawn('drone', 6, { x: -140, y: 0 }); // the crowd is behind
+    g.step(1);
+    g.setTimeScale(0); // the field stands still; the hint is the view's clock
+  });
+  await realWait(2500);
+  expect(await events(page)).not.toContain('hint:turn');
+  await page.waitForFunction(() => window.__game.getEvents().includes('hint:turn'), undefined, { timeout: 6000 });
+  expect(await hudToasts(page)).toContain(await page.evaluate(() => window.__game.i18n.t('toast.turn')));
+  await snap(page, 'clarity-turn-hint');
+
+  // facing the crowd, it never comes
+  await page.evaluate(() => {
+    const g = window.__game;
+    g.setTimeScale(1);
+    g.setInput(-1, 0);
+    g.step(1);
+    g.setInput(0, 0);
+    g.setTimeScale(0);
+  });
+  const before = (await events(page)).filter((e) => e === 'hint:turn').length;
+  await realWait(6000);
+  expect((await events(page)).filter((e) => e === 'hint:turn').length).toBe(before);
+  expect(errors, errors.join('\n')).toEqual([]);
+});

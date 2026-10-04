@@ -5,6 +5,8 @@ import { FIXED_DT_MS } from '../../src/config';
 
 const newSim = (seed = 2) => {
   const s = new Simulation({ seed, characterId: 'survivor', stageId: 'station' });
+  // the station opens with bodies on both sides of the player; these tests want an empty floor
+  s.world.enemies.clear();
   s.run.god = true;
   return s;
 };

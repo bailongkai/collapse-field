@@ -7,6 +7,8 @@ const AIM_MS = 420;
 const MAX_AIMS = 48;
 const AIM_COLOR = 0xb7ff5a;
 const PULSE_FX_MS = 320;
+/** how long the turn arrow is shown beside the character */
+export const TURN_HINT_MS = 2000;
 
 /**
  * Shared particle emitters for deaths and impacts. One emitter per effect is created up front and
@@ -21,6 +23,10 @@ export class FxView {
   private pulseRing: Phaser.GameObjects.Image;
   private pulseMs = 0;
   private pulseFrom = 0;
+  /** the turn hint: an arrow beside the character pointing the way to face */
+  private turnArrow: Phaser.GameObjects.Image;
+  private turnMs = 0;
+  private turnDir = 1;
   private aimG: Phaser.GameObjects.Graphics;
   /** shooters winding up: the slot and serial they were in, and how long their line has left */
   private aims: { id: number; serial: number; ms: number }[] = [];
@@ -34,6 +40,8 @@ export class FxView {
     layer.add(this.auraRing);
     this.pulseRing = scene.add.image(0, 0, 'game', 'fx_ring').setBlendMode(Phaser.BlendModes.ADD).setTint(0x9fe6ff).setVisible(false);
     layer.add(this.pulseRing);
+    this.turnArrow = scene.add.image(0, 0, 'game', 'ui_arrow').setTint(0xffd166).setDisplaySize(30, 30).setVisible(false);
+    layer.add(this.turnArrow);
     this.aimG = scene.add.graphics();
     layer.add(this.aimG);
     this.spark = scene.add.particles(0, 0, 'game', {
@@ -76,6 +84,28 @@ export class FxView {
       this.pulseRing.setVisible(true).setPosition(x, y).setDisplaySize(r * 2, r * 2).setAlpha(0.5 * (1 - k) + 0.1);
       if (this.pulseMs === 0) this.pulseRing.setVisible(false);
     }
+  }
+
+  /** Show the turn arrow, pointing `dir` (+1 right, -1 left), for TURN_HINT_MS. */
+  turnHint(dir: number): void {
+    this.turnDir = dir;
+    this.turnMs = TURN_HINT_MS;
+  }
+
+  /** Keeps the arrow beside the character, bobbing the way it should go. */
+  syncTurnHint(px: number, py: number, deltaMs: number): void {
+    if (this.turnMs <= 0) {
+      if (this.turnArrow.visible) this.turnArrow.setVisible(false);
+      return;
+    }
+    this.turnMs = Math.max(0, this.turnMs - deltaMs);
+    const t = (TURN_HINT_MS - this.turnMs) / 1000;
+    const bob = Math.sin(t * Math.PI * 4) * 6;
+    this.turnArrow
+      .setVisible(true)
+      .setPosition(px + this.turnDir * (48 + bob), py - 8)
+      .setRotation(this.turnDir > 0 ? 0 : Math.PI)
+      .setAlpha(Math.min(1, this.turnMs / 400));
   }
 
   /** The field pulsed: a ring closes from `reach` onto the field over a third of a second. */
@@ -128,6 +158,7 @@ export class FxView {
     this.smoke.destroy();
     this.auraRing.destroy();
     this.pulseRing.destroy();
+    this.turnArrow.destroy();
     this.aimG.destroy();
     this.aims.length = 0;
   }

@@ -104,6 +104,7 @@ export const en: Partial<Record<I18nKey, string>> = {
   'pickup.riftCache.name': 'Rift cache',
   'toast.collapseWarn': 'The floor is giving way! A cache lies inside; taken in the last three seconds, it pays more',
   'toast.collapse': 'Sector collapsed',
+  'toast.turn': 'Turn around: the crowd is behind you',
   'toast.elite': '{name} incoming, carrying a chest',
   'toast.rush': '{name} rush from the {dir}',
   'toast.rush_all': '{name} closing in from every side!',

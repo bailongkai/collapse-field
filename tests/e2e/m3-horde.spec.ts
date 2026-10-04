@@ -5,7 +5,11 @@ test('M3: five hundred enemies spawn, render and are tracked', async ({ page }) 
   const errors = await openGame(page, '?test=1&seed=99');
   await startRun(page, 99);
   await waitScene(page, 'game');
-  await page.evaluate(() => window.__game.godMode(true));
+  // the station opens with six drones beside the player; this counts the ones placed here
+  await page.evaluate(() => {
+    window.__game.godMode(true);
+    window.__game.clearEnemies();
+  });
 
   expect(await page.evaluate(() => window.__game.spawn('drone', 500, { ring: true, radius: 400 }))).toBe(500);
   expect((await state(page)).counts.enemies).toBe(500);

@@ -47,6 +47,7 @@ export function rollDrops(world: World, e: Enemy, rng: Rng, luck: number, generi
   }
   for (const def of generic) {
     if (def.dropChance <= 0) continue;
+    if (def.notBeforeMs !== undefined && nowMs < def.notBeforeMs) continue;
     if (def.minIntervalMs !== undefined && nowMs - (world.lastDropMs[def.id] ?? -Infinity) < def.minIntervalMs) continue;
     if (rng.next() >= def.dropChance * luck) continue;
     if (spawnPickup(world, def.id, e.x, e.y)) world.lastDropMs[def.id] = nowMs;

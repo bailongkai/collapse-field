@@ -8,6 +8,8 @@ import type { Enemy } from '../../src/core/sim/entities/enemy';
 const stage = stageDef('station');
 const newSim = (seed = 6) => {
   const s = new Simulation({ seed, characterId: 'survivor', stageId: 'station' });
+  // the station opens with bodies on both sides of the player; these tests want an empty floor
+  s.world.enemies.clear();
   s.run.god = true;
   s.setStatOverride('growth', 0); // no level-ups interrupting long batches
   return s;

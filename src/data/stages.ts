@@ -6,7 +6,9 @@ const byTime = (events: readonly WaveEvent[]): readonly WaveEvent[] => events.sl
 
 /** One row per minute; the spawner tops the field up to minCount in batches of `batch` every `interval` ms. */
 const WAVES: readonly WaveEntry[] = [
-  { minute: 0, mix: mix(['drone', 1]), minCount: 12, interval: 1500, batch: 2, hpMult: 1.0, dmgMult: 1.0 },
+  // sixteen at 1.1 s rather than twelve at 1.5: the first minute held nine bodies at 0:23 and the
+  // first level-up came at a median 29 s, which is a long time to walk around an empty floor
+  { minute: 0, mix: mix(['drone', 1]), minCount: 16, interval: 1100, batch: 2, hpMult: 1.0, dmgMult: 1.0 },
   { minute: 1, mix: mix(['drone', 0.7], ['infected', 0.3]), minCount: 25, interval: 800, batch: 3, hpMult: 1.1, dmgMult: 1.0 },
   { minute: 2, mix: mix(['drone', 0.45], ['infected', 0.45], ['bomber', 0.1]), minCount: 35, interval: 700, batch: 4, hpMult: 1.2, dmgMult: 1.05 },
   { minute: 3, mix: mix(['drone', 0.3], ['infected', 0.3], ['robot', 0.15], ['spitter', 0.15], ['bomber', 0.1]), minCount: 50, interval: 650, batch: 4, hpMult: 1.3, dmgMult: 1.05 },
@@ -389,6 +391,7 @@ export const STAGES = {
     waves: WAVES,
     events: EVENTS,
     props: { enemy: 'crate', everyMs: 9000, max: 6 },
+    opening: { enemy: 'drone', perSide: 3, distance: 300 },
     relics: [
       { pickup: 'relicVacuum', x: 1400, y: -900 },
       { pickup: 'relicNuke', x: -1600, y: 1100 },

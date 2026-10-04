@@ -6,7 +6,12 @@ import { spawnRingRadius, waveRow } from '../../src/core/sim/systems/spawnSystem
 import { REF_H, REF_W } from '../../src/config';
 import { stageDef } from '../../src/core/content/registry';
 
-const newSim = (seed = 3) => new Simulation({ seed, characterId: 'survivor', stageId: 'station' });
+const newSim = (seed = 3) => {
+  const s = new Simulation({ seed, characterId: 'survivor', stageId: 'station' });
+  // the station opens with bodies on both sides of the player; these tests want an empty floor
+  s.world.enemies.clear();
+  return s;
+};
 
 /**
  * Strips the starting weapon. Crowd and contact behaviour has to be observed on its own: the plasma

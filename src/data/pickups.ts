@@ -38,7 +38,7 @@ export const PICKUPS = {
     id: 'wreckChest', nameKey: 'pickup.wreckChest.name', frame: 'pk_chest', radius: 24,
     // rate-limited rather than count-limited: see PickupDef.minIntervalMs. One a minute at most,
     // so a run that is going well cannot compound its own reward supply.
-    effect: { kind: 'chest', grade: 'standard' }, dropChance: 0.02, maxOnGround: 1, minIntervalMs: 60_000,
+    effect: { kind: 'chest', grade: 'standard' }, dropChance: 0.02, maxOnGround: 1, minIntervalMs: 60_000, notBeforeMs: 45_000,
     magnetic: true, magnetRadius: 4000, magnetSpeed: 250, persistent: true, sfx: 'levelup',
   },
   // Relics: the same effects as the drops, placed on the map rather than dropped. Not magnetic,
