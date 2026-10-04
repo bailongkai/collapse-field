@@ -77,3 +77,36 @@ test('verbs: once a weapon has learned its verb three times its +% cards come ba
   for (const c of choices!) expect(c.kind).toBe('limit');
   expect(errors, errors.join('\n')).toEqual([]);
 });
+
+test('verbs: a chest with nothing left to raise reveals a verb, not gold', async ({ page }) => {
+  const errors = await openGame(page, '?test=1&seed=21&lang=zh-CN');
+  await startRun(page, 21);
+  await waitScene(page, 'game');
+  await page.evaluate(() => window.__game.setTimeScale(0));
+  await page.evaluate(() => window.__game.godMode(true));
+  // the starting blade at eight without its reactor core, and five evolutions: the chest has
+  // nothing to raise and nothing to evolve
+  await page.evaluate(() => {
+    const g = window.__game;
+    for (const id of ['plasmaBlade', 'shredderRail', 'fusionLance', 'satelliteArray', 'singularityField', 'graviticLattice']) g.giveWeapon(id, 8);
+    for (const id of ['coolingSystem', 'fieldAmp', 'nanoArmor', 'lifeCore', 'stabilizer', 'heatsink']) g.givePassive(id, 99);
+  });
+  const gold = (await state(page)).gold;
+  await page.evaluate(() => {
+    const s = window.__game.getState();
+    window.__game.spawnPickup('chest', s.player.x, s.player.y);
+  });
+  await step(page, 4);
+  await waitScene(page, 'chest');
+  await press(page, 'chest.continue');
+  const after = await state(page);
+  expect(after.gold).toBe(gold);
+  const learned = Object.entries(after.verbs).filter(([, n]) => n === 1);
+  expect(learned).toHaveLength(1);
+  const texts = await sceneTexts(page, 'Chest');
+  expect(texts).toContain('极限突破 · 动词 0 → 1');
+  await snap(page, 'm19-verb-chest');
+  await press(page, 'chest.continue');
+  await waitScene(page, 'game');
+  expect(errors, errors.join('\n')).toEqual([]);
+});

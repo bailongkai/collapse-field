@@ -204,7 +204,10 @@ twenty level-ups of a good run were +10% cards — confirmation, not choice. The
 verbs (the blade's return, the lance's echo) are ordinary projectiles with `delayMs` and
 `anchored`, so they need no timer of their own; the chain's mark is on the enemy and is burst
 inside `damageEnemy` with its own query buffer, because it runs inside other loops over the shared
-ones. With every verb maxed a late crowd peaks at 74 live projectiles of the 512 the pool holds.
+ones. With every verb maxed a late crowd peaks at 74 live projectiles of the 512 the pool holds. A chest with
+nothing left to raise or evolve teaches a random unfinished verb one stack (`rollChestVerb`); its
+old 120 gold is paid only once every verb is maxed, because the gold was the chest admitting it had
+nothing for the build.
 
 Stages can carry `props` (breakable scenery: prop enemies that do not bite and
 do not count as kills), `relics` (persistent, non-magnetic pickups at fixed

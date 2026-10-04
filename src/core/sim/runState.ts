@@ -17,7 +17,7 @@ export interface ChestResult {
   rewards: LevelUpChoice[];
   /** ids of weapons that evolved as a consequence, in the order they did */
   evolved: string[];
-  /** paid instead of rewards when the build has nothing left to raise */
+  /** paid instead of rewards when the build has nothing left to raise and every verb is learned */
   gold: number;
 }
 /** What a limit break card raises on a weapon; each is a fraction added per pick. */

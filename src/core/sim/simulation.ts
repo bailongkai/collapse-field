@@ -728,12 +728,21 @@ export class Simulation {
       evolved.push(into);
     }
 
-    // a focused build can max and evolve everything it owns; a chest must never be empty
+    // a focused build can max and evolve everything it owns; a chest must never be empty. It
+    // teaches a weapon its verb rather than paying gold: a full build met several of these a run,
+    // and 120 gold was the chest admitting it had nothing for the build. Gold is what is left once
+    // every verb is learned.
     let gold = 0;
     if (rewards.length === 0 && evolved.length === 0) {
-      gold = Math.round(CHEST_CONSOLATION_GOLD * this.cachedStats.greed);
-      run.gold += gold;
-      this.world.events.push('pickup', x, y, gold, 'coin');
+      const verb = this.rollChestVerb();
+      if (verb) {
+        this.setVerb(verb.id, verb.toStacks);
+        rewards.push(verb);
+      } else {
+        gold = Math.round(CHEST_CONSOLATION_GOLD * this.cachedStats.greed);
+        run.gold += gold;
+        this.world.events.push('pickup', x, y, gold, 'coin');
+      }
     }
 
     if (onSignatureChest(this.signature, this.character.signature)) {
@@ -745,6 +754,17 @@ export class Simulation {
     run.chestsOpened++;
     this.world.events.push('chest', x, y, rewards.length, grade, true);
     return result;
+  }
+
+  /** One verb stack for a weapon that has not maxed its verb, chosen evenly, or null when none is left. */
+  private rollChestVerb(): Extract<LevelUpChoice, { kind: 'verb' }> | null {
+    const open = this.world.weaponInstances.filter((inst) => {
+      const def = this.reg.weapons[inst.defId];
+      return def && inst.verb < VERBS[def.behavior].maxStacks;
+    });
+    if (open.length === 0) return null;
+    const inst = open[Math.min(open.length - 1, Math.floor(this.world.rng.next() * open.length))];
+    return { kind: 'verb', id: inst.defId, toStacks: inst.verb + 1 };
   }
 
   /** Drops the oldest queued chest result, for the view once it has played the reveal. */

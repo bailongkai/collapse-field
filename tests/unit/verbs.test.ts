@@ -365,3 +365,33 @@ describe('budget', () => {
     }
   });
 });
+
+describe('a chest with nothing left to raise', () => {
+  const full = (): Simulation => {
+    // evolved already, so the chest cannot spend itself on an evolution
+    const s = armed('annihilationBlade', 0, 8);
+    for (const id of ['shredderRail', 'fusionLance', 'satelliteArray', 'singularityField', 'graviticLattice']) s.giveWeapon(id, 8);
+    for (const id of ['reactorCore', 'coolingSystem', 'fieldAmp', 'nanoArmor', 'lifeCore', 'stabilizer']) s.givePassive(id, 99);
+    return s;
+  };
+
+  it('teaches a weapon one verb stack instead of paying gold', () => {
+    const s = full();
+    const gold = s.run.gold;
+    const r = s.openChest('standard', 0, 0);
+    expect(r.gold).toBe(0);
+    expect(s.run.gold).toBe(gold);
+    expect(r.rewards).toHaveLength(1);
+    const v = r.rewards[0];
+    expect(v.kind).toBe('verb');
+    if (v.kind === 'verb') expect(s.verbStacks()[v.id]).toBe(1);
+  });
+
+  it('pays gold only once every verb is learned', () => {
+    const s = full();
+    for (const id of Object.keys(s.verbStacks())) s.setVerb(id, VERB_MAX_STACKS);
+    const r = s.openChest('standard', 0, 0);
+    expect(r.rewards).toHaveLength(0);
+    expect(r.gold).toBeGreaterThan(0);
+  });
+});

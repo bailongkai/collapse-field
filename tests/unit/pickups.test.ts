@@ -61,7 +61,7 @@ describe('pickups do not strand', () => {
 });
 
 describe('a chest is never empty', () => {
-  it('gives gold when there is nothing left to upgrade', () => {
+  it('gives gold when there is nothing left to upgrade and no verb left to learn', () => {
     const s = newSim();
     // a single maxed, already evolved weapon and a maxed passive: nothing at all can be raised
     s.run.weapons.length = 0;
@@ -70,6 +70,7 @@ describe('a chest is never empty', () => {
     s.givePassive('reactorCore', 1);
     expect(s.evolveEligibleWeapon()).toBe('annihilationBlade');
     s.givePassive('reactorCore', 5);
+    s.setVerb('annihilationBlade', 3); // a verb still to learn would be paid first: verbs.test.ts
     const gold0 = s.run.gold;
     s.spawnPickup('chest', s.world.player.x, s.world.player.y);
     s.stepMany(3);
