@@ -40,6 +40,24 @@ describe('limit break', () => {
     }
   });
 
+  it('never offers a speed card for a weapon whose archetype has no projectile to quicken', () => {
+    // the blade, the field and the conduit do not read projectileSpeed (see WEAPON_STAT_USE), and
+    // the roll used to hand them "+10% 弹速" all the same
+    const voiceless = ['plasmaBlade', 'empField', 'arcConduit'];
+    let offered = 0;
+    for (let seed = 0; seed < 60; seed++) {
+      const s = sim(undefined, seed);
+      maxEverything(s);
+      const choices = rollLevelUp({ weapons: s.run.weapons, passives: s.run.passives, luck: 1, rng: new Rng(seed), reg: CONTENT });
+      for (const c of choices) {
+        if (c.kind !== 'limit') continue;
+        offered++;
+        if (voiceless.includes(c.id)) expect(c.stat, `${c.id} was offered ${c.stat}`).not.toBe('speed');
+      }
+    }
+    expect(offered).toBeGreaterThan(100);
+  });
+
   it('taking a card really raises that weapon, and keeps raising it with no cap', () => {
     const s = sim();
     maxEverything(s);

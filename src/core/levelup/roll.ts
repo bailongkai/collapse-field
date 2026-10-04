@@ -2,11 +2,14 @@ import { PASSIVE_SLOTS, WEAPON_SLOTS } from '../../config';
 import type { ContentRegistry } from '../content/registry';
 import type { Rng } from '../rng';
 import type { LevelUpChoice, LimitStat, OwnedItem } from '../sim/runState';
-import { isDeadPick } from '../weapons/statUse';
+import { isDeadPick, WEAPON_STAT_USE } from '../weapons/statUse';
+import type { StatKey } from '../../data/types';
 
 /** What one limit break pick is worth. Cooldown is a reduction, the others are increases. */
 export const LIMIT_AMOUNT: Record<LimitStat, number> = { damage: 0.1, area: 0.08, cooldown: 0.06, speed: 0.1 };
 const LIMIT_STATS: readonly LimitStat[] = ['damage', 'area', 'cooldown', 'speed'];
+/** the player stat each card stands in for, so a card is only offered to an archetype that reads it */
+const LIMIT_STAT_KEY: Record<LimitStat, StatKey> = { damage: 'might', area: 'area', cooldown: 'cooldown', speed: 'projectileSpeed' };
 /**
  * What is left of a passive's weight when no weapon in the build can use it. Not zero: it may be
  * the half of an evolution the player is planning, and the card says so. But it should not be one
@@ -86,8 +89,9 @@ export function rollLimitBreak(weapons: readonly OwnedItem[], reg: ContentRegist
     const def = reg.weapons[w.id];
     if (!def) continue;
     for (const stat of LIMIT_STATS) {
-      // an aura never fires, so a cooldown card on it would do nothing
-      if (stat === 'cooldown' && def.base.cooldown === Infinity) continue;
+      // only what the archetype reads: the aura never fires, so a cooldown card on it does nothing,
+      // and the blade, the field and the conduit have no projectile for a speed card to quicken
+      if (!WEAPON_STAT_USE[def.behavior].includes(LIMIT_STAT_KEY[stat])) continue;
       pool.push({ choice: { kind: 'limit', id: w.id, stat, amount: LIMIT_AMOUNT[stat] }, weight: 1 });
     }
   }
