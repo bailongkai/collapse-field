@@ -86,20 +86,33 @@ export function rollLevelUp(input: RollInput): LevelUpChoice[] {
 }
 
 /**
- * Three distinct limit-break cards from the weapons the player owns. A weapon whose verb is not yet
- * maxed offers its verb card and nothing else, so the cards that change what a weapon does come
- * before the ones that only make its numbers bigger; once the verb is maxed, the +% cards return.
+ * Three distinct limit-break cards from the weapons the player owns. While any owned weapon's verb
+ * is short of its maximum, the offer is verb cards only, so every card that changes what a weapon
+ * does comes before the first that only makes a number bigger; the +% cards appear once every verb
+ * is maxed. The gate used to be per weapon, so the first maxed verb let its weapon's +% cards in
+ * while the others still had none, and the first +% card came at about the ninth offer.
+ *
+ * Near the end of the verbs there are fewer verb cards than slots; the offer is topped up with
+ * gold and a medkit rather than +%, so there is still a choice and the rule still holds.
  */
 export function rollLimitBreak(weapons: readonly OwnedItem[], reg: ContentRegistry, count: number, rng: Rng, verbs: Readonly<Record<string, number>> = {}): LevelUpChoice[] {
-  const pool: Candidate[] = [];
+  const verbCards: Candidate[] = [];
   for (const w of weapons) {
     const def = reg.weapons[w.id];
     if (!def) continue;
     const stacks = verbs[w.id] ?? 0;
-    if (stacks < VERBS[def.behavior].maxStacks) {
-      pool.push({ choice: { kind: 'verb', id: w.id, toStacks: stacks + 1 }, weight: 1 });
-      continue;
-    }
+    if (stacks < VERBS[def.behavior].maxStacks) verbCards.push({ choice: { kind: 'verb', id: w.id, toStacks: stacks + 1 }, weight: 1 });
+  }
+  if (verbCards.length > 0) {
+    const picked = sampleWithoutReplacement(verbCards, count, rng);
+    const filler: LevelUpChoice[] = [{ kind: 'gold', amount: 25 }, { kind: 'heal', amount: 30 }];
+    while (picked.length < Math.min(count, 3) && filler.length > 0) picked.push(filler.shift()!);
+    return picked;
+  }
+  const pool: Candidate[] = [];
+  for (const w of weapons) {
+    const def = reg.weapons[w.id];
+    if (!def) continue;
     for (const stat of LIMIT_STATS) {
       // only what the archetype reads: the aura never fires, so a cooldown card on it does nothing,
       // and the blade, the field and the conduit have no projectile for a speed card to quicken

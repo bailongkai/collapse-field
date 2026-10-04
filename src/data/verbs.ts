@@ -7,8 +7,9 @@ import type { WeaponBehaviorId } from './types';
  * level-ups on +10% cards — confirmation, not choice — and the archetypes already differ in
  * shape, so the verb that fits each is the one that asks a new question of that shape.
  *
- * A weapon offers its verb card instead of its +% cards until the verb is at `maxStacks`; then the
- * +% cards come back, so a run that keeps going keeps growing. Every verb stacks the same way: one
+ * No +% card is offered while any owned weapon's verb is short of `maxStacks`: the limit-break
+ * offer is verb cards (topped up with gold and a medkit when fewer than three are left) until every
+ * verb is maxed, and only then the +% cards, so a run that keeps going keeps growing. Every verb stacks the same way: one
  * more of the thing it does (a return, a ricochet, a split, a mark), or the same thing harder where
  * a count makes no sense (the drone's blast, the field's pulse, the echo).
  *

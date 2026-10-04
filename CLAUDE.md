@@ -197,8 +197,10 @@ just ended. Three passives are locked until earned; `lockedItems(save)` feeds
 `Simulation.lockedItems`, which the offer treats like a banish. Reroll, skip
 and banish are shop charges (`metaCharges`). A full build gets limit break
 cards instead of gold. First the verbs (`src/data/verbs.ts`): one per archetype, a change to what
-the weapon does, three stacks, stored on `WeaponInstance.verb` and read by the behaviour; a weapon
-offers its verb card instead of its +% cards until the verb is maxed. They exist because the last
+the weapon does, three stacks, stored on `WeaponInstance.verb` and read by the behaviour; no +% card
+is offered while any owned weapon's verb is short of its maximum (`rollLimitBreak`; when fewer than
+three verb cards are left the offer is topped up with gold and a medkit). A full build of six
+therefore sees its eighteen verb stacks, less any a chest taught, before its first +% card. They exist because the last
 twenty level-ups of a good run were +10% cards — confirmation, not choice. The +% bonus lives on
 `WeaponInstance.limit` and is applied between the levelled params and the player's stats. Delayed
 verbs (the blade's return, the lance's echo) are ordinary projectiles with `delayMs` and

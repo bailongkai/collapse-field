@@ -59,16 +59,34 @@ describe('the offer', () => {
     for (const c of cards) expect(c.kind).toBe('verb');
   });
 
-  it('a maxed verb gives the weapon its +% cards back, and the verb is never offered past its maximum', () => {
+  it('no +% card while any verb is short of its maximum; the verb is never offered past it', () => {
     const verbs = Object.fromEntries(full.map((id) => [id, VERB_MAX_STACKS]));
     verbs.plasmaBlade = 1;
     for (let seed = 1; seed < 30; seed++) {
       const cards = rollLimitBreak(weapons, CONTENT, 3, new Rng(seed), verbs);
-      for (const c of cards) {
-        if (c.kind === 'verb') expect(c).toEqual({ kind: 'verb', id: 'plasmaBlade', toStacks: 2 });
-        else expect(c.kind).toBe('limit');
-        if (c.kind === 'limit') expect(c.id).not.toBe('plasmaBlade');
+      // one verb card left: it, and gold and a medkit to choose against, never a +% card
+      expect(cards).toEqual([{ kind: 'verb', id: 'plasmaBlade', toStacks: 2 }, { kind: 'gold', amount: 25 }, { kind: 'heal', amount: 30 }]);
+    }
+  });
+
+  it('the gate is the whole build: one maxed verb does not let its +% cards in', () => {
+    const verbs = Object.fromEntries(full.map((id) => [id, 0]));
+    verbs.railgun = VERB_MAX_STACKS;
+    verbs.guidedLaser = VERB_MAX_STACKS;
+    for (let seed = 1; seed < 30; seed++) {
+      for (const c of rollLimitBreak(weapons, CONTENT, 3, new Rng(seed), verbs)) {
+        expect(c.kind).toBe('verb');
+        if (c.kind === 'verb') expect(['railgun', 'guidedLaser']).not.toContain(c.id);
       }
+    }
+  });
+
+  it('once every verb is maxed the offer is +% cards', () => {
+    const verbs = Object.fromEntries(full.map((id) => [id, VERB_MAX_STACKS]));
+    for (let seed = 1; seed < 10; seed++) {
+      const cards = rollLimitBreak(weapons, CONTENT, 3, new Rng(seed), verbs);
+      expect(cards).toHaveLength(3);
+      for (const c of cards) expect(c.kind).toBe('limit');
     }
   });
 
