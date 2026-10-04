@@ -21,8 +21,13 @@ export class HudScene extends Phaser.Scene {
   private bossBarBg!: Phaser.GameObjects.Rectangle;
   private bossBarFill!: Phaser.GameObjects.Rectangle;
   private bossName!: Phaser.GameObjects.Text;
-  private toast!: Phaser.GameObjects.Text;
-  private toastMs = 0;
+  /**
+   * Two toast slots rather than one. A single slot showed whatever came last, and what came last
+   * during a collapse warning was the fullscreen hint: the one line that said the floor was going
+   * was overwritten by the one that said how to pause. A slot now keeps its message until a toast of
+   * at least its own priority wants the room, so a boss or a collapse is never pushed off by a hint.
+   */
+  private toastSlots: { text: Phaser.GameObjects.Text; ms: number; priority: number }[] = [];
   private bossBarW = 400;
   private weaponRow!: IconRow;
   private signatureText!: Phaser.GameObjects.Text;
@@ -73,7 +78,11 @@ export class HudScene extends Phaser.Scene {
       .setOrigin(0, 0.5)
       .setVisible(false);
     this.bossName = this.add.text(viewOf(this).width / 2, bottom - 58, '', textStyle(16, { bold: true, color: COLORS.warn })).setOrigin(0.5).setVisible(false);
-    this.toast = this.add.text(viewOf(this).width / 2, top + 120, '', textStyle(22, { bold: true, color: COLORS.gold, stroke: true })).setOrigin(0.5).setVisible(false);
+    this.toastSlots = [0, 1].map((i) => ({
+      text: this.add.text(viewOf(this).width / 2, top + 124 + i * 32, '', textStyle(22, { bold: true, color: COLORS.gold, stroke: true })).setOrigin(0.5).setVisible(false),
+      ms: 0,
+      priority: -1,
+    }));
 
     // touch players have no Escape key, so they get a button once touch is detected
     const touch = app().touch;
@@ -113,12 +122,27 @@ export class HudScene extends Phaser.Scene {
     this.scene.restart();
   }
 
-  /** Shows a short message; the game scene calls this from simulation events. */
-  showToast(text: string, ms = 2200): void {
-    this.toast.setText(text);
-    this.toast.setVisible(true);
-    this.toast.setAlpha(1);
-    this.toastMs = ms;
+  /**
+   * Shows a short message; the game scene calls this from simulation events. `priority` decides
+   * who gives way: a free slot is taken first, then the slot holding the lowest priority no higher
+   * than this one, and a message that outranks both slots is dropped rather than shown over them.
+   */
+  showToast(text: string, ms = 2200, priority = 0): void {
+    let slot = this.toastSlots.find((s) => s.ms <= 0);
+    if (!slot) {
+      let lowest = this.toastSlots[0];
+      for (const s of this.toastSlots) if (s.priority < lowest.priority) lowest = s;
+      if (lowest.priority > priority) return;
+      slot = lowest;
+    }
+    slot.text.setText(text).setVisible(true).setAlpha(1);
+    slot.ms = ms;
+    slot.priority = priority;
+  }
+
+  /** What the toasts currently say, top slot first; for the tests. */
+  toasts(): string[] {
+    return this.toastSlots.filter((s) => s.ms > 0).map((s) => s.text.text);
   }
 
   override update(_time: number, delta: number): void {
@@ -126,10 +150,13 @@ export class HudScene extends Phaser.Scene {
     if (!game?.sim) return;
     const run = game.sim.run;
 
-    if (this.toastMs > 0) {
-      this.toastMs -= delta;
-      if (this.toastMs <= 0) this.toast.setVisible(false);
-      else this.toast.setAlpha(Math.min(1, this.toastMs / 600));
+    for (const slot of this.toastSlots) {
+      if (slot.ms <= 0) continue;
+      slot.ms -= delta;
+      if (slot.ms <= 0) {
+        slot.text.setVisible(false);
+        slot.priority = -1;
+      } else slot.text.setAlpha(Math.min(1, slot.ms / 600));
     }
 
     const boss = game.sim.bossStatus();

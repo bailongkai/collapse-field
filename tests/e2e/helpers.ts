@@ -229,6 +229,14 @@ export function hudCorner(page: Page): Promise<{ pause: { x: number; y: number; 
   });
 }
 
+/** The HUD's toast texts, top slot first. */
+export function hudToasts(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const hud = window.__game.phaser.scene.getScene('Hud') as unknown as { toasts(): string[] };
+    return hud.toasts();
+  });
+}
+
 export function realWait(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }

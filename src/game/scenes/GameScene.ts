@@ -29,6 +29,7 @@ import type { FrameStats, HookRunState, RunHandlers } from '../../debug/hook';
 import { rendererString } from '../../debug/hook';
 import { sfx } from '../audio/sfx';
 import { music } from '../audio/music';
+import { GemChime } from '../audio/gemChime';
 import { app } from '../app';
 import { metaBonuses, metaCharges } from '../../core/save/upgrades';
 import { lockedItems } from '../../core/save/saveData';
@@ -78,6 +79,7 @@ export class GameScene extends Phaser.Scene {
   /** whether this run has already been reported; every run reports exactly once */
   private runEndReported = false;
   private timeScale = 1;
+  private gemChime = new GemChime();
   private layers!: Record<
     'floor' | 'decor' | 'shadows' | 'gems' | 'pickups' | 'enemies' | 'player' | 'projectiles' | 'fx' | 'numbers',
     Phaser.GameObjects.Layer
@@ -95,6 +97,7 @@ export class GameScene extends Phaser.Scene {
     this.chestPending = false;
     this.revivePending = false;
     this.slotCache = [];
+    this.gemChime.reset();
 
     const seed = data.seed ?? app().seed ?? (Date.now() >>> 0);
     this.sim = new Simulation({
@@ -470,6 +473,15 @@ export class GameScene extends Phaser.Scene {
     return def ? t(def.nameKey) : id;
   }
 
+  /** Which edge of the screen a point lies past, as the player would name it. */
+  private sideName(x: number, y: number): string {
+    const p = this.sim.world.player;
+    const dx = x - p.x;
+    const dy = y - p.y;
+    if (Math.abs(dx) >= Math.abs(dy)) return t(dx < 0 ? 'toast.dir.left' : 'toast.dir.right');
+    return t(dy < 0 ? 'toast.dir.top' : 'toast.dir.bottom');
+  }
+
   /**
    * The run fact table, one row per run. Called from every path a run can leave by, and guarded so
    * it fires exactly once: dying and clearing go through finishRun, and everything else — quitting
@@ -553,9 +565,11 @@ export class GameScene extends Phaser.Scene {
     this.damageNumbers.update(deltaMs);
   }
 
-  private toast(text: string, ms?: number): void {
+  /** Priorities: 2 for what can kill the player (boss, final, enrage, collapse), 1 for what changes the
+   * field (elite, rush, evolution, boss kill), 0 for hints and signatures. See HudScene.showToast. */
+  private toast(text: string, ms?: number, priority = 0): void {
     const hud = this.scene.get('Hud') as HudScene | undefined;
-    hud?.showToast(text, ms);
+    hud?.showToast(text, ms, priority);
   }
 
   private slowMoUntil = 0;
@@ -659,18 +673,18 @@ export class GameScene extends Phaser.Scene {
           break;
         case 'bossSpawned':
           music.setMood('boss');
-          this.toast(t('toast.boss', { name: this.enemyName(e.id) }));
+          this.toast(t('toast.boss', { name: this.enemyName(e.id) }), 2200, 2);
           shake(this, 400, 0.008);
           sfx.play('boss');
           break;
         case 'final':
           music.setMood('final');
-          this.toast(t('toast.final', { name: this.enemyName(e.id) }), 3600);
+          this.toast(t('toast.final', { name: this.enemyName(e.id) }), 3600, 2);
           shake(this, 600, 0.01);
           sfx.play('boss');
           break;
         case 'enrage':
-          this.toast(t('toast.enrage', { name: this.enemyName(e.id) }), 3000);
+          this.toast(t('toast.enrage', { name: this.enemyName(e.id) }), 3000, 2);
           this.cameras.main.flash(300, 255, 60, 60);
           shake(this, 500, 0.01);
           sfx.play('boss');
@@ -685,7 +699,7 @@ export class GameScene extends Phaser.Scene {
           // before the reveal has dealt a single card.
           if (this.sim.run.chestQueue.length > 0 || this.scene.isActive('Chest')) break;
           const def = this.sim.reg.weapons[e.id];
-          this.toast(t('toast.evolve', { name: def ? t(def.nameKey) : e.id }), 3200);
+          this.toast(t('toast.evolve', { name: def ? t(def.nameKey) : e.id }), 3200, 1);
           this.cameras.main.flash(500, 255, 120, 220);
           shake(this, 300, 0.006);
           sfx.play('levelup');
@@ -695,7 +709,7 @@ export class GameScene extends Phaser.Scene {
           // the final boss ends the run; any other one hands the field back to the ordinary fight
           if (!this.sim.reg.enemies[e.id]?.boss?.final) music.setMood('battle');
           haptic('heavy');
-          this.toast(t('toast.bossKilled', { name: this.enemyName(e.id) }), 3000);
+          this.toast(t('toast.bossKilled', { name: this.enemyName(e.id) }), 3000, 1);
           this.cameras.main.flash(400, 255, 255, 255);
           shake(this, 700, 0.012);
           this.slowMotion(650);
@@ -717,7 +731,7 @@ export class GameScene extends Phaser.Scene {
           break;
         }
         case 'collapseWarn':
-          this.toast(t('toast.collapseWarn'), 3200);
+          this.toast(t('toast.collapseWarn'), 3200, 2);
           sfx.play('boss');
           break;
         case 'collapse':
@@ -741,6 +755,21 @@ export class GameScene extends Phaser.Scene {
         case 'heal':
         case 'pickup':
           sfx.play('pickup');
+          break;
+        case 'gem':
+          // the collected gem, not the dropped one: both push the same event, and only the one that
+          // reaches the player has a value worth hearing. Each step within the window is a semitone up.
+          if (e.big) sfx.play('gem', { volume: 0.32, rate: this.gemChime.next(performance.now()) });
+          break;
+        case 'elite':
+          // a chest on legs has arrived: say so, since a sentinel walks in from the edge like anything else
+          this.toast(t('toast.elite', { name: this.enemyName(e.id) }), 2600, 1);
+          sfx.play('boss', { volume: 0.5, rate: 1.3 });
+          break;
+        case 'rush':
+          // the line is announced with the side it comes from; an encircle (big) comes from every side
+          this.toast(e.big ? t('toast.rush_all', { name: this.enemyName(e.id) }) : t('toast.rush', { name: this.enemyName(e.id), dir: this.sideName(e.x, e.y) }), 2400, 1);
+          sfx.play('whoosh', { volume: 0.8 });
           break;
         case 'nuke':
           this.cameras.main.flash(260, 120, 200, 255);

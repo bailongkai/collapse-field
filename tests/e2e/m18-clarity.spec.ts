@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openGame, startRun, waitScene, snap, step, realWait, events } from './helpers';
+import { openGame, startRun, waitScene, snap, step, realWait, events, hudToasts } from './helpers';
 
 test('clarity: the comfort switches are saved and the launch screen explains the challenge', async ({ page }) => {
   const errors = await openGame(page, '?test=1');
@@ -131,4 +131,35 @@ test('clarity: going fullscreen says how to pause without leaving it', async ({ 
   await page.waitForFunction(() => window.__game.getEvents().includes('hint:fullscreen'));
   expect(errors, errors.join('\n')).toEqual([]);
   await ctx.close();
+});
+
+test('clarity: a collapse warning is not pushed off the screen by the banners that follow it', async ({ page }) => {
+  // The HUD had one toast slot and the last message won: the fullscreen hint overwrote the collapse
+  // warning in the evaluation's own screenshot. Two slots, and a lower priority never takes a higher
+  // one's room. The station's events are sorted by time: 0 the rush at 90 s, 1 the collapse, 2 the
+  // first sentinel. Toasts only play in real time (step() skips the visual branch), so the run runs.
+  const errors = await openGame(page, '?test=1&seed=67');
+  await startRun(page, 67);
+  await waitScene(page, 'game');
+  await page.evaluate(() => {
+    window.__game.godMode(true);
+    window.__game.setStat('moveSpeed', 0);
+    window.__game.triggerEvent(1);
+  });
+  await page.waitForFunction(() => (window.__game.phaser.scene.getScene('Hud') as unknown as { toasts(): string[] }).toasts().length > 0);
+  const warn = (await hudToasts(page))[0];
+  expect(warn).toBe(await page.evaluate(() => window.__game.i18n.t('toast.collapseWarn')));
+  // a sentinel and a rush both announce themselves now, and neither displaces the warning
+  await page.evaluate(() => window.__game.triggerEvent(2));
+  await realWait(120);
+  const withElite = await hudToasts(page);
+  expect(withElite).toContain(warn);
+  expect(withElite.some((t) => t !== warn && t.length > 0), 'the sentinel was not announced').toBe(true);
+  await page.evaluate(() => window.__game.triggerEvent(0));
+  await realWait(120);
+  const withRush = await hudToasts(page);
+  expect(withRush).toContain(warn);
+  expect(withRush).toHaveLength(2);
+  expect(withRush.find((t) => t !== warn)).not.toBe(withElite.find((t) => t !== warn));
+  expect(errors, errors.join('\n')).toEqual([]);
 });

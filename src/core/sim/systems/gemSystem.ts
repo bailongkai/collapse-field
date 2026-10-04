@@ -55,7 +55,8 @@ export function stepGems(world: World, stats: PlayerStats, dt: number, farRadius
 
     if (d2 <= collect2 || d <= speed * dt) {
       xp += g.value;
-      world.events.push('gem', g.x, g.y, g.value, g.tier);
+      // `big` marks the gem that reached the player; a dropped one pushes the same event without it
+      world.events.push('gem', g.x, g.y, g.value, g.tier, true);
       world.gems.free(g);
     }
   });

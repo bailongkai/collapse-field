@@ -248,6 +248,10 @@ export class ResultsScene extends Phaser.Scene {
   private retry(data: ResultsData): void {
     // a fixed ?seed= keeps replays reproducible; otherwise every retry is a fresh run
     const seed = app().seed ?? (data.seed + 1) >>> 0;
+    // the launch screen does this for a run started from the menu; a run started from here used
+    // to play the menu theme until its first boss
+    music.setMood('battle');
+    music.setIntensity(0.15);
     this.scene.start('Game', { seed, characterId: data.characterId, stageId: data.stageId });
   }
 }

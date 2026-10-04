@@ -37,6 +37,11 @@ test('audio: the menu starts the score on the first press, and the fight and the
   await waitScene(page, 'results');
   await page.waitForFunction(() => window.__game.getPerf().musicMood === 'menu', undefined, { timeout: 5000 });
 
+  // and a run started from the results screen fights to the battle theme, not the menu's
+  expect(await page.evaluate(() => window.__game.ui.press('results.retry'))).toBe(true);
+  await waitScene(page, 'game');
+  await page.waitForFunction(() => window.__game.getPerf().musicMood === 'battle', undefined, { timeout: 5000 });
+
   // it never stops along the way, and the sound bus stays inside its cap
   await realWait(300);
   const p = await perf(page);
