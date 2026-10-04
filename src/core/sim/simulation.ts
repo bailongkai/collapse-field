@@ -22,7 +22,6 @@ import { CHEST_CONSOLATION_GOLD } from '../../config';
 import { driveAutopilot } from './autopilot';
 import { resolveCircle } from './obstacles';
 import { bulwarkScale } from '../enemies/behaviors/bulwark';
-import { bossCheckChest, bossIntake } from '../enemies/bossScale';
 import { bossArmourScale } from '../enemies/behaviors/bossExtras';
 import { inBlast } from '../enemies/behaviors/bomber';
 import { createSignature, onSignatureCrowd, onSignatureTurn, signatureBonus, signatureStep, onSignatureChest, onSignatureHurt, onSignatureKill, type SignatureState } from './signature';
@@ -496,8 +495,6 @@ export class Simulation {
     // credited to the weapon slot that landed it, for the results screen; overkill counts, the
     // way it does in the reference game, so the tally is what was dealt and not what was needed
     if (slot >= 0) this.run.damageBySlot[slot] = (this.run.damageBySlot[slot] ?? 0) + rounded;
-    // a boss checks the health it arrived with against what it is actually taking
-    if (e.scaleTargetMs > 0 && bossIntake(e, rounded, this.run.timeMs) > 1) this.world.events.push('bossScaled', e.x, e.y, e.maxHp, e.defId);
     e.flashMs = 80;
     if (knockback > 0) applyKnockback(e, dirX, dirY, knockback * 240);
     this.world.events.push('hit', e.x, e.y, rounded, e.defId, e.maxHp >= BIG_HIT_MIN_HP && rounded >= e.maxHp * 0.5);
@@ -533,15 +530,6 @@ export class Simulation {
   }
 
   private scratch = { x: 0, y: 0 };
-
-  /** A chest opened while a boss is still checking its health: see bossCheckChest. */
-  private chestDuringBossChecks(): void {
-    const alive = this.world.enemies.aliveList();
-    for (let i = 0; i < this.world.enemies.count; i++) {
-      const e = this.world.enemies.items[alive[i]];
-      if (e.scaleTargetMs > 0) bossCheckChest(e, this.run.timeMs);
-    }
-  }
 
   /** Ground bodies slide around walls; rushes cross over, scenery sits where it is. */
   private keepEnemiesOutOfWalls(): void {
@@ -767,7 +755,6 @@ export class Simulation {
    */
   openChest(grade: ChestGrade, x: number, y: number, countMult = 1): ChestResult {
     const run = this.run;
-    this.chestDuringBossChecks();
     const rewards = rollChestRewards({
       weapons: run.weapons,
       passives: run.passives,

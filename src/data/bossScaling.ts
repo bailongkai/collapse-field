@@ -1,45 +1,33 @@
 /**
- * How much harder a boss is for a build that has outgrown it.
+ * How much harder a boss is for a build that has outgrown it. Decided once, on the tick the boss
+ * arrives, from the player's level; a boss's health never changes after that.
  *
  * Boss health was authored against the autopilot, which reaches 5:00 at about level 6 and 15:00 at
  * about level 13. A person reaches the same minutes at level 30 and level 90, with every weapon
  * evolved, and killed each boss in ten to thirty seconds: two charges into a fight whose set piece
- * comes round every five. A flat multiplier cannot fix that, because the two players are a factor
- * of six apart and whatever suits one is wrong for the other.
+ * comes round every five. The gap is not a factor of four, which is what the first version of this
+ * rule allowed: measured as the damage a boss takes per second, the human-like builds need
+ * seventeen to thirty-five times the authored health to last the fights' intended lengths (25 s at
+ * 5:00, 40 s at 10:00, 60 s for the final, the enrage at 90 s meant to be reachable), and the
+ * autopilot's builds need about one times it.
  *
- * Two rules, one after the other. On arrival, health follows the level: `authored` is the level up
- * to which the fight stands exactly as written, twice what the autopilot brings, and past it health
- * grows by `gain` of itself for every further multiple of that level, up to `cap`. Level is a poor
- * proxy for output, though: two level-sixty builds measured a factor of two apart, the caps were
- * reached by level sixty, and a human-like build still killed twenty-two of twenty-four bosses
- * inside twenty-five seconds and never saw an enrage.
+ * `authored` is the level up to which the fight stands exactly as written: twice what the autopilot
+ * brings, so a first run never meets a scaled boss. Past it, health grows by `gain` of itself for
+ * every further multiple of that level, up to `cap`. The gains were fitted to measured intake over
+ * eight seeds and all eight stages: a level-14 build at 5:00 needs about x2.7 and gets x2.3, a
+ * level-20 build x7.4 and gets x7.9, level 30 x19 and gets x17; at 10:00 level 40 needs x14.7 and
+ * gets x13.8, level 60 x26 and gets x26; at the final, level 60 needs x11 and gets x13, level 90 x25
+ * and gets x24. Between stages the same build is out by up to a factor of two either way, which a
+ * number fixed at arrival cannot follow. The station's mothership is the shortest 5:00 fight for a
+ * strong build, but its authored 400 hp stays: it is the fight a first run meets, and a 5:00 boss
+ * that walled weak builds was once the loudest complaint the game had (content.test.ts guards it).
  *
- * So once it is being hit, the boss measures what it is taking, in windows of `measureMs` from its
- * first hit, and if that rate would finish it before `targetSeconds` it multiplies its health and
- * its maximum alike (the bar never jumps) so the rate takes the rest of the target. It checks through
- * the first half of the target, catching a fight that warms up as the boss walks into the blade,
- * and only ever upwards: a build slower than the target, a first run among them, meets the fight
- * as written. `dpsCap` bounds a runaway figure. The final boss gets the longest target because its
- * enrage at ninety seconds is meant to be a threat a slow fight can reach.
- *
- * The evaluation proposed measuring the run's damage over its last minute against the crowd, and
- * that was built first. It read a fighting build at a half to a third of what it dealt to the boss
- * (crowd bodies die before they show a weapon's whole rate) and a kiting one at seven times (the
- * crowd it farmed was not the boss it ran from); the boss's own intake has neither problem.
- *
- * A chest opened during the check would otherwise feed the reward into the boss: before the first
- * settlement the straddling window is discarded, after it the check ends.
+ * An adaptive version that re-measured the boss's intake during the fight was built and withdrawn:
+ * it kept the length exactly but made a player's damage upgrades invisible against bosses, and a
+ * bar that climbs during a fight reads as a bug. Health is fixed.
  */
 export const BOSS_SCALING = {
   authored: { base: 6, perMinute: 4 / 3 },
-  gain: { boss: 1.9, final: 1.05 },
-  cap: { boss: 4.5, final: 3.5 },
-  /** seconds from the first hit the 5:00, the 10:00 and the final fight are meant to take */
-  targetSeconds: { first: 25, second: 40, final: 60 },
-  /** the check may raise health to at most this many times the authored figure */
-  dpsCap: 60,
-  /** how long a boss measures its own intake, from its first hit, before it settles its health */
-  measureMs: 4000,
-  /** the shortest span a rate is taken over, so one opening burst is not read as a rate */
-  measureFloorMs: 2000,
+  gain: { boss: 12, final: 9.5 },
+  cap: { boss: 30, final: 28 },
 } as const;

@@ -9,9 +9,7 @@ export type SimEventType =
   /** a limit-break verb went off where the player can see it: `n` is its radius, `id` the archetype */
   | 'verbBurst'
   /** 回身冲刺: the turn carried her `n` units along the new facing */
-  | 'dash'
-  /** a boss settled its health against what it was taking: `n` is its new maximum */
-  | 'bossScaled';
+  | 'dash';
 
 export interface SimEvent {
   type: SimEventType;
