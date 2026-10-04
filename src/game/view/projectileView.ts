@@ -48,7 +48,8 @@ export class ProjectileView {
       const other = additive ? this.bolts[p.id] : this.fx[p.id];
       if (other.visible) other.setVisible(false);
 
-      if (p.x < minX || p.x > maxX || p.y < minY || p.y > maxY) {
+      // a 回旋 return or 回波 echo that has not come yet is not there yet
+      if (p.delayMs > 0 || p.x < minX || p.x > maxX || p.y < minY || p.y > maxY) {
         if (img.visible) img.setVisible(false);
         continue;
       }

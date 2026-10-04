@@ -4,6 +4,7 @@ import type { Rng } from '../rng';
 import type { LevelUpChoice, LimitStat, OwnedItem } from '../sim/runState';
 import { isDeadPick, WEAPON_STAT_USE } from '../weapons/statUse';
 import type { StatKey } from '../../data/types';
+import { VERBS } from '../../data/verbs';
 
 /** What one limit break pick is worth. Cooldown is a reduction, the others are increases. */
 export const LIMIT_AMOUNT: Record<LimitStat, number> = { damage: 0.1, area: 0.08, cooldown: 0.06, speed: 0.1 };
@@ -25,6 +26,8 @@ export interface RollInput {
   reg: ContentRegistry;
   /** ids that must not be offered (already offered this level, or disabled) */
   excluded?: ReadonlySet<string>;
+  /** limit-break verb stacks per owned weapon id; absent means none learned */
+  verbs?: Readonly<Record<string, number>>;
 }
 
 interface Candidate {
@@ -78,16 +81,25 @@ export function rollLevelUp(input: RollInput): LevelUpChoice[] {
   // A build with nothing left to level keeps growing. Sixty-six picks max every slot, and a player
   // who is any good gets there by minute twelve; without this every level-up after that was a
   // choice between a handful of gold and a medkit, which is no choice at all.
-  if (picked.length === 0) return rollLimitBreak(weapons, reg, count, rng);
+  if (picked.length === 0) return rollLimitBreak(weapons, reg, count, rng, input.verbs);
   return picked;
 }
 
-/** Three distinct (weapon, stat) cards from the weapons the player owns. */
-export function rollLimitBreak(weapons: readonly OwnedItem[], reg: ContentRegistry, count: number, rng: Rng): LevelUpChoice[] {
+/**
+ * Three distinct limit-break cards from the weapons the player owns. A weapon whose verb is not yet
+ * maxed offers its verb card and nothing else, so the cards that change what a weapon does come
+ * before the ones that only make its numbers bigger; once the verb is maxed, the +% cards return.
+ */
+export function rollLimitBreak(weapons: readonly OwnedItem[], reg: ContentRegistry, count: number, rng: Rng, verbs: Readonly<Record<string, number>> = {}): LevelUpChoice[] {
   const pool: Candidate[] = [];
   for (const w of weapons) {
     const def = reg.weapons[w.id];
     if (!def) continue;
+    const stacks = verbs[w.id] ?? 0;
+    if (stacks < VERBS[def.behavior].maxStacks) {
+      pool.push({ choice: { kind: 'verb', id: w.id, toStacks: stacks + 1 }, weight: 1 });
+      continue;
+    }
     for (const stat of LIMIT_STATS) {
       // only what the archetype reads: the aura never fires, so a cooldown card on it does nothing,
       // and the blade, the field and the conduit have no projectile for a speed card to quicken

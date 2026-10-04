@@ -2,7 +2,8 @@ import { MAX_ENEMY_RADIUS } from '../../../config';
 import { pointInOrientedRect } from '../../math';
 import type { World } from '../world';
 import type { Enemy } from '../entities/enemy';
-import type { Projectile } from '../entities/projectile';
+import { resetProjectileExtras, type Projectile } from '../entities/projectile';
+import { VERB_TUNING } from '../../../data/verbs';
 
 export type DamageFn = (e: Enemy, dmg: number, dirX: number, dirY: number, knockback: number, slot?: number) => void;
 export type HurtPlayerFn = (raw: number, sourceId: string) => void;
@@ -17,6 +18,15 @@ const PLAYER_RADIUS = 16;
 export function stepProjectiles(world: World, dtMs: number, damage: DamageFn, hurtPlayer: HurtPlayerFn): void {
   const dt = dtMs / 1000;
   world.projectiles.forEach((p) => {
+    // a 回旋 return or a 回波 echo waits, unseen and harmless, and then comes from where she is
+    if (p.delayMs > 0) {
+      p.delayMs -= dtMs;
+      if (p.delayMs > 0) return;
+      if (p.anchored) {
+        p.x = world.player.x + p.anchorDx;
+        p.y = world.player.y + p.anchorDy;
+      }
+    }
     if (p.kind === 'bolt') {
       p.x += p.vx * dt;
       p.y += p.vy * dt;
@@ -30,6 +40,7 @@ export function stepProjectiles(world: World, dtMs: number, damage: DamageFn, hu
     if (p.ttlMs <= 0 || p.pierce < 0) {
       p.hitSerials.length = 0;
       p.hostile = false;
+      resetProjectileExtras(p);
       world.projectiles.free(p);
     }
   });
@@ -82,8 +93,85 @@ function resolveBolt(world: World, p: Projectile, damage: DamageFn): void {
     if (dx * dx + dy * dy > rr * rr) continue;
     p.hitSerials.push(e.serial);
     const len = Math.hypot(p.vx, p.vy) || 1;
+    const serial = e.serial;
+    const ex = e.x;
+    const ey = e.y;
     damage(e, p.damage, p.vx / len, p.vy / len, p.knockback, p.weaponSlot);
+    // 分裂: a bolt that killed breaks into splinters where the body was, and is spent
+    if (p.splits > 0 && (!e.active || e.serial !== serial)) {
+      splitBolt(world, p, ex, ey, serial);
+      p.pierce = -1;
+      return;
+    }
     p.pierce -= 1;
-    if (p.pierce < 0) return;
+    if (p.pierce < 0) {
+      // 跳弹: a round with no pierce left turns once more towards the nearest body it has not hit
+      if (p.bounces > 0) ricochet(world, p);
+      return;
+    }
   }
+}
+
+/** The splinters of a 分裂 bolt: fanned about its heading, half its damage each, no further split. */
+function splitBolt(world: World, p: Projectile, x: number, y: number, killed: number): void {
+  const n = p.splits;
+  const heading = Math.atan2(p.vy, p.vx);
+  const speed = Math.hypot(p.vx, p.vy);
+  const spread = VERB_TUNING.aimed.spreadRad;
+  for (let i = 0; i < n; i++) {
+    const c = world.projectiles.spawn();
+    if (!c) return;
+    resetProjectileExtras(c);
+    const a = heading + (n === 1 ? 0 : (i / (n - 1) - 0.5) * 2 * spread);
+    c.kind = 'bolt';
+    c.hostile = false;
+    c.weaponSlot = p.weaponSlot;
+    c.x = x;
+    c.y = y;
+    c.vx = Math.cos(a) * speed;
+    c.vy = Math.sin(a) * speed;
+    c.angle = a;
+    c.damage = p.damage * VERB_TUNING.aimed.scale;
+    c.knockback = p.knockback;
+    c.pierce = 0;
+    c.ttlMs = 700;
+    c.radius = p.radius * 0.8;
+    c.scale = p.scale * 0.8;
+    c.source = '';
+    c.hitSerials.length = 0;
+    c.hitSerials.push(killed);
+  }
+}
+
+/** Turns a spent round towards the nearest body within reach that it has not hit, if there is one. */
+function ricochet(world: World, p: Projectile): void {
+  const reach = VERB_TUNING.stream.reach;
+  const q = reach + MAX_ENEMY_RADIUS;
+  const n = world.grid.queryInto(p.x - q, p.y - q, p.x + q, p.y + q, world.queryBuf2);
+  let best: Enemy | null = null;
+  let bestD = reach * reach;
+  for (let i = 0; i < n; i++) {
+    const e = world.enemies.items[world.queryBuf2[i]];
+    if (!e.active || !e.def || e.def.invulnerable || e.def.behavior === 'mire') continue;
+    if (p.hitSerials.includes(e.serial)) continue;
+    const dx = e.x - p.x;
+    const dy = e.y - p.y;
+    const d = dx * dx + dy * dy;
+    if (d < bestD) {
+      bestD = d;
+      best = e;
+    }
+  }
+  if (!best) return;
+  const speed = Math.hypot(p.vx, p.vy);
+  const dx = best.x - p.x;
+  const dy = best.y - p.y;
+  const len = Math.hypot(dx, dy) || 1;
+  p.vx = (dx / len) * speed;
+  p.vy = (dy / len) * speed;
+  p.angle = Math.atan2(dy, dx);
+  p.pierce = 0;
+  p.bounces--;
+  p.ttlMs = Math.max(p.ttlMs, (reach / Math.max(1, speed)) * 1000 + 100);
+  world.events.push('verbBurst', p.x, p.y, 0, 'stream');
 }

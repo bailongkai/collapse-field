@@ -26,7 +26,8 @@ describe('rollLevelUp', () => {
     for (let seed = 0; seed < 20; seed++) {
       const picks = rollLevelUp({ weapons, passives, luck: 1, rng: new Rng(seed), reg: CONTENT });
       expect(picks.length).toBeGreaterThan(0);
-      for (const p of picks) expect(p.kind).toBe('limit');
+      // the verbs come first; see verbs.test.ts for the order
+      for (const p of picks) expect(['limit', 'verb']).toContain(p.kind);
     }
   });
 

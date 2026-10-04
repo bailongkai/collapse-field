@@ -56,6 +56,8 @@ export class World {
   readonly seen = new Set<string>();
   /** what last took health off the player: an enemy id, or a source such as the collapsing floor */
   lastHurtBy = '';
+  /** the simulation's tick, mirrored here for what reads the world without the run: the 残留 mark's tint */
+  tick = 0;
   /** run-clock time each rate-limited pickup last dropped, keyed by pickup id */
   readonly lastDropMs: Record<string, number> = {};
   readonly queryBuf = new Int32Array(ENEMY_CAP);

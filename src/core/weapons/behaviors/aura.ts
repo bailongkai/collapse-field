@@ -2,6 +2,7 @@ import { ENEMY_CAP, MAX_ENEMY_RADIUS, KNOCKBACK_DECAY } from '../../../config';
 import { applyKnockback } from '../../sim/systems/enemySystem';
 import { hitCooldownTicks } from '../ticks';
 import type { WeaponBehavior } from '../types';
+import { VERB_TUNING } from '../../../data/verbs';
 
 const AURA_RADIUS = 80;
 /**
@@ -22,6 +23,7 @@ const PULSE_PX = 40;
 const PULSE_IF_FEWER_THAN = 3;
 /** the impulse that covers PULSE_PX once the per-tick decay has run its course */
 const PULSE_IMPULSE = (PULSE_PX * 60 * (1 - KNOCKBACK_DECAY));
+const VERB_IMPULSE = VERB_TUNING.aura.px * 60 * (1 - KNOCKBACK_DECAY);
 
 /**
  * EMP力场 / garlic: a permanent damage field around the player. It has no cooldown at all — each
@@ -58,12 +60,22 @@ export const aura: WeaponBehavior = {
       const len = Math.sqrt(d2) || 1;
       ctx.hitEnemy(e, eff.damage, dx / len, dy / len, eff.knockback, inst);
     }
-    if (due && inside < PULSE_IF_FEWER_THAN) pulse(ctx, px, py, r * PULSE_REACH);
+    if (due && inside < PULSE_IF_FEWER_THAN) pulse(ctx, px, py, r * PULSE_REACH, PULSE_IMPULSE);
+    // 脉冲: the verb's own pull, harder and on its own clock, crowd or no crowd
+    if (inst.verb > 0) {
+      const v = VERB_TUNING.aura;
+      inst.verbMs += dt * 1000;
+      const every = v.everyMs - v.everyPerStackMs * (inst.verb - 1);
+      if (inst.verbMs >= every) {
+        inst.verbMs -= every;
+        pulse(ctx, px, py, r * PULSE_REACH, VERB_IMPULSE);
+      }
+    }
   },
 };
 
 /** The pull: an inward impulse on every body in reach, resisted the way a shove is. */
-function pulse(ctx: Parameters<NonNullable<WeaponBehavior['onTick']>>[0], px: number, py: number, reach: number): void {
+function pulse(ctx: Parameters<NonNullable<WeaponBehavior['onTick']>>[0], px: number, py: number, reach: number, impulse: number): void {
   const q = reach + MAX_ENEMY_RADIUS;
   const n = ctx.queryEnemies(px - q, py - q, px + q, py + q, scratch);
   for (let i = 0; i < n; i++) {
@@ -74,7 +86,7 @@ function pulse(ctx: Parameters<NonNullable<WeaponBehavior['onTick']>>[0], px: nu
     const d2 = dx * dx + dy * dy;
     if (d2 > reach * reach || d2 < 1) continue;
     const d = Math.sqrt(d2);
-    applyKnockback(e, dx / d, dy / d, PULSE_IMPULSE);
+    applyKnockback(e, dx / d, dy / d, impulse);
   }
   ctx.events.push('auraPulse', px, py, reach);
 }

@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { VERB_TINT } from '../../data/verbs';
 import { ENEMY_CAP } from '../../config';
 import { GAME_FRAME_SCALE } from '../atlas';
 import type { World } from '../../core/sim/world';
@@ -126,7 +127,9 @@ export class EnemyView {
       // The tint is tracked per slot rather than per definition: pool slots are reused immediately,
       // so an untinted mech taking a dead infected's slot would otherwise inherit its green.
       const wantFlash = e.flashMs > 0 ? 1 : 0;
-      const wantTint = wantFlash ? 0xffffff : (def.tint ?? 0xffffff);
+      // a body carrying a 残留 mark wears the verb's colour until it goes off or runs out
+      const marked = e.markUntilTick >= world.tick;
+      const wantTint = wantFlash ? 0xffffff : marked ? VERB_TINT : (def.tint ?? 0xffffff);
       if (this.flashing[e.id] !== wantFlash) {
         this.flashing[e.id] = wantFlash;
         img.setTintMode(wantFlash ? Phaser.TintModes.FILL : Phaser.TintModes.MULTIPLY);

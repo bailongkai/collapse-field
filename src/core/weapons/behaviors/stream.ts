@@ -34,5 +34,6 @@ export const stream: WeaponBehavior = {
     p.radius = 7 * eff.area;
     p.scale = eff.area;
     p.hitSerials.length = 0;
+    p.bounces = inst.verb; // 跳弹
   },
 };

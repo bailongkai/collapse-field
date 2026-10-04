@@ -5,11 +5,17 @@ import { CONTENT } from '../../src/core/content/registry';
 import { Rng } from '../../src/core/rng';
 import { metaCharges } from '../../src/core/save/upgrades';
 import { DEFAULT_SAVE } from '../../src/core/save/saveData';
+import { VERB_MAX_STACKS } from '../../src/data/verbs';
 
 const sim = (charges = { reroll: 0, skip: 0, banish: 0 }, seed = 4) => {
   const s = new Simulation({ seed, characterId: 'survivor', stageId: 'station', charges });
   s.run.god = true;
   return s;
+};
+/** the +% cards come back only once a weapon's verb is maxed: these tests are about the +% cards */
+const verbsDone = (s: Simulation): Record<string, number> => {
+  for (const w of s.run.weapons) s.setVerb(w.id, VERB_MAX_STACKS);
+  return s.verbStacks();
 };
 const maxEverything = (s: Simulation): void => {
   s.run.weapons.length = 0;
@@ -20,10 +26,10 @@ const maxEverything = (s: Simulation): void => {
 };
 
 describe('limit break', () => {
-  it('a build with nothing left to level is offered weapon stat cards, not gold', () => {
+  it('a build with nothing left to level and every verb learned is offered weapon stat cards, not gold', () => {
     const s = sim();
     maxEverything(s);
-    const choices = rollLevelUp({ weapons: s.run.weapons, passives: s.run.passives, luck: 1, rng: new Rng(1), reg: CONTENT });
+    const choices = rollLevelUp({ weapons: s.run.weapons, passives: s.run.passives, luck: 1, rng: new Rng(1), reg: CONTENT, verbs: verbsDone(s) });
     expect(choices.length).toBeGreaterThanOrEqual(3);
     for (const c of choices) expect(c.kind).toBe('limit');
     // distinct cards
@@ -35,7 +41,7 @@ describe('limit break', () => {
     for (let seed = 0; seed < 30; seed++) {
       const s = sim(undefined, seed);
       maxEverything(s);
-      const choices = rollLevelUp({ weapons: s.run.weapons, passives: s.run.passives, luck: 1, rng: new Rng(seed), reg: CONTENT });
+      const choices = rollLevelUp({ weapons: s.run.weapons, passives: s.run.passives, luck: 1, rng: new Rng(seed), reg: CONTENT, verbs: verbsDone(s) });
       for (const c of choices) if (c.kind === 'limit' && c.id === 'empField') expect(c.stat).not.toBe('cooldown');
     }
   });
@@ -48,7 +54,7 @@ describe('limit break', () => {
     for (let seed = 0; seed < 60; seed++) {
       const s = sim(undefined, seed);
       maxEverything(s);
-      const choices = rollLevelUp({ weapons: s.run.weapons, passives: s.run.passives, luck: 1, rng: new Rng(seed), reg: CONTENT });
+      const choices = rollLevelUp({ weapons: s.run.weapons, passives: s.run.passives, luck: 1, rng: new Rng(seed), reg: CONTENT, verbs: verbsDone(s) });
       for (const c of choices) {
         if (c.kind !== 'limit') continue;
         offered++;

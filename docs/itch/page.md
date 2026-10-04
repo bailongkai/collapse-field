@@ -82,7 +82,8 @@ on the new `html5` upload, delete the old one, and save. Every push after that r
 >
 > **Weapons evolve.** Max a weapon, hold its paired item, and the next supply chest turns it into
 > something else entirely. Chests weigh their rewards toward whatever is closest to maxing, so a
-> build you commit to gets finished.
+> build you commit to gets finished. A full build keeps changing: each weapon has a verb to learn
+> after that — the blade's sweep comes back, the railgun ricochets, the laser splits on a kill.
 >
 > **The floor gives way.** On the first stage, sections of the station collapse with a supply chest
 > in the middle. Five and a half seconds: walk in for it, or go round, or lead the crowd onto it; taken in the last three, the chest is a big one.
@@ -115,7 +116,7 @@ on the new `html5` upload, delete the old one, and save. Every push after that r
 > 只有制导激光会自己找目标。从第一秒起，站位就决定一切。
 >
 > **武器会进化。** 武器升满、再带上对应装备，下一个补给箱就会让它进化成全新的武器。补给箱会优先升级最接近满级的武器，
-> 认定的构筑一定能成型。
+> 认定的构筑一定能成型。构筑满了也还在变：每种武器还有一个"动词"可学——刀光回旋、磁轨炮跳弹、激光击杀分裂。
 >
 > **地板会塌。** 第一关里，空间站的地板会整块塌落，补给箱就在圈中央。五秒半：冲进去拿，绕开走，或者把敌群引上去；最后三秒拿到的是大箱子。
 >

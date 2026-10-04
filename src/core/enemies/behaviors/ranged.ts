@@ -1,6 +1,7 @@
 import type { Enemy } from '../../sim/entities/enemy';
 import type { Player } from '../../sim/entities/player';
 import type { World } from '../../sim/world';
+import { resetProjectileExtras } from '../../sim/entities/projectile';
 
 /**
  * How long a shooter telegraphs before it fires: it stops strafing, flashes the way the rusher does
@@ -65,7 +66,8 @@ export function rangedStep(world: World, e: Enemy, player: Player, dt: number): 
 
 /** Fires an enemy projectile from `e` along (nx, ny). Unused when the projectile pool is full. */
 export function spawnHostileBolt(world: World, e: Enemy, nx: number, ny: number, speed: number, damage: number, ttlSec: number): void {
-  const p = world.projectiles.spawn();
+  const spawned = world.projectiles.spawn();
+  const p = spawned ? resetProjectileExtras(spawned) : null;
   if (!p) return;
   p.hostile = true;
   p.source = e.defId;

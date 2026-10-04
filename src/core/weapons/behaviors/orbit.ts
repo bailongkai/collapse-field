@@ -1,6 +1,7 @@
 import { ENEMY_CAP, MAX_ENEMY_RADIUS } from '../../../config';
 import { hitCooldownTicks } from '../ticks';
-import type { WeaponBehavior } from '../types';
+import type { WeaponBehavior, WeaponContext, WeaponInstance } from '../types';
+import { VERB_TUNING } from '../../../data/verbs';
 
 /**
  * Close enough that a drone passes through the bodies pressing on the player. A drone meets a body
@@ -120,6 +121,8 @@ export const orbit: WeaponBehavior = {
         const len = Math.hypot(dx, dy) || 1;
         ctx.hitEnemy(e, eff.damage, dx / len, dy / len, eff.knockback, inst);
       }
+      // 殉爆: a drone on its last tick goes off where it is (the projectile system frees it after)
+      if (inst.verb > 0 && p.ttlMs - dt * 1000 <= 0) detonate(ctx, inst, p.x, p.y, eff.damage, eff.area);
     });
 
     inst.activeCount = alive;
@@ -128,3 +131,25 @@ export const orbit: WeaponBehavior = {
 };
 
 const scratch = new Int32Array(ENEMY_CAP);
+const blastBuf = new Int32Array(ENEMY_CAP);
+
+/** The 殉爆 blast: every body in the radius takes the drone's damage times the verb's multiple. */
+function detonate(ctx: WeaponContext, inst: WeaponInstance, x: number, y: number, damage: number, area: number): void {
+  const t = VERB_TUNING.orbit;
+  const r = (t.radius + t.radiusPerStack * (inst.verb - 1)) * area;
+  const dmg = damage * (t.scale + inst.verb - 1);
+  const q = r + MAX_ENEMY_RADIUS;
+  // its own buffer: the drone loop above is still walking `scratch`
+  const n = ctx.queryEnemies(x - q, y - q, x + q, y + q, blastBuf);
+  for (let i = 0; i < n; i++) {
+    const e = ctx.enemyById(blastBuf[i]);
+    if (!e.active || !e.def) continue;
+    const dx = e.x - x;
+    const dy = e.y - y;
+    const rr = r + e.radius;
+    if (dx * dx + dy * dy > rr * rr) continue;
+    const len = Math.hypot(dx, dy) || 1;
+    ctx.hitEnemy(e, dmg, dx / len, dy / len, 0, inst);
+  }
+  ctx.events.push('verbBurst', x, y, r, 'orbit', true);
+}

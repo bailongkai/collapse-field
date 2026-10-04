@@ -33,6 +33,8 @@ import type { GemTier } from '../../data/types';
 import type { WeaponContext, WeaponInstance } from '../weapons/types';
 import { ENEMY_CAP, WEAPON_SLOTS, PASSIVE_SLOTS } from '../../config';
 import type { Enemy } from './entities/enemy';
+import { resetProjectileExtras } from './entities/projectile';
+import { VERBS, VERB_TUNING } from '../../data/verbs';
 import { BIG_HIT_MIN_HP, PLAYER_RADIUS } from '../../config';
 import type { ChestResult, LevelUpChoice, OwnedItem, RunEnd, RunPhase } from './runState';
 
@@ -202,7 +204,10 @@ export class Simulation {
       tick: 0,
       player: this.world.player,
       stats: this.cachedStats,
-      spawnProjectile: () => this.world.projectiles.spawn(),
+      spawnProjectile: () => {
+        const p = this.world.projectiles.spawn();
+        return p ? resetProjectileExtras(p) : null;
+      },
       events: this.world.events,
       nearestEnemy: (x, y, maxDist) => this.world.nearestEnemy(x, y, maxDist),
       volleyTarget: (x, y, maxDist, index) => this.world.volleyTarget(x, y, maxDist, index),
@@ -299,6 +304,7 @@ export class Simulation {
 
     run.timeMs += FIXED_DT_MS;
     run.tick++;
+    world.tick = run.tick;
 
     if (this.autopilot) driveAutopilot(this.world, run.tick);
     const facingBefore = world.player.facing;
@@ -426,6 +432,11 @@ export class Simulation {
     if (!def || def.invulnerable) return;
     // a shield in the way takes almost all of it; the answer to a bulwark is an angle, not a number
     const rounded = Math.max(1, Math.round(dmg * bulwarkScale(e, dirX, dirY) * bossArmourScale(e, dirX, dirY)));
+    // a 残留 mark goes off on the next hit from anything; the burst cannot set off another
+    const burst = e.markUntilTick >= this.run.tick && !this.bursting;
+    const bx = e.x;
+    const by = e.y;
+    if (burst) e.markUntilTick = -1;
     e.hp -= rounded;
     // credited to the weapon slot that landed it, for the results screen; overkill counts, the
     // way it does in the reference game, so the tally is what was dealt and not what was needed
@@ -435,7 +446,35 @@ export class Simulation {
     e.flashMs = 80;
     if (knockback > 0) applyKnockback(e, dirX, dirY, knockback * 240);
     this.world.events.push('hit', e.x, e.y, rounded, e.defId, e.maxHp >= BIG_HIT_MIN_HP && rounded >= e.maxHp * 0.5);
+    const markDamage = e.markDamage;
+    const markSlot = e.markSlot;
     if (e.hp <= 0) this.killEnemy(e);
+    if (burst) this.burstMark(bx, by, markDamage, markSlot);
+  }
+
+  private bursting = false;
+  private burstBuf = new Int32Array(ENEMY_CAP);
+
+  /** The 残留 mark bursts: its damage on everything within the radius, the marked body included. */
+  private burstMark(x: number, y: number, damage: number, slot: number): void {
+    const r = VERB_TUNING.chain.radius;
+    const w = this.world;
+    const q = r + MAX_ENEMY_RADIUS;
+    // its own buffer: this runs inside a weapon's or a projectile's loop over the shared ones
+    const n = w.grid.queryInto(x - q, y - q, x + q, y + q, this.burstBuf);
+    this.bursting = true;
+    for (let i = 0; i < n; i++) {
+      const e = w.enemies.items[this.burstBuf[i]];
+      if (!e.active || !e.def) continue;
+      const dx = e.x - x;
+      const dy = e.y - y;
+      const rr = r + e.radius;
+      if (dx * dx + dy * dy > rr * rr) continue;
+      const len = Math.hypot(dx, dy) || 1;
+      this.damageEnemy(e, damage, dx / len, dy / len, 0, slot);
+    }
+    this.bursting = false;
+    w.events.push('verbBurst', x, y, r, 'chain', true);
   }
 
   private scratch = { x: 0, y: 0 };
@@ -566,6 +605,7 @@ export class Simulation {
       rng: this.world.rng,
       reg: this.reg,
       excluded: new Set([...run.banished, ...run.locked]),
+      verbs: this.verbStacks(),
     });
     return true;
   }
@@ -601,6 +641,7 @@ export class Simulation {
       rng: this.world.rng,
       reg: this.reg,
       excluded: new Set([...run.banished, ...run.locked]),
+      verbs: this.verbStacks(),
     });
     return true;
   }
@@ -639,6 +680,7 @@ export class Simulation {
     this.world.projectiles.forEach((p) => {
       if (!p.hostile && inst && p.weaponSlot === inst.slot) {
         p.hitSerials.length = 0;
+        resetProjectileExtras(p);
         this.world.projectiles.free(p);
       }
     });
@@ -775,6 +817,7 @@ export class Simulation {
       rng: this.world.rng,
       reg: this.reg,
       excluded: new Set([...run.banished, ...run.locked]),
+      verbs: this.verbStacks(),
     });
     run.phase = 'levelup';
     this.world.events.push('levelUpOpen', this.world.player.x, this.world.player.y, run.level);
@@ -798,6 +841,9 @@ export class Simulation {
         if (inst) inst.limit[choice.stat] += choice.amount;
         break;
       }
+      case 'verb':
+        this.setVerb(choice.id, choice.toStacks);
+        break;
       case 'passive':
         this.givePassive(choice.id, choice.toLevel);
         break;
@@ -813,6 +859,22 @@ export class Simulation {
     run.choices = null;
     if (run.pendingLevelUps > 0) this.openLevelUp();
     else if (run.phase === 'levelup') run.phase = 'running';
+    return true;
+  }
+
+  /** Verb stacks per owned weapon id, for the offer and the chest. */
+  verbStacks(): Record<string, number> {
+    const out: Record<string, number> = {};
+    for (const inst of this.world.weaponInstances) out[inst.defId] = inst.verb;
+    return out;
+  }
+
+  /** Sets a weapon's verb stacks, capped at the verb's maximum; also the debug hook's. */
+  setVerb(weaponId: string, stacks: number): boolean {
+    const inst = this.world.weaponInstances.find((i) => i.defId === weaponId);
+    const def = this.reg.weapons[weaponId];
+    if (!inst || !def) return false;
+    inst.verb = Math.max(0, Math.min(VERBS[def.behavior].maxStacks, Math.floor(stacks)));
     return true;
   }
 
@@ -961,6 +1023,8 @@ export class Simulation {
         volleyTimer: 0,
         volleyFacing: 0,
         limit: { damage: 0, area: 0, cooldown: 0, speed: 0 },
+        verb: 0,
+        verbMs: 0,
         activeCount: 0,
         plantSerial: 0,
         auxMs: 0,

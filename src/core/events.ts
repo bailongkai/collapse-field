@@ -6,6 +6,8 @@ export type SimEventType =
   | 'windup'
   /** the EMP field drew the crowd in: `n` is the reach it pulled from */
   | 'auraPulse'
+  /** a limit-break verb went off where the player can see it: `n` is its radius, `id` the archetype */
+  | 'verbBurst'
   /** a boss settled its health against what it was taking: `n` is its new maximum */
   | 'bossScaled';
 

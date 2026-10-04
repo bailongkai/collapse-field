@@ -1,7 +1,10 @@
 import { ENEMY_CAP, MAX_ENEMY_RADIUS } from '../../../config';
 import type { World } from '../../sim/world';
 import { hitCooldownTicks } from '../ticks';
-import type { WeaponBehavior } from '../types';
+import type { WeaponBehavior, WeaponContext, WeaponInstance } from '../types';
+import type { EffectiveWeapon } from '../../stats/weaponParams';
+import type { Projectile } from '../../sim/entities/projectile';
+import { VERB_TUNING } from '../../../data/verbs';
 
 /** How far from the player a stake is driven, and the golden angle that spaces them round her. */
 const PLANT_OFFSET = 90;
@@ -65,6 +68,7 @@ export const pylon: WeaponBehavior = {
     p.charge = 0;
     p.orbitIndex = inst.plantSerial;
     p.orbitRadius = LINK_RANGE; // published for the view, which must not know the constants
+    p.orbitPhase = 0;
     p.hitSerials.length = 0;
     return 'cooldown';
   },
@@ -73,10 +77,19 @@ export const pylon: WeaponBehavior = {
     const half = BEAM_HALF_WIDTH * eff.area;
     const armMs = ARM_MS / Math.max(0.1, eff.speed);
     nodes.length = 0;
+    armed.length = 0;
     ctx.forEachProjectile(inst.slot, (p) => {
       if (p.kind !== 'pylon') return;
       if (p.charge < 1) p.charge = Math.min(1, p.charge + (dt * 1000) / armMs);
-      if (p.charge >= 1) nodes.push(p.x, p.y);
+      if (p.charge >= 1) {
+        nodes.push(p.x, p.y);
+        armed.push(p);
+      }
+      // the 接地 arcs linger a moment on screen after the hit they drew
+      if (p.links.length > 0) {
+        p.orbitPhase -= dt * 1000;
+        if (p.orbitPhase <= 0) p.links.length = 0;
+      }
     });
     inst.activeCount = nodes.length / 2;
     if (nodes.length === 0) return;
@@ -149,8 +162,60 @@ export const pylon: WeaponBehavior = {
       const kb = eff.knockback;
       ctx.hitEnemy(e, eff.damage * scale, kb < 0 ? -dirX : dirX, kb < 0 ? -dirY : dirY, Math.abs(kb), inst);
     }
+    if (inst.verb > 0) for (const s of armed) ground(ctx, inst, eff, s, cdTicks);
   },
 };
+
+const armed: Projectile[] = [];
+const groundBuf = new Int32Array(ENEMY_CAP);
+const pickId = new Int32Array(4);
+const pickD = new Float64Array(4);
+const GROUND_SHOW_MS = 160;
+
+/**
+ * 接地: an armed stake arcs into the `verb` nearest bodies within reach that the lattice has not
+ * just hit, so the fence reaches into the crowd instead of waiting for it. The hit interval is
+ * the weapon's, shared with the lattice, so a body takes one or the other each interval.
+ */
+function ground(ctx: WeaponContext, inst: WeaponInstance, eff: EffectiveWeapon, s: Projectile, cdTicks: number): void {
+  const reach = VERB_TUNING.pylon.reach;
+  const want = Math.min(pickId.length, inst.verb);
+  const q = reach + MAX_ENEMY_RADIUS;
+  const n = ctx.queryEnemies(s.x - q, s.y - q, s.x + q, s.y + q, groundBuf);
+  let found = 0;
+  for (let i = 0; i < n; i++) {
+    const e = ctx.enemyById(groundBuf[i]);
+    if (!e.active || !e.def || e.def.invulnerable || e.def.behavior === 'mire') continue;
+    if (ctx.tick - inst.lastHitTick[e.id] < cdTicks) continue;
+    const dx = e.x - s.x;
+    const dy = e.y - s.y;
+    const d = dx * dx + dy * dy;
+    if (d > reach * reach) continue;
+    // keep the `want` nearest, smallest first
+    let at = found < want ? found : want;
+    while (at > 0 && pickD[at - 1] > d) at--;
+    if (at >= want) continue;
+    for (let k = Math.min(found, want - 1); k > at; k--) {
+      pickD[k] = pickD[k - 1];
+      pickId[k] = pickId[k - 1];
+    }
+    pickD[at] = d;
+    pickId[at] = e.id;
+    if (found < want) found++;
+  }
+  if (found === 0) return;
+  s.links.length = 0;
+  for (let k = 0; k < found; k++) {
+    const e = ctx.enemyById(pickId[k]);
+    inst.lastHitTick[e.id] = ctx.tick;
+    const dx = e.x - s.x;
+    const dy = e.y - s.y;
+    const len = Math.hypot(dx, dy) || 1;
+    s.links.push(e.x, e.y);
+    ctx.hitEnemy(e, eff.damage, dx / len, dy / len, 0, inst);
+  }
+  s.orbitPhase = GROUND_SHOW_MS;
+}
 
 /** The live arcs, as pairs of endpoints, for the view. Read-only; the behaviour owns the geometry. */
 export function pylonBeams(world: World, out: number[]): number[] {
@@ -165,6 +230,11 @@ export function pylonBeams(world: World, out: number[]): number[] {
   if (pts.length === 0) return out;
   pts.push(world.player.x, world.player.y);
   const n = pts.length / 2;
+  // the 接地 arcs, flagged 2: from a stake into the body it grounded in
+  for (const p of world.projectiles.items) {
+    if (!p.active || p.kind !== 'pylon' || p.links.length === 0) continue;
+    for (let k = 0; k < p.links.length; k += 2) out.push(p.x, p.y, p.links[k], p.links[k + 1], 2);
+  }
   for (let i = 0; i < n; i++) {
     for (let j = i + 1; j < n; j++) {
       const dx = pts[2 * j] - pts[2 * i];

@@ -156,7 +156,12 @@ in a straight line stops working there and nowhere else.
 
 Twenty achievements, most paying gold and three opening the later passives.
 Reroll, skip and banish are bought in the shop as charges per run. Once a build
-is full, level-ups offer limit break cards — one weapon, one stat, no cap. The
+is full, level-ups offer limit break verbs first — one per weapon archetype, a
+change to what the weapon does (the blade's sweep comes back, a railgun round
+ricochets, a laser bolt splits on a kill, a drone detonates where it expires, the
+field pulses, a stake grounds into the nearest body, the conduit leaves a mark
+that bursts, the lance echoes behind you), three stacks each — and then the
+old cards, one weapon, one stat, no cap. The
 launch screen has a challenge toggle (curse +20/40/60%, paid back in experience
 and gold), and the results screen ends on which weapon did the work. A bestiary
 behind the achievements screen lights every enemy a run has met.

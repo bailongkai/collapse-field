@@ -37,6 +37,14 @@ export class PylonView {
       const y2 = beams[i + 3];
       const toPlayer = beams[i + 4] === 1;
       if (Math.max(x1, x2) < minX || Math.min(x1, x2) > maxX || Math.max(y1, y2) < minY || Math.min(y1, y2) > maxY) continue;
+      if (beams[i + 4] === 2) {
+        // a 接地 arc into a body: thinner, and in the verb's colour, so it reads as the stake reaching out
+        this.g.lineStyle(8, 0x66ffcc, 0.22 * pulse);
+        this.g.lineBetween(x1, y1, x2, y2);
+        this.g.lineStyle(2, 0xe8fff6, 0.9 * pulse);
+        this.g.lineBetween(x1, y1, x2, y2);
+        continue;
+      }
       this.g.lineStyle(toPlayer ? 16 : 12, 0x5cf0b0, (toPlayer ? 0.26 : 0.16) * pulse);
       this.g.lineBetween(x1, y1, x2, y2);
       this.g.lineStyle(toPlayer ? 5 : 3, 0xd8ffe8, (toPlayer ? 0.9 : 0.6) * pulse);

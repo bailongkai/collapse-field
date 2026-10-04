@@ -3,6 +3,7 @@ import { describeDeltas } from '../../core/levelup/roll';
 import { CONTENT } from '../../core/content/registry';
 import { passiveBenefit } from '../../core/weapons/statUse';
 import type { LevelUpChoice, OwnedItem } from '../../core/sim/runState';
+import { VERBS, VERB_TINT } from '../../data/verbs';
 
 export interface ChoiceInfo {
   title: string;
@@ -65,6 +66,17 @@ export function describeChoice(choice: LevelUpChoice, fromLevel?: number, build?
       body: `${statName} ${choice.stat === 'cooldown' ? '−' : '+'}${pct}%`,
       icon: def?.icon ?? 'pk_coin',
       iconTint: def?.iconTint,
+    };
+  }
+  if (choice.kind === 'verb') {
+    const def = CONTENT.weapons[choice.id];
+    const verb = def ? VERBS[def.behavior] : null;
+    return {
+      title: verb && def ? `${t(def.nameKey)} · ${t(verb.nameKey)}` : choice.id,
+      tag: t('levelup.verb', { a: choice.toStacks - 1, b: choice.toStacks }),
+      body: verb ? t(verb.descKey) : '',
+      icon: def?.icon ?? 'pk_coin',
+      iconTint: VERB_TINT,
     };
   }
   if (choice.kind === 'gold') {

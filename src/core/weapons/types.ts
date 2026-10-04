@@ -35,6 +35,10 @@ export interface WeaponInstance {
   /** orbit: the direction the ring leans in and how far it has leaned, 0..1, both eased */
   leanAngle: number;
   lean: number;
+  /** limit-break verb stacks for this weapon's archetype, 0 when it has none (data/verbs.ts) */
+  verb: number;
+  /** a verb's own clock in ms (the 脉冲 pulse) */
+  verbMs: number;
   /** limit break: fractions added on top of the levelled params, with no ceiling */
   limit: { damage: number; area: number; cooldown: number; speed: number };
   /** tick of the last hit per enemy slot; -1e9 means "never" (reset when a slot is reused) */

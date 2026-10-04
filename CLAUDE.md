@@ -196,8 +196,15 @@ after a run is folded into the save, so cumulative conditions see the run that
 just ended. Three passives are locked until earned; `lockedItems(save)` feeds
 `Simulation.lockedItems`, which the offer treats like a banish. Reroll, skip
 and banish are shop charges (`metaCharges`). A full build gets limit break
-cards instead of gold; the bonus lives on `WeaponInstance.limit` and is applied
-between the levelled params and the player's stats.
+cards instead of gold. First the verbs (`src/data/verbs.ts`): one per archetype, a change to what
+the weapon does, three stacks, stored on `WeaponInstance.verb` and read by the behaviour; a weapon
+offers its verb card instead of its +% cards until the verb is maxed. They exist because the last
+twenty level-ups of a good run were +10% cards — confirmation, not choice. The +% bonus lives on
+`WeaponInstance.limit` and is applied between the levelled params and the player's stats. Delayed
+verbs (the blade's return, the lance's echo) are ordinary projectiles with `delayMs` and
+`anchored`, so they need no timer of their own; the chain's mark is on the enemy and is burst
+inside `damageEnemy` with its own query buffer, because it runs inside other loops over the shared
+ones. With every verb maxed a late crowd peaks at 74 live projectiles of the 512 the pool holds.
 
 Stages can carry `props` (breakable scenery: prop enemies that do not bite and
 do not count as kills), `relics` (persistent, non-magnetic pickups at fixed

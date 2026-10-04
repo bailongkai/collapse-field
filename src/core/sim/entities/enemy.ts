@@ -56,6 +56,13 @@ export interface Enemy {
    * `scaleCapHp` the most health the check may give it, `intakeStartMs` its first hit and
    * `intakeMarkMs` / `intakeDealt` the window being measured. See bossIntake.
    */
+  /**
+   * The 残留 mark a chain verb left: until `markUntilTick` the next hit from anything bursts for
+   * `markDamage` on this body and the bodies round it, credited to `markSlot`. -1 when unmarked.
+   */
+  markUntilTick: number;
+  markDamage: number;
+  markSlot: number;
   scaleTargetMs: number;
   scaleCapHp: number;
   intakeStartMs: number;
@@ -69,6 +76,7 @@ export function createEnemy(id: number): Enemy {
     x: 0, y: 0, hp: 0, maxHp: 0, radius: 0, kbx: 0, kby: 0, flashMs: 0,
     dirX: 0, dirY: 0, lineSpeed: 0, speedMult: 1, lifeMs: 0, isEvent: false, dmgMult: 1, facing: 0,
     aiState: 0, aiTimer: 0, aiTimer2: 0, aiTimer3: 0, aiTimer4: 0, aiTimer5: 0, aiState2: 0, aiAngle: 0, ageMs: 0, enraged: false,
+    markUntilTick: -1, markDamage: 0, markSlot: -1,
     scaleTargetMs: 0, scaleCapHp: 0, intakeStartMs: -1, intakeMarkMs: -1, intakeDealt: 0,
   };
 }

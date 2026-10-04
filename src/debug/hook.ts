@@ -56,6 +56,8 @@ export interface HookRunState {
   enemies: { alive: number; byBehavior: Record<EnemyBehaviorId, number> };
   weapons: OwnedItem[];
   passives: OwnedItem[];
+  /** limit-break verb stacks per owned weapon id */
+  verbs: Record<string, number>;
   stats: PlayerStats;
   choices: LevelUpChoice[] | null;
   god: boolean;
@@ -90,6 +92,8 @@ export interface RunHandlers {
   collectPickup(id: number): void;
   giveWeapon(id: string, level?: number): void;
   givePassive(id: string, level?: number): void;
+  /** sets a weapon's limit-break verb stacks */
+  setVerb(id: string, stacks: number): boolean;
   setLevel(n: number): void;
   addXp(n: number): void;
   triggerLevelUp(): void;
@@ -286,6 +290,7 @@ export function installHook(game: Phaser.Game, contentProvider: () => GameDebugA
     collectPickup: (id) => requireRun().collectPickup(id),
     giveWeapon: (id, lv) => requireRun().giveWeapon(id, lv),
     givePassive: (id, lv) => requireRun().givePassive(id, lv),
+    setVerb: (id, n) => requireRun().setVerb(id, n),
     setLevel: (n) => requireRun().setLevel(n),
     addXp: (n) => requireRun().addXp(n),
     triggerLevelUp: () => requireRun().triggerLevelUp(),

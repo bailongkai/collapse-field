@@ -1,4 +1,5 @@
 import type { WeaponBehavior } from '../types';
+import { VERB_TUNING } from '../../../data/verbs';
 
 /** The beam: how far it reaches from the character, how wide one lane is, and how long it shows. */
 const LANCE_LEN = 448;
@@ -50,6 +51,32 @@ export const pivot: WeaponBehavior = {
       p.rectWidth = width;
       p.scale = eff.area;
       p.hitSerials.length = 0;
+      // 回波: the same lane, behind her, a beat later and from wherever she is by then
+      if (inst.verb > 0) {
+        const echo = ctx.spawnProjectile();
+        if (echo) {
+          echo.kind = 'slash';
+          echo.hostile = false;
+          echo.weaponSlot = inst.slot;
+          echo.x = p.x;
+          echo.y = p.y;
+          echo.vx = 0;
+          echo.vy = 0;
+          echo.angle = facing + Math.PI;
+          echo.damage = eff.damage * (VERB_TUNING.pivot.scale + VERB_TUNING.pivot.scalePerStack * (inst.verb - 1));
+          echo.knockback = eff.knockback;
+          echo.pierce = Infinity;
+          echo.ttlMs = p.ttlMs;
+          echo.radius = 1;
+          echo.rectLen = len;
+          echo.rectWidth = width;
+          echo.scale = eff.area;
+          echo.hitSerials.length = 0;
+          echo.delayMs = VERB_TUNING.pivot.delayMs;
+          echo.anchored = true;
+          echo.anchorDy = offset;
+        }
+      }
     }
     // every lane goes on this tick and no volley is queued, so the weapon system would voice nothing
     ctx.events.push('shot', ctx.player.x, ctx.player.y, inst.slot, inst.defId);

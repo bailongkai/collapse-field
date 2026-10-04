@@ -1,4 +1,5 @@
 import type { WeaponBehavior } from '../types';
+import { VERB_TUNING } from '../../../data/verbs';
 
 const RECT_LEN = 140;
 /**
@@ -44,6 +45,29 @@ export const slash: WeaponBehavior = {
     p.scale = eff.area;
     p.radius = 0;
     p.hitSerials.length = 0;
+    // 回旋: the same sweep comes back along its path, a beat later each time, at half the damage
+    for (let k = 1; k <= inst.verb; k++) {
+      const r = ctx.spawnProjectile();
+      if (!r) break;
+      r.kind = 'slash';
+      r.weaponSlot = inst.slot;
+      r.x = ctx.player.x;
+      r.y = ctx.player.y;
+      r.vx = 0;
+      r.vy = 0;
+      r.angle = angle;
+      r.damage = eff.damage * VERB_TUNING.slash.scale;
+      r.knockback = 0;
+      r.pierce = Infinity;
+      r.ttlMs = eff.durationMs;
+      r.rectLen = p.rectLen;
+      r.rectWidth = p.rectWidth;
+      r.scale = eff.area;
+      r.radius = 0;
+      r.hitSerials.length = 0;
+      r.delayMs = VERB_TUNING.slash.delayMs * k;
+      r.anchored = true;
+    }
   },
 };
 

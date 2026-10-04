@@ -48,6 +48,8 @@ test('agency: a maxed build is offered limit break cards', async ({ page }) => {
     // six slots, so a maxed build is six weapons: leave one free and a seventh is still offerable
     for (const id of ['plasmaBlade', 'guidedLaser', 'railgun', 'orbitalDrones', 'empField', 'arcPylons']) g.giveWeapon(id, 8);
     for (const id of g.content().passives) g.givePassive(id, 5);
+    // the verbs come first (m19-verbs); with every one learned the +% cards are what is left
+    for (const id of ['plasmaBlade', 'guidedLaser', 'railgun', 'orbitalDrones', 'empField', 'arcPylons']) g.setVerb(id, 3);
     g.triggerLevelUp();
   });
   await waitScene(page, 'levelup');

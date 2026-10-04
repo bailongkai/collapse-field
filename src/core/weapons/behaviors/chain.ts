@@ -1,6 +1,8 @@
 import { ENEMY_CAP, MAX_ENEMY_RADIUS } from '../../../config';
 import type { Enemy } from '../../sim/entities/enemy';
 import type { WeaponBehavior, WeaponContext, WeaponInstance } from '../types';
+import { FIXED_DT_MS } from '../../../config';
+import { VERB_TUNING } from '../../../data/verbs';
 
 /** How far the arc will reach for its first body, and how far it jumps between them. */
 const SEEK_RADIUS = 168;
@@ -56,6 +58,7 @@ export const chain: WeaponBehavior = {
     for (let a = 0; a < arcs; a++) {
       let from = nearestLink(ctx, ctx.player.x, ctx.player.y, SEEK_RADIUS, visited);
       if (!from) break;
+      const arcStart = visited.length;
       let damage = eff.damage;
       let fx = ctx.player.x;
       let fy = ctx.player.y;
@@ -75,6 +78,17 @@ export const chain: WeaponBehavior = {
         fy = from.y;
         damage *= FALLOFF;
         from = nearestLink(ctx, from.x, from.y, JUMP_RANGE, visited);
+      }
+      // 残留: the last links of the arc are left marked, primed for the next hit from anything
+      if (inst.verb > 0) {
+        const until = ctx.tick + Math.round(VERB_TUNING.chain.markMs / FIXED_DT_MS);
+        for (let i = Math.max(arcStart, visited.length - inst.verb); i < visited.length; i++) {
+          const e = ctx.enemyById(visited[i]);
+          if (!e.active || !e.def || e.def.behavior === 'prop') continue;
+          e.markUntilTick = until;
+          e.markDamage = eff.damage * VERB_TUNING.chain.scale;
+          e.markSlot = inst.slot;
+        }
       }
     }
 

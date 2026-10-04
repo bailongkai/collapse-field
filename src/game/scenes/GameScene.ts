@@ -403,7 +403,7 @@ export class GameScene extends Phaser.Scene {
         action: 'pick',
         kind: pick.kind,
         id: 'id' in pick ? pick.id : pick.kind,
-        toLevel: 'toLevel' in pick ? pick.toLevel : 0,
+        toLevel: 'toLevel' in pick ? pick.toLevel : pick.kind === 'verb' ? pick.toStacks : 0,
         level,
         offered,
       });
@@ -416,7 +416,8 @@ export class GameScene extends Phaser.Scene {
   /** Reroll, skip or banish from the overlay; the overlay rebuilds itself on success. */
   /** What the offer held, as ids, so a pick rate can be divided by an offer rate. */
   private offeredIds(): string {
-    return (this.sim.run.choices ?? []).map((c) => ('id' in c ? c.id : c.kind)).join(',').slice(0, 96);
+    // a verb card names its weapon too; the prefix keeps it apart from that weapon's level card
+    return (this.sim.run.choices ?? []).map((c) => (c.kind === 'verb' ? `verb:${c.id}` : 'id' in c ? c.id : c.kind)).join(',').slice(0, 96);
   }
 
   rerollLevelUp(): boolean {
@@ -817,6 +818,14 @@ export class GameScene extends Phaser.Scene {
           shake(this, 200, 0.003);
           sfx.play('boss');
           break;
+        case 'verbBurst':
+          // a ricochet is a spark; a drone's blast and a mark going off are explosions
+          if (e.n <= 0) this.fxView.death(e.x, e.y, false);
+          else {
+            this.fxView.death(e.x, e.y, true);
+            sfx.play('explode', { volume: 0.35, rate: 1.3 });
+          }
+          break;
         case 'auraPulse':
           this.fxView.auraPulse(e.n);
           sfx.play('emp', { volume: 0.35, rate: 1.4 });
@@ -920,6 +929,7 @@ export class GameScene extends Phaser.Scene {
       enemies: { alive: w.enemies.count, byBehavior },
       weapons: run.weapons.map((x) => ({ ...x })),
       passives: run.passives.map((x) => ({ ...x })),
+      verbs: sim.verbStacks(),
       stats: sim.stats,
       choices: run.choices,
       god: run.god,
@@ -1032,6 +1042,7 @@ export class GameScene extends Phaser.Scene {
       givePassive: (id: string, level?: number) => {
         this.sim.givePassive(id, level ?? 1);
       },
+      setVerb: (id: string, stacks: number) => this.sim.setVerb(id, stacks),
       setLevel: (n: number) => this.sim.setLevel(n),
       addXp: (n: number) => this.sim.addXp(n),
       triggerLevelUp: () => {

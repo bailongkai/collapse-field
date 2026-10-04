@@ -42,5 +42,6 @@ export const aimed: WeaponBehavior = {
     p.radius = 8 * eff.area;
     p.scale = eff.area;
     p.hitSerials.length = 0;
+    p.splits = inst.verb > 0 ? inst.verb + 1 : 0; // 分裂
   },
 };

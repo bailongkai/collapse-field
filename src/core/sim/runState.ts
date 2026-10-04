@@ -26,5 +26,7 @@ export type LevelUpChoice =
   | { kind: 'weapon' | 'passive'; id: string; toLevel: number }
   /** a build with nothing left to level keeps growing: one weapon, one stat, no cap */
   | { kind: 'limit'; id: string; stat: LimitStat; amount: number }
+  /** a limit-break verb: the weapon's archetype learns a new behaviour, or one more of it (data/verbs.ts) */
+  | { kind: 'verb'; id: string; toStacks: number }
   | { kind: 'gold'; amount: number }
   | { kind: 'heal'; amount: number };
