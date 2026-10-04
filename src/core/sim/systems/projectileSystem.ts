@@ -97,12 +97,10 @@ function resolveBolt(world: World, p: Projectile, damage: DamageFn): void {
     const ex = e.x;
     const ey = e.y;
     damage(e, p.damage, p.vx / len, p.vy / len, p.knockback, p.weaponSlot);
-    // 分裂: a bolt that killed breaks into splinters where the body was, and is spent
-    if (p.splits > 0 && (!e.active || e.serial !== serial)) {
-      splitBolt(world, p, ex, ey, serial);
-      p.pierce = -1;
-      return;
-    }
+    // 分裂: a bolt that killed throws splinters from where the body was and keeps its own
+    // pierce. Spending the bolt on the split made the verb a loss on a piercing weapon: the lance's
+    // five bodies became one plus a fan of half-damage splinters.
+    if (p.splits > 0 && (!e.active || e.serial !== serial)) splitBolt(world, p, ex, ey, serial);
     p.pierce -= 1;
     if (p.pierce < 0) {
       // 跳弹: a round with no pierce left turns once more towards the nearest body it has not hit

@@ -91,7 +91,7 @@ export const en: Partial<Record<I18nKey, string>> = {
   'verb.stream.name': 'Ricochet',
   'verb.stream.desc': 'A round that has spent its pierce turns towards the nearest enemy within 120. Each stack adds a turn',
   'verb.aimed.name': 'Split',
-  'verb.aimed.desc': 'A bolt that kills splits into two bolts at 50%. Each stack adds a splinter',
+  'verb.aimed.desc': 'A kill throws off two bolts at 50% and the bolt flies on. Each stack adds a splinter',
   'verb.orbit.name': 'Martyr',
   'verb.orbit.desc': 'A drone detonates where it expires: radius 80, double damage. Each stack +20 radius and +1x damage',
   'verb.aura.name': 'Pulse',

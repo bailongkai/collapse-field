@@ -43,7 +43,8 @@ export const VERB_TINT = 0x66ffcc;
  * - slash 回旋: n returns, each `delayMs` after the last, each at `scale` of the sweep.
  * - stream 跳弹: a round that has spent its pierce turns towards the nearest body within `reach`,
  *   n times.
- * - aimed 分裂: a bolt that kills splits into n + 1 bolts at `scale`; the splinters do not split.
+ * - aimed 分裂: a bolt that kills throws n + 1 splinters at `scale` and keeps its own
+ *   pierce; the splinters do not split.
  * - orbit 殉爆: a drone that expires detonates, radius `radius` + `radiusPerStack` (n - 1), at
  *   (`scale` + n - 1) times its damage.
  * - aura 脉冲: every `everyMs` - `everyPerStackMs` (n - 1) the field pulls everything within twice

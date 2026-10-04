@@ -193,20 +193,60 @@ describe('跳弹 (stream)', () => {
 });
 
 describe('分裂 (aimed)', () => {
-  it('a bolt that kills breaks into splinters at half its damage, which do not split again', () => {
+  it('a bolt that kills throws splinters at half its damage, which do not split again, and keeps its pierce', () => {
     const w = boltWorld();
     w.put(80, 0, 5);
-    w.fire({ pierce: 3, splits: 2, damage: 10 });
-    w.run(2);
-    // the bolt reached the body within two ticks at 600 units a second and 80 away? not yet
-    w.run(10);
+    const parent = w.fire({ pierce: 3, splits: 2, damage: 10 });
+    w.run(12);
     const live = w.world.projectiles.items.filter((p) => p.active);
-    expect(live).toHaveLength(2);
-    for (const p of live) {
+    expect(live).toHaveLength(3);
+    // the parent carries on with one pierce spent, as it would have without the verb
+    expect(parent.active).toBe(true);
+    expect(parent.pierce).toBe(2);
+    const splinters = live.filter((p) => p !== parent);
+    for (const p of splinters) {
       expect(p.damage).toBe(5);
       expect(p.splits).toBe(0);
     }
   });
+
+  it('every stack is worth more than no verb, on the laser and on the lance, in a minute-ten crowd', () => {
+    // The split used to spend the bolt, so the lance's five bodies became one plus half-damage
+    // splinters and the card was a trap: one stack cost it a fifth of its kills.
+    const crowd = (weapon: string, level: number, verb: number, seed: number) => {
+      const s = new Simulation({ seed, characterId: 'survivor', stageId: 'station' });
+      s.run.weapons.length = 0;
+      s.world.weaponInstances.length = 0;
+      s.run.god = true;
+      s.setStatOverride('growth', 0);
+      s.giveWeapon(weapon, level);
+      s.setVerb(weapon, verb);
+      s.setTime(540);
+      const k0 = s.run.kills;
+      for (let t = 0; t < 60 * 60; t++) {
+        s.step();
+        s.takeChestResult();
+        // a chest would raise the weapon or teach the verb; hold both where the test put them
+        s.run.weapons.length = 1;
+        s.world.weaponInstances.length = 1;
+        s.run.weapons[0].level = level;
+        s.world.weaponInstances[0].level = level;
+        s.world.weaponInstances[0].verb = verb;
+      }
+      return { kills: s.run.kills - k0, dmg: s.run.damageBySlot[0] ?? 0 };
+    };
+    const seeds = [1, 2, 3];
+    for (const [weapon, level] of [['fusionLance', 1], ['guidedLaser', 8]] as const) {
+      const total = (verb: number) =>
+        seeds.map((sd) => crowd(weapon, level, verb, sd)).reduce((a, r) => ({ kills: a.kills + r.kills, dmg: a.dmg + r.dmg }), { kills: 0, dmg: 0 });
+      const none = total(0);
+      for (let v = 1; v <= VERB_MAX_STACKS; v++) {
+        const withVerb = total(v);
+        expect(withVerb.kills, `${weapon} 分裂 ${v}: ${withVerb.kills} kills vs ${none.kills}`).toBeGreaterThan(none.kills);
+        expect(withVerb.dmg, `${weapon} 分裂 ${v}: ${withVerb.dmg} damage vs ${none.dmg}`).toBeGreaterThan(none.dmg);
+      }
+    }
+  }, 120_000);
 
   it('a bolt that does not kill does not split', () => {
     const w = boltWorld();

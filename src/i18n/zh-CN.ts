@@ -88,7 +88,7 @@ export const zhCN = {
   'verb.stream.name': '跳弹',
   'verb.stream.desc': '弹丸用完穿透后折向 120 范围内最近的敌人；每层多折返一次',
   'verb.aimed.name': '分裂',
-  'verb.aimed.desc': '激光击杀时分裂成两枚 50% 伤害的子弹；每层多分裂一枚',
+  'verb.aimed.desc': '激光击杀时分裂出两枚 50% 伤害的子弹，本体继续穿透；每层多分裂一枚',
   'verb.orbit.name': '殉爆',
   'verb.orbit.desc': '无人机到期时原地爆炸，半径 80、2 倍伤害；每层半径 +20、伤害 +1 倍',
   'verb.aura.name': '脉冲',
