@@ -30,7 +30,9 @@ export const WEAPONS = {
     rarity: 100,
     maxLevel: 8,
     behavior: 'aimed',
-    base: { damage: 10, cooldown: 1200, amount: 1, area: 1, speed: 1, duration: 1500, pierce: 1, knockback: 0.5, interval: 100, hitCooldown: 0 },
+    // 1000 ms rather than 1200: at level one it killed 37 a minute in the minute-ten crowd, the
+    // second-weakest opening; at 1000 it measures 66, and its evolution is untouched
+    base: { damage: 10, cooldown: 1000, amount: 1, area: 1, speed: 1, duration: 1500, pierce: 1, knockback: 0.5, interval: 100, hitCooldown: 0 },
     levels: [{ amount: 1 }, { cooldown: -200 }, { amount: 1 }, { damage: 10 }, { amount: 1 }, { damage: 10 }, { amount: 1 }],
     visual: { frame: 'bolt_laser', sfx: 'laser' },
     evolution: { requires: 'coolingSystem', into: 'fusionLance' },
@@ -43,7 +45,11 @@ export const WEAPONS = {
     rarity: 100,
     maxLevel: 8,
     behavior: 'stream',
-    base: { damage: 6.5, cooldown: 1000, amount: 1, area: 1, speed: 1, duration: 1200, pierce: 1, knockback: 0.3, interval: 80, hitCooldown: 0 },
+    // Two rounds with two pierce from the first level. One round with one pierce was the weakest
+    // opening in the game: alone at level one in the station's minute-ten crowd it killed 19 a
+    // minute against 148 for the blade and 248 for the anchors, and the Marine is the first
+    // character anyone buys. With this it measures 77, level with the drones and the field.
+    base: { damage: 6.5, cooldown: 1000, amount: 2, area: 1, speed: 1, duration: 1200, pierce: 2, knockback: 0.3, interval: 80, hitCooldown: 0 },
     levels: [{ amount: 1 }, { amount: 1, damage: 5 }, { amount: 1 }, { pierce: 1 }, { amount: 1, damage: 5 }, { amount: 1 }, { pierce: 1 }],
     visual: { frame: 'bolt_rail', sfx: 'rail' },
     evolution: { requires: 'nanoArmor', into: 'shredderRail' },

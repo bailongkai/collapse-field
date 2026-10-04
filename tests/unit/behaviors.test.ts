@@ -40,14 +40,14 @@ describe('stream (磁轨炮)', () => {
     }
   });
 
-  it('level 8 fires six rounds with three pierce', () => {
+  it('level 8 fires seven rounds with four pierce', () => {
     const s = newSim();
     s.giveWeapon('railgun', 8);
     s.setStatOverride('cooldown', 10);
     s.setInput(1, 0);
     s.stepMany(60);
-    expect(bolts(s).length).toBe(6);
-    expect(bolts(s)[0].pierce).toBe(3);
+    expect(bolts(s).length).toBe(7);
+    expect(bolts(s)[0].pierce).toBe(4);
   });
 });
 

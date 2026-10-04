@@ -24,9 +24,11 @@ describe('weaponParams', () => {
     expect(weaponParams(w, 99)).toEqual(weaponParams(w, 8));
   });
   it('railgun gains amount and pierce over its levels', () => {
+    // two rounds with two pierce from level one: measured alone at level one in the station's
+    // minute-ten crowd, one round with one pierce killed 19 a minute against 148 for the blade
     const p = weaponParams(weaponDef('railgun'), 8);
-    expect(p.amount).toBe(6);
-    expect(p.pierce).toBe(3);
+    expect(p.amount).toBe(7);
+    expect(p.pierce).toBe(4);
   });
 });
 
@@ -35,12 +37,12 @@ describe('effectiveWeapon', () => {
     const stats = composeStats(ch, [{ id: 'reactorCore', level: 5 }, { id: 'coolingSystem', level: 5 }], CONTENT, 1);
     const eff = effectiveWeapon(weaponParams(weaponDef('guidedLaser'), 1), stats);
     expect(eff.damage).toBeCloseTo(15, 6);
-    expect(eff.cooldownMs).toBeCloseTo(1200 * 0.6, 4);
+    expect(eff.cooldownMs).toBeCloseTo(1000 * 0.6, 4);
   });
   it('adds the amount stat and multiplies area and speed', () => {
     const stats = composeStats(ch, [{ id: 'fieldAmp', level: 2 }], CONTENT, 1, { amount: 2, projectileSpeed: 0.5 });
     const eff = effectiveWeapon(weaponParams(weaponDef('railgun'), 1), stats);
-    expect(eff.amount).toBe(3);
+    expect(eff.amount).toBe(4);
     expect(eff.area).toBeCloseTo(1.2, 6);
     expect(eff.speed).toBeCloseTo(1.5, 6);
   });
