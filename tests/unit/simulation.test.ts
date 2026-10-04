@@ -106,3 +106,60 @@ describe('Simulation', () => {
     expect(s.run.ended).toBe('died');
   });
 });
+
+describe('a death names what landed the last hit', () => {
+  // the marine, because the survivor's second wind fires at one health and buys two seconds
+  const dying = (seed = 8) => {
+    const s = new Simulation({ seed, characterId: 'marine', stageId: 'station' });
+    s.setStatOverride('growth', 0);
+    s.setStatOverride('curse', -1); // no waves, so the only bodies are the ones placed here
+    s.setStatOverride('moveSpeed', 0);
+    s.run.weapons.length = 0;
+    s.world.weaponInstances.length = 0;
+    s.world.player.hp = 1;
+    return s;
+  };
+
+  it('a body that bites', () => {
+    const s = dying();
+    s.spawn('mech', 1, { x: 30, y: 0 });
+    s.stepMany(60);
+    expect(s.run.ended).toBe('died');
+    expect(s.run.killedBy).toBe('mech');
+  });
+
+  it('a bolt is credited to the shooter, not to "bolt"', () => {
+    const s = dying();
+    s.spawn('spitter', 1, { x: 200, y: 0 });
+    s.stepMany(60 * 5);
+    expect(s.run.ended).toBe('died');
+    expect(s.run.killedBy).toBe('spitter');
+  });
+
+  it('the floor', () => {
+    const s = dying();
+    const idx = s.stage.events.findIndex((e) => e.kind === 'collapse');
+    s.triggerEvent(idx);
+    const zone = s.world.collapses[0];
+    s.world.player.x = zone.x;
+    s.world.player.y = zone.y;
+    s.stepMany(Math.ceil(zone.totalMs / FIXED_DT_MS) + 2);
+    expect(s.run.ended).toBe('died');
+    expect(s.run.killedBy).toBe('collapse');
+  });
+
+  it('and the event that announces the death carries it', () => {
+    const s = dying();
+    s.spawn('mech', 1, { x: 30, y: 0 });
+    let named = '';
+    for (let i = 0; i < 60 && !named; i++) {
+      s.step();
+      for (let j = 0; j < s.world.events.length; j++) {
+        const e = s.world.events.at(j);
+        if (e.type === 'died') named = e.id;
+      }
+      s.world.events.clear();
+    }
+    expect(named).toBe('mech');
+  });
+});

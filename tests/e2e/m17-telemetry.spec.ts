@@ -41,6 +41,7 @@ test('telemetry: a death reports the run once, with the facts a balance question
   expect(ends).toHaveLength(1);
   const e = ends[0] as unknown as Record<string, unknown>;
   expect(e.cause).toBe('died');
+  expect(e.killedBy, 'the death did not say what landed the last hit').toBe('mech');
   expect(e.seed, 'the seed is what makes a death reproducible').toBe(82);
   expect(typeof e.minute).toBe('number');
   expect(typeof e.runIndex).toBe('number');

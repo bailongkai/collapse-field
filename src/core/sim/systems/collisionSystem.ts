@@ -38,6 +38,7 @@ export function applyPlayerDamage(world: World, stats: PlayerStats, god: boolean
   }
   const dmg = Math.max(1, Math.round(raw - stats.armor));
   p.hp -= dmg;
+  world.lastHurtBy = sourceId;
   p.iframesMs = IFRAME_MS;
   world.events.push('hurt', p.x, p.y, dmg, sourceId, dmg >= stats.maxHealth * 0.2);
   return dmg;

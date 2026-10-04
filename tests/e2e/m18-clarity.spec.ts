@@ -163,3 +163,39 @@ test('clarity: a collapse warning is not pushed off the screen by the banners th
   expect(withRush.find((t) => t !== warn)).not.toBe(withElite.find((t) => t !== warn));
   expect(errors, errors.join('\n')).toEqual([]);
 });
+
+test('clarity: a death is held for a beat, then the results say what did it', async ({ page }) => {
+  // the results used to start on the frame health reached zero: no body, no pause, no cause
+  const errors = await openGame(page, '?test=1&seed=68');
+  await startRun(page, 68);
+  await waitScene(page, 'game');
+  await page.evaluate(() => {
+    window.__game.setTimeScale(0);
+    window.__game.spawn('mech', 30, { ring: true, radius: 40 });
+  });
+  for (let i = 0; i < 40 && (await page.evaluate(() => window.__game.hasRun() && window.__game.getState().phase === 'running')); i++) await step(page, 60);
+  // the run is over and the battlefield is still on screen
+  const held = await page.evaluate(() => (window.__game.hasRun() ? window.__game.getState() : null));
+  expect(held, 'the results came up on the very frame of the death').not.toBeNull();
+  expect(held!.phase).toBe('ended');
+  expect(held!.ended).toBe('died');
+  expect(held!.killedBy).toBe('mech');
+  const sceneAt = await page.evaluate(() => window.__game.scene());
+  expect(sceneAt).toBe('game');
+  await snap(page, 'clarity-death');
+  await waitScene(page, 'results');
+  const names = await page.evaluate(() => {
+    type Node = { text?: string; list?: Node[] };
+    const scene = window.__game.phaser.scene.getScene('Results') as unknown as { children: { list: Node[] } };
+    const out: string[] = [];
+    const walk = (n: Node): void => {
+      if (n.text) out.push(n.text);
+      for (const c of n.list ?? []) walk(c);
+    };
+    for (const c of scene.children.list) walk(c);
+    return out;
+  });
+  expect(names).toContain(await page.evaluate(() => window.__game.i18n.t('results.killedBy')));
+  expect(names).toContain(await page.evaluate(() => window.__game.i18n.t('enemy.mech.name')));
+  expect(errors, errors.join('\n')).toEqual([]);
+});

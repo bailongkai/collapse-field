@@ -42,7 +42,7 @@ function resolveHostile(world: World, p: Projectile, hurtPlayer: HurtPlayerFn): 
   const dx = pl.x - p.x;
   const dy = pl.y - p.y;
   if (dx * dx + dy * dy > rr * rr) return;
-  hurtPlayer(p.damage, 'bolt');
+  hurtPlayer(p.damage, p.source || 'bolt');
   p.pierce = -1; // recycled by the caller
 }
 

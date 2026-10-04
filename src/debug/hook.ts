@@ -61,6 +61,7 @@ export interface HookRunState {
   god: boolean;
   finalSpawned: boolean;
   ended?: RunEnd;
+  killedBy?: string;
 }
 
 /** Everything that only exists while a run (GameScene) is alive. Bound by GameScene, detached on shutdown. */

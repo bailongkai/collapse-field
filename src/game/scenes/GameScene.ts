@@ -45,6 +45,15 @@ export interface GameSceneData {
   curse?: number;
 }
 
+/**
+ * How long a death is held on screen before the results: long enough for the body to go down and
+ * for the player to see what was standing next to it. The simulation stops on the tick health
+ * reaches zero, so the field behind the fall is a freeze frame of that exact moment; the results
+ * used to start on the same frame, and three deaths later a new player still did not know what
+ * to run from.
+ */
+const DEATH_BEAT_MS = 700;
+
 /** Runs started since the app launched; the second run is the moment the loop caught. */
 let runsThisSession = 0;
 
@@ -80,6 +89,8 @@ export class GameScene extends Phaser.Scene {
   private runEndReported = false;
   private timeScale = 1;
   private gemChime = new GemChime();
+  /** performance.now() when the death beat began, or -1 */
+  private deathAt = -1;
   private layers!: Record<
     'floor' | 'decor' | 'shadows' | 'gems' | 'pickups' | 'enemies' | 'player' | 'projectiles' | 'fx' | 'numbers',
     Phaser.GameObjects.Layer
@@ -98,6 +109,7 @@ export class GameScene extends Phaser.Scene {
     this.revivePending = false;
     this.slotCache = [];
     this.gemChime.reset();
+    this.deathAt = -1;
 
     const seed = data.seed ?? app().seed ?? (Date.now() >>> 0);
     this.sim = new Simulation({
@@ -465,7 +477,12 @@ export class GameScene extends Phaser.Scene {
     if (run.chestQueue.length > 0) this.openChestOverlay();
     if (run.phase === 'levelup' && !chestBusy) this.openLevelUpOverlay();
     if (run.phase === 'revivePrompt') this.openReviveOverlay();
-    if (run.phase === 'ended') this.finishRun();
+    if (run.phase === 'ended') {
+      // a clear goes straight to its results; a death is held for a beat first
+      if (run.ended !== 'died') this.finishRun();
+      else if (this.deathAt < 0) this.beginDeathBeat();
+      else if (performance.now() - this.deathAt >= DEATH_BEAT_MS) this.finishRun();
+    }
   }
 
   private enemyName(id: string): string {
@@ -505,6 +522,7 @@ export class GameScene extends Phaser.Scene {
       level: run.level,
       kills: run.kills,
       cause,
+      killedBy: run.ended === 'died' ? run.killedBy ?? '' : '',
       curse: run.curse,
       runIndex: app().save.runsPlayed + 1,
       build,
@@ -516,6 +534,20 @@ export class GameScene extends Phaser.Scene {
       gold: run.gold,
       seed: run.seed,
     });
+  }
+
+  /** The body goes down over the frozen field; the results follow once it has. */
+  private beginDeathBeat(): void {
+    this.deathAt = performance.now();
+    this.playerView.fall();
+    this.input_.reset();
+    // dim: at full strength the flash was the whole screen for a quarter second, and the field the
+    // beat is meant to show was gone behind it
+    this.cameras.main.flash(260, 120, 20, 20);
+    this.cameras.main.flashEffect.alpha = 0.35;
+    shake(this, 420, 0.008);
+    sfx.play('explode', { volume: 0.6, rate: 0.7 });
+    haptic('heavy');
   }
 
   private finishRun(): void {
@@ -537,6 +569,7 @@ export class GameScene extends Phaser.Scene {
       bossKills: run.bossKills,
       damageByWeapon: run.weapons.map((w, i) => ({ id: w.id, damage: run.damageBySlot[i] ?? 0 })),
       seen: [...this.sim.world.seen],
+      killedBy: run.killedBy,
     });
   }
 
@@ -854,6 +887,7 @@ export class GameScene extends Phaser.Scene {
       god: run.god,
       finalSpawned: run.finalSpawned,
       ended: run.ended,
+      killedBy: run.killedBy,
     };
   }
 

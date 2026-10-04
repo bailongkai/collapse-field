@@ -68,6 +68,7 @@ export function spawnHostileBolt(world: World, e: Enemy, nx: number, ny: number,
   const p = world.projectiles.spawn();
   if (!p) return;
   p.hostile = true;
+  p.source = e.defId;
   p.weaponSlot = -1;
   p.kind = 'bolt';
   p.x = e.x + nx * e.radius;

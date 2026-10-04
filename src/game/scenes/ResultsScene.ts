@@ -33,6 +33,8 @@ export interface ResultsData {
   bossKills: number;
   damageByWeapon: { id: string; damage: number }[];
   seen: string[];
+  /** what landed the last hit, when the run ended in death */
+  killedBy?: string;
 }
 
 /** End-of-run summary. Commits the run into the save on entry, then offers a retry or the menu. */
@@ -109,6 +111,8 @@ export class ResultsScene extends Phaser.Scene {
       [t('results.kills'), String(data.kills ?? 0)],
       [t('results.gold'), doubled ? t('results.doubled', { n: data.gold ?? 0 }) : String(data.gold ?? 0)],
     ];
+    // the one line a new player needs after a death: what to look out for next time
+    if (!survived && data.killedBy) rows.push([t('results.killedBy'), this.causeName(data.killedBy)]);
     rows.forEach(([label, value], i) => {
       const y = 18 + i * 36;
       stats.add(this.add.text(-half, y, label, textStyle(19, { color: COLORS.dim })).setOrigin(0, 0.5));
@@ -225,6 +229,14 @@ export class ResultsScene extends Phaser.Scene {
     }
     this.input.keyboard?.on('keydown-ENTER', () => this.retry(data));
     this.input.keyboard?.on('keydown-M', () => this.scene.start('Menu'));
+  }
+
+  /** An enemy's name, or the name of the one hazard that is not an enemy. */
+  private causeName(id: string): string {
+    const def = CONTENT.enemies[id];
+    if (def) return t(def.nameKey);
+    if (id === 'collapse') return t('cause.collapse');
+    return t('cause.bolt');
   }
 
   private async doubleGold(data: ResultsData, btn: UiButton): Promise<void> {

@@ -21,6 +21,8 @@ export type AnalyticsEvent =
       level: number;
       kills: number;
       cause: string;
+      /** the enemy id that landed the last hit of a death, or '' */
+      killedBy: string;
       curse: number;
       runIndex: number;
       build: string;

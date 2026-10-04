@@ -16,6 +16,8 @@ const BAR_OFFSET_Y = 30;
 const OUTLINE_OFFSET = 1.5;
 const OUTLINE_COLOR = 0xeaffff;
 const OUTLINE_DIRS: readonly (readonly [number, number])[] = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
+/** how long the body takes to go down; the results follow once it has */
+export const FALL_MS = 600;
 
 /**
  * The player sprite plus its world-space health bar. The soldier art is drawn facing right, so
@@ -36,6 +38,8 @@ export class PlayerView {
   private recoilMs = 0;
   private recoilKind: RecoilKind = 'pulse';
   private hurtMs = 0;
+  /** ms into the fall; -1 while alive */
+  private fallMs = -1;
   private pose: Pose = { dy: 0, scaleX: 1, scaleY: 1, rotation: 0 };
   /** half the sprite's height in units, so a squash keeps the feet on the floor */
   private halfH = 22;
@@ -64,6 +68,11 @@ export class PlayerView {
   recoil(kind: RecoilKind): void {
     this.recoilKind = kind;
     this.recoilMs = 160;
+  }
+
+  /** The character goes down: over `FALL_MS` it tips over, sinks a little and greys. */
+  fall(): void {
+    if (this.fallMs < 0) this.fallMs = 0;
   }
 
   /** A quick scale bounce on level-up; animated by hand in update, no tween. */
@@ -114,6 +123,18 @@ export class PlayerView {
     this.sprite.setPosition(player.x + dx, player.y + pose.dy - footLift);
     this.sprite.setScale(sx * GAME_FRAME_SCALE, sy * GAME_FRAME_SCALE);
     this.sprite.setRotation(pose.rotation * dir);
+    if (this.fallMs >= 0) {
+      this.fallMs = Math.min(FALL_MS, this.fallMs + deltaMs);
+      const k = this.fallMs / FALL_MS;
+      const e = 1 - (1 - k) * (1 - k);
+      // tips away from the way it faced, settles a touch lower and loses its colour
+      this.sprite.setRotation(-dir * e * (Math.PI / 2));
+      this.sprite.setPosition(this.sprite.x, this.sprite.y + e * 10);
+      this.sprite.setAlpha(1 - e * 0.35);
+      const shade = Math.round(255 - e * 120);
+      this.sprite.setTint((shade << 16) | (shade << 8) | shade);
+      this.sprite.setTintMode(0 /* MULTIPLY */);
+    }
     for (let i = 0; i < this.outline.length; i++) {
       const o = this.outline[i];
       o.setPosition(this.sprite.x + OUTLINE_DIRS[i][0] * OUTLINE_OFFSET, this.sprite.y + OUTLINE_DIRS[i][1] * OUTLINE_OFFSET);
@@ -122,7 +143,7 @@ export class PlayerView {
       o.setFlipX(this.sprite.flipX);
     }
 
-    if (this.hurtFlashMs > 0) {
+    if (this.hurtFlashMs > 0 && this.fallMs < 0) {
       this.hurtFlashMs -= deltaMs;
       this.sprite.setTint(0xff5555);
       this.sprite.setTintMode(1 /* FILL */);

@@ -29,12 +29,14 @@ export interface Projectile {
   scale: number;
   /** enemy serials already hit by this projectile; length reset on recycle */
   hitSerials: number[];
+  /** hostile only: the definition id of the body that fired it, so a death can be named */
+  source: string;
 }
 
 export function createProjectile(id: number): Projectile {
   return {
     id, active: false, hostile: false, weaponSlot: 0, kind: 'bolt', x: 0, y: 0, vx: 0, vy: 0, angle: 0,
     radius: 6, damage: 0, knockback: 0, pierce: 0, ttlMs: 0,
-    orbitIndex: 0, orbitRadius: 0, orbitPhase: 0, charge: 0, rectLen: 0, rectWidth: 0, scale: 1, hitSerials: [],
+    orbitIndex: 0, orbitRadius: 0, orbitPhase: 0, charge: 0, rectLen: 0, rectWidth: 0, scale: 1, hitSerials: [], source: '',
   };
 }

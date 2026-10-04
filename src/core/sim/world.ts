@@ -54,6 +54,8 @@ export class World {
   obstacles: ObstacleRect[] = [];
   /** every enemy definition that has appeared this run, for the bestiary */
   readonly seen = new Set<string>();
+  /** what last took health off the player: an enemy id, or a source such as the collapsing floor */
+  lastHurtBy = '';
   /** run-clock time each rate-limited pickup last dropped, keyed by pickup id */
   readonly lastDropMs: Record<string, number> = {};
   readonly queryBuf = new Int32Array(ENEMY_CAP);
@@ -84,6 +86,7 @@ export class World {
     this.events.clear();
     this.rng = new Rng(seed);
     this.serialCounter = 1;
+    this.lastHurtBy = '';
     const p = this.player;
     p.x = 0;
     p.y = 0;

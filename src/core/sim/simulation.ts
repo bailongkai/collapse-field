@@ -103,6 +103,8 @@ export interface RunState {
   chestsOpened: number;
   finalSpawned: boolean;
   ended?: RunEnd;
+  /** what landed the last hit of a run that ended in death: an enemy id or a source like 'collapse' */
+  killedBy?: string;
   god: boolean;
 }
 
@@ -406,7 +408,8 @@ export class Simulation {
     }
     run.phase = 'ended';
     run.ended = 'died';
-    world.events.push('died', world.player.x, world.player.y, run.timeMs / 1000);
+    run.killedBy = world.lastHurtBy;
+    world.events.push('died', world.player.x, world.player.y, run.timeMs / 1000, run.killedBy);
   }
 
   /** Damage entry point shared by every weapon; handles knockback, flash, death and drops. */
@@ -994,13 +997,15 @@ export class Simulation {
     if (this.run.phase !== 'revivePrompt') return;
     this.run.phase = 'ended';
     this.run.ended = 'died';
-    this.world.events.push('died', this.world.player.x, this.world.player.y, this.run.timeMs / 1000);
+    this.run.killedBy = this.world.lastHurtBy;
+    this.world.events.push('died', this.world.player.x, this.world.player.y, this.run.timeMs / 1000, this.run.killedBy);
   }
 
   endRun(cause: RunEnd): void {
     if (this.run.phase === 'ended') return;
     this.run.phase = 'ended';
     this.run.ended = cause;
+    if (cause === 'died') this.run.killedBy = this.world.lastHurtBy;
     this.world.events.push(cause === 'died' ? 'died' : 'survived', this.world.player.x, this.world.player.y, this.run.timeMs / 1000);
   }
 }
