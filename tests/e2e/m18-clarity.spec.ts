@@ -129,6 +129,15 @@ test('clarity: going fullscreen says how to pause without leaving it', async ({ 
   // the frame grows to the size of the screen, as itch's fullscreen button makes it
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.waitForFunction(() => window.__game.getEvents().includes('hint:fullscreen'));
+  // The same resize rebuilds the HUD, and the rebuild used to start with empty slots: the event
+  // fired and nobody ever saw the hint. It has to be on the screen after the rebuild, and stay.
+  const hint = await page.evaluate(() => window.__game.i18n.t('toast.fullscreen'));
+  await realWait(900);
+  expect(await hudToasts(page)).toContain(hint);
+  // a further resize (leaving fullscreen) keeps what is on the screen too
+  await page.setViewportSize({ width: 1100, height: 640 });
+  await realWait(400);
+  expect(await hudToasts(page)).toContain(hint);
   expect(errors, errors.join('\n')).toEqual([]);
   await ctx.close();
 });

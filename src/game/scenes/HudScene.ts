@@ -10,6 +10,11 @@ import { app } from '../app';
 import { safeInsets } from '../safeArea';
 import type { GameScene } from './GameScene';
 
+/** The toast slots, handed from the HUD a resize tears down to the one it builds. */
+interface ToastCarry {
+  slots: { msg: string; ms: number; priority: number }[] | null;
+}
+
 /** Screen-space HUD. Runs in parallel with GameScene and only redraws when a value changes. */
 export class HudScene extends Phaser.Scene {
   private timer!: Phaser.GameObjects.BitmapText;
@@ -27,7 +32,13 @@ export class HudScene extends Phaser.Scene {
    * was overwritten by the one that said how to pause. A slot now keeps its message until a toast of
    * at least its own priority wants the room, so a boss or a collapse is never pushed off by a hint.
    */
-  private toastSlots: { text: Phaser.GameObjects.Text; ms: number; priority: number }[] = [];
+  private toastSlots: { text: Phaser.GameObjects.Text; msg: string; ms: number; priority: number }[] = [];
+  /**
+   * What the slots held when a resize restarted the scene. A resize rebuilds the HUD, and the
+   * rebuild used to start with both slots empty: the fullscreen hint, sent by the same resize, and
+   * any collapse or boss warning on the screen were gone before anyone read them.
+   */
+  private carry: ToastCarry | null = null;
   private bossBarW = 400;
   private weaponRow!: IconRow;
   private signatureText!: Phaser.GameObjects.Text;
@@ -42,7 +53,7 @@ export class HudScene extends Phaser.Scene {
     super('Hud');
   }
 
-  create(): void {
+  create(data?: ToastCarry): void {
     // reset per-run caches: the scene instance is reused between runs
     this.last = { time: -1, level: -1, kills: -1, xp: -1, build: '' };
     this.lastSignature = '';
@@ -80,9 +91,18 @@ export class HudScene extends Phaser.Scene {
     this.bossName = this.add.text(viewOf(this).width / 2, bottom - 58, '', textStyle(16, { bold: true, color: COLORS.warn })).setOrigin(0.5).setVisible(false);
     this.toastSlots = [0, 1].map((i) => ({
       text: this.add.text(viewOf(this).width / 2, top + 124 + i * 32, '', textStyle(22, { bold: true, color: COLORS.gold, stroke: true })).setOrigin(0.5).setVisible(false),
+      msg: '',
       ms: 0,
       priority: -1,
     }));
+    // only a restart from onResize passes this; a new run's launch passes nothing
+    this.carry = null;
+    data?.slots?.forEach((c, i) => {
+      if (c.ms <= 0) return;
+      const slot = this.toastSlots[i];
+      slot.text.setText(c.msg).setVisible(true).setAlpha(Math.min(1, c.ms / 600));
+      Object.assign(slot, c);
+    });
 
     // touch players have no Escape key, so they get a button once touch is detected
     const touch = app().touch;
@@ -108,6 +128,9 @@ export class HudScene extends Phaser.Scene {
       this.last.kills = -1;
     });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      // read on the way out rather than when the resize arrived: whatever the same resize sent
+      // (the fullscreen hint) lands in the old slots between the two
+      if (this.carry) this.carry.slots = this.toastSlots.map(({ msg, ms, priority }) => ({ msg, ms, priority }));
       this.scale.off(Phaser.Scale.Events.RESIZE, this.onResize, this);
       this.offLocale?.();
       this.offLocale = null;
@@ -119,7 +142,9 @@ export class HudScene extends Phaser.Scene {
 
   /** The logical width changes with the display's aspect, so the HUD is rebuilt rather than stretched. */
   private onResize(): void {
-    this.scene.restart();
+    if (this.carry) return;
+    this.carry = { slots: null };
+    this.scene.restart(this.carry);
   }
 
   /**
@@ -136,13 +161,14 @@ export class HudScene extends Phaser.Scene {
       slot = lowest;
     }
     slot.text.setText(text).setVisible(true).setAlpha(1);
+    slot.msg = text;
     slot.ms = ms;
     slot.priority = priority;
   }
 
   /** What the toasts currently say, top slot first; for the tests. */
   toasts(): string[] {
-    return this.toastSlots.filter((s) => s.ms > 0).map((s) => s.text.text);
+    return this.toastSlots.filter((s) => s.ms > 0 && s.text.visible).map((s) => s.text.text);
   }
 
   override update(_time: number, delta: number): void {
