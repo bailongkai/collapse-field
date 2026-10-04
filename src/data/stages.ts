@@ -12,8 +12,11 @@ const WAVES: readonly WaveEntry[] = [
   { minute: 3, mix: mix(['drone', 0.3], ['infected', 0.3], ['robot', 0.15], ['spitter', 0.15], ['bomber', 0.1]), minCount: 50, interval: 650, batch: 4, hpMult: 1.3, dmgMult: 1.05 },
   { minute: 4, mix: mix(['infected', 0.4], ['robot', 0.25], ['interceptor', 0.15], ['spitter', 0.2]), minCount: 60, interval: 600, batch: 5, hpMult: 1.4, dmgMult: 1.1 },
   { minute: 5, mix: mix(['infected', 0.3], ['robot', 0.25], ['interceptor', 0.1], ['spitter', 0.1], ['dasher', 0.15], ['medic', 0.05], ['bomber', 0.05]), minCount: 70, interval: 600, batch: 5, hpMult: 1.5, dmgMult: 1.1 },
-  { minute: 6, mix: mix(['infected', 0.3], ['robot', 0.3], ['mech', 0.15], ['spitter', 0.1], ['dasher', 0.15]), minCount: 85, interval: 550, batch: 5, hpMult: 1.65, dmgMult: 1.15 },
-  { minute: 7, mix: mix(['drone', 0.15], ['robot', 0.3], ['mech', 0.25], ['spitter', 0.1], ['dasher', 0.1], ['medic', 0.05], ['bomber', 0.05]), minCount: 100, interval: 500, batch: 6, hpMult: 1.8, dmgMult: 1.15 },
+  // the mechs arrive in two steps rather than one: at 0.15 the field's total health went x2.6 from
+  // minute five to six, right behind the 5:00 boss and the 5:30 sentinel, and the hands-off runs
+  // died in minutes four and five eight times out of thirteen
+  { minute: 6, mix: mix(['infected', 0.3], ['robot', 0.3], ['mech', 0.08], ['spitter', 0.1], ['dasher', 0.15]), minCount: 85, interval: 550, batch: 5, hpMult: 1.65, dmgMult: 1.15 },
+  { minute: 7, mix: mix(['drone', 0.15], ['robot', 0.3], ['mech', 0.2], ['spitter', 0.1], ['dasher', 0.1], ['medic', 0.05], ['bomber', 0.05]), minCount: 100, interval: 500, batch: 6, hpMult: 1.8, dmgMult: 1.15 },
   { minute: 8, mix: mix(['infected', 0.25], ['robot', 0.3], ['mech', 0.2], ['spitter', 0.1], ['dasher', 0.15]), minCount: 115, interval: 500, batch: 6, hpMult: 1.95, dmgMult: 1.2 },
   { minute: 9, mix: mix(['robot', 0.3], ['interceptor', 0.15], ['mech', 0.25], ['spitter', 0.1], ['dasher', 0.08], ['hound', 0.12]), minCount: 130, interval: 450, batch: 6, hpMult: 2.1, dmgMult: 1.2 },
   { minute: 10, mix: mix(['robot', 0.22], ['mech', 0.3], ['interceptor', 0.05], ['spitter', 0.1], ['dasher', 0.08], ['medic', 0.07], ['bomber', 0.06], ['hound', 0.12]), minCount: 150, interval: 450, batch: 7, hpMult: 2.25, dmgMult: 1.25 },
@@ -171,11 +174,13 @@ const ORBIT_WAVES: readonly WaveEntry[] = [
   { minute: 6, mix: mix(['raider', 0.3], ['interceptor', 0.25], ['escort', 0.2], ['dasher', 0.1], ['minelayer', 0.07], ['phaser', 0.08]), minCount: 72, interval: 550, batch: 5, hpMult: 1.65, dmgMult: 1.15, speedMult: 1.15 },
   { minute: 7, mix: mix(['raider', 0.35], ['interceptor', 0.3], ['escort', 0.2], ['mech', 0.15]), minCount: 85, interval: 500, batch: 6, hpMult: 1.8, dmgMult: 1.15, speedMult: 1.2 },
   { minute: 8, mix: mix(['raider', 0.3], ['interceptor', 0.3], ['escort', 0.25], ['mech', 0.15]), minCount: 100, interval: 500, batch: 6, hpMult: 1.95, dmgMult: 1.2, speedMult: 1.2 },
-  { minute: 9, mix: mix(['raider', 0.3], ['interceptor', 0.25], ['escort', 0.2], ['dasher', 0.1], ['minelayer', 0.07], ['phaser', 0.08]), minCount: 115, interval: 450, batch: 6, hpMult: 2.1, dmgMult: 1.2, speedMult: 1.25 },
+  // mechs on the odd minutes too: at 9, 11 and 13 the field's total health used to fall to half of
+  // the minute before and climb back, a saw-tooth the player felt as a minute off every other minute
+  { minute: 9, mix: mix(['raider', 0.3], ['interceptor', 0.25], ['escort', 0.2], ['dasher', 0.1], ['minelayer', 0.07], ['phaser', 0.08], ['mech', 0.1]), minCount: 115, interval: 450, batch: 6, hpMult: 2.1, dmgMult: 1.2, speedMult: 1.25 },
   { minute: 10, mix: mix(['raider', 0.3], ['interceptor', 0.3], ['escort', 0.2], ['mech', 0.2]), minCount: 135, interval: 450, batch: 7, hpMult: 2.25, dmgMult: 1.25, speedMult: 1.3 },
-  { minute: 11, mix: mix(['raider', 0.3], ['interceptor', 0.3], ['escort', 0.25], ['dasher', 0.15]), minCount: 155, interval: 400, batch: 7, hpMult: 2.4, dmgMult: 1.25, speedMult: 1.3 },
+  { minute: 11, mix: mix(['raider', 0.3], ['interceptor', 0.3], ['escort', 0.25], ['dasher', 0.15], ['mech', 0.1]), minCount: 155, interval: 400, batch: 7, hpMult: 2.4, dmgMult: 1.25, speedMult: 1.3 },
   { minute: 12, mix: mix(['raider', 0.3], ['interceptor', 0.25], ['escort', 0.15], ['mech', 0.15], ['minelayer', 0.07], ['phaser', 0.08]), minCount: 175, interval: 400, batch: 8, hpMult: 2.5, dmgMult: 1.3, speedMult: 1.35 },
-  { minute: 13, mix: mix(['raider', 0.3], ['interceptor', 0.3], ['escort', 0.25], ['dasher', 0.15]), minCount: 200, interval: 350, batch: 8, hpMult: 2.5, dmgMult: 1.3, speedMult: 1.4 },
+  { minute: 13, mix: mix(['raider', 0.3], ['interceptor', 0.3], ['escort', 0.25], ['dasher', 0.15], ['mech', 0.1]), minCount: 200, interval: 350, batch: 8, hpMult: 2.5, dmgMult: 1.3, speedMult: 1.4 },
   { minute: 14, mix: mix(['raider', 0.35], ['interceptor', 0.3], ['escort', 0.2], ['mech', 0.15]), minCount: 230, interval: 300, batch: 10, hpMult: 2.5, dmgMult: 1.3, speedMult: 1.45 },
 ];
 const ORBIT_EVENTS: readonly WaveEvent[] = byTime([
@@ -240,7 +245,9 @@ const REACTOR_EVENTS: readonly WaveEvent[] = byTime([
 
 /** 漂流残骸舰: It is the only stage with no speed pressure at all - no speedMult on any row, nothing in the mix faster than the player - and the only one where damage is a question of where you stand rather than how much you have: shields that must be walked around, beams strung between pairs that must be walked outside, shells already lying where you were about to walk, and crawlers that come down the one axis your weapons do not cover, all inside bulkhead corridors that decide which of those you can leave behind. */
 const DERELICT_WAVES: readonly WaveEntry[] = [
-  { minute: 0, mix: mix(['drone', 0.7], ['crewHusk', 0.3]), minCount: 14, interval: 1400, batch: 2, hpMult: 1, dmgMult: 1 },
+  // every run starts at level one whatever the stage, so the first minute here is held nearer the
+  // station's: the hands-off runs on the last three stages died in minutes two and three
+  { minute: 0, mix: mix(['drone', 0.85], ['crewHusk', 0.15]), minCount: 14, interval: 1400, batch: 2, hpMult: 1, dmgMult: 1 },
   { minute: 1, mix: mix(['drone', 0.5], ['crewHusk', 0.5]), minCount: 22, interval: 1000, batch: 3, hpMult: 1.05, dmgMult: 1 },
   { minute: 2, mix: mix(['drone', 0.35], ['crewHusk', 0.45], ['robot', 0.2]), minCount: 30, interval: 900, batch: 3, hpMult: 1.15, dmgMult: 1.05 },
   { minute: 3, mix: mix(['crewHusk', 0.35], ['drone', 0.15], ['robot', 0.18], ['ventCrawler', 0.12], ['plateWelder', 0.12], ['bomber', 0.08]), minCount: 38, interval: 820, batch: 4, hpMult: 1.25, dmgMult: 1.05 },
@@ -282,7 +289,7 @@ const DERELICT_EVENTS: readonly WaveEvent[] = byTime([
 
 /** 战争铸造厂: The one stage where distance is the damage: nothing here outruns you and nothing needs to, because the rivet turrets only charge while you are far away, the welders undo everything you chip off from range, and the assembly rigs print faster than a retreating build kills — so the foundry is won by walking into the crowd and picking a target instead of backing away from one. */
 const FOUNDRY_WAVES: readonly WaveEntry[] = [
-  { minute: 0, mix: mix(['blank', 1]), minCount: 12, interval: 1400, batch: 2, hpMult: 1, dmgMult: 1 },
+  { minute: 0, mix: mix(['blank', 1]), minCount: 10, interval: 1400, batch: 2, hpMult: 1, dmgMult: 1 },
   { minute: 1, mix: mix(['blank', 0.8], ['robot', 0.2]), minCount: 20, interval: 950, batch: 3, hpMult: 1.1, dmgMult: 1 },
   { minute: 2, mix: mix(['blank', 0.58], ['robot', 0.26], ['bomber', 0.1]), minCount: 26, interval: 850, batch: 3, hpMult: 1.2, dmgMult: 1.05 },
   { minute: 3, mix: mix(['blank', 0.44], ['robot', 0.26], ['bomber', 0.1]), minCount: 32, interval: 800, batch: 3, hpMult: 1.3, dmgMult: 1.05 },
@@ -326,8 +333,10 @@ const FOUNDRY_EVENTS: readonly WaveEvent[] = byTime([
 
 /** 塌缩带: Every other stage is survived by moving — this one moves you instead: gravity wells left by your own kills drag, void tugs haul you off your line, paired rift anchors fence the lanes with beams that shove, and the skiffs shell where you were heading, so the run is a fight for the right to stand somewhere rather than for room to run. */
 const SINGULARITY_WAVES: readonly WaveEntry[] = [
-  { minute: 0, mix: mix(['drone', 0.85], ['collapser', 0.15]), minCount: 14, interval: 1400, batch: 2, hpMult: 1, dmgMult: 1 },
-  { minute: 1, mix: mix(['drone', 0.6], ['interceptor', 0.2], ['collapser', 0.2]), minCount: 24, interval: 900, batch: 3, hpMult: 1.1, dmgMult: 1 },
+  // the collapser (44 hp, 9 damage, a gravity well when it dies) waits until minute two: at 15% of
+  // the first minute it was fifteen times the health of anything else on the floor at level one
+  { minute: 0, mix: mix(['drone', 1]), minCount: 14, interval: 1400, batch: 2, hpMult: 1, dmgMult: 1 },
+  { minute: 1, mix: mix(['drone', 0.75], ['interceptor', 0.25]), minCount: 24, interval: 900, batch: 3, hpMult: 1.1, dmgMult: 1 },
   { minute: 2, mix: mix(['drone', 0.4], ['interceptor', 0.2], ['collapser', 0.2], ['voidTug', 0.1], ['robot', 0.1]), minCount: 34, interval: 800, batch: 4, hpMult: 1.2, dmgMult: 1.05 },
   { minute: 3, mix: mix(['drone', 0.25], ['interceptor', 0.15], ['collapser', 0.18], ['voidTug', 0.1], ['robot', 0.18]), minCount: 46, interval: 700, batch: 4, hpMult: 1.35, dmgMult: 1.05 },
   { minute: 4, mix: mix(['drone', 0.16], ['interceptor', 0.12], ['collapser', 0.16], ['voidTug', 0.1], ['imploder', 0.08], ['spitter', 0.16], ['robot', 0.1]), minCount: 58, interval: 650, batch: 5, hpMult: 1.5, dmgMult: 1.1 },
