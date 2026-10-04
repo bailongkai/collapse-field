@@ -5,6 +5,12 @@ const mix = (...pairs: [string, number][]) => pairs.map(([enemy, weight]) => ({ 
 const byTime = (events: readonly WaveEvent[]): readonly WaveEvent[] => events.slice().sort((a, b) => a.at - b.at);
 
 /** One row per minute; the spawner tops the field up to minCount in batches of `batch` every `interval` ms. */
+/**
+ * How far out the opening columns stand. At 300 the drones reached a standing laser before it had
+ * cleared them, and its first hit came at a median 3.7 s; at 380 it is 26 s.
+ */
+export const OPENING_DISTANCE = 380;
+
 const WAVES: readonly WaveEntry[] = [
   // sixteen at 1.1 s rather than twelve at 1.5: the first minute held nine bodies at 0:23 and the
   // first level-up came at a median 29 s, which is a long time to walk around an empty floor
@@ -391,7 +397,15 @@ export const STAGES = {
     waves: WAVES,
     events: EVENTS,
     props: { enemy: 'crate', everyMs: 9000, max: 6 },
-    opening: { enemy: 'drone', perSide: 3, distance: 300 },
+    opening: {
+      enemy: 'drone',
+      perSide: 3,
+      distance: OPENING_DISTANCE,
+      // what each starting weapon can meet: the blade, the field, the arc, the stakes and the laser
+      // reach both ways; the railgun and the cannon face one way and meet them there; the orbit's
+      // one drone cannot clear a column, and the first minute's crowd is already enough for it
+      sides: { slash: 'both', aimed: 'both', aura: 'both', chain: 'both', pylon: 'both', stream: 'ahead', pivot: 'ahead', orbit: 'none' },
+    },
     relics: [
       { pickup: 'relicVacuum', x: 1400, y: -900 },
       { pickup: 'relicNuke', x: -1600, y: 1100 },

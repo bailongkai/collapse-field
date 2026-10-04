@@ -214,9 +214,12 @@ export class Simulation {
     for (const r of this.stage.relics ?? []) spawnPickup(this.world, r.pickup, r.x, r.y);
     // something to hit on the first swing, on both sides: see StageDef.opening
     const opening = this.stage.opening;
-    if (opening) {
-      for (const side of [-1, 1]) {
-        for (let i = 0; i < opening.perSide; i++) spawnEnemy(this.world, opening.enemy, { x: side * opening.distance, y: (i - (opening.perSide - 1) / 2) * 44 });
+    const openingSides = opening ? opening.sides[this.reg.weapons[ch.startingWeapon].behavior] : 'none';
+    if (opening && openingSides !== 'none') {
+      // she faces right on the first tick, so ahead is +x
+      const columns = openingSides === 'both' ? [-opening.distance, opening.distance] : [opening.distance, opening.distance + 60];
+      for (const x of columns) {
+        for (let i = 0; i < opening.perSide; i++) spawnEnemy(this.world, opening.enemy, { x, y: (i - (opening.perSide - 1) / 2) * 44 });
       }
     }
     this.world.obstacles = (this.stage.obstacles ?? []).map((o) => ({ x: o.x, y: o.y, w: o.w, h: o.h }));

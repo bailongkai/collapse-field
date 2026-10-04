@@ -236,12 +236,22 @@ export interface StageDef {
    */
   readonly obstacles?: readonly { readonly x: number; readonly y: number; readonly w: number; readonly h: number; readonly frame: string }[];
   /**
-   * Bodies placed on both sides of the player on the first tick, `perSide` each at `distance`,
-   * so the first swing has something to hit and the first screen already shows that the blade
-   * sweeps both ways. Without them the first level-up came at a median 29 s and the opening
-   * screen held nine bodies.
+   * Bodies placed around the player on the first tick, `perSide` in a column at `distance`, so
+   * the first swing has something to hit and the first screen already shows that the blade sweeps
+   * both ways. Without them the first level-up came at a median 29 s and the opening screen held
+   * nine bodies.
+   *
+   * `sides` says where they stand for each starting weapon's archetype: `both`, `ahead` (both
+   * columns on the side she faces, the second `distance` + 60 out) or `none`. Placed on both sides
+   * for everyone, they killed a standing gunner or navigator in 15 s: a weapon that only fires one
+   * way, or one drone circling, cannot clear a column arriving at its back.
    */
-  readonly opening?: { readonly enemy: string; readonly perSide: number; readonly distance: number };
+  readonly opening?: {
+    readonly enemy: string;
+    readonly perSide: number;
+    readonly distance: number;
+    readonly sides: Readonly<Record<WeaponBehaviorId, 'both' | 'ahead' | 'none'>>;
+  };
   readonly gemCap: number;
   readonly spawnMargin: number;
   readonly despawnFactor: number;
