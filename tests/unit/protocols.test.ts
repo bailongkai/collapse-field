@@ -139,6 +139,49 @@ describe('回身冲刺', () => {
     s.step();
     expect(x2 - s.world.player.x).toBeGreaterThan(PROTOCOL_TUNING.dash.px);
   });
+
+  it('walking up or down is not a turn, so it is not a dash', () => {
+    const s = run('dash', 'station', '');
+    s.setInput(1, 0);
+    s.stepMany(Math.round(PROTOCOL_TUNING.dash.cooldownMs / FIXED_DT_MS) + 5);
+    let dashes = 0;
+    // the autopilot's straight up is cos(pi/2) = 6e-17, and a thumb pushing up leans a little
+    for (const [dx, dy] of [[Math.cos(Math.PI / 2), -1], [Math.cos(-Math.PI / 2), 1], [-0.15, -1], [0.2, 1], [-0.2, -1]]) {
+      s.setInput(dx, dy);
+      for (let t = 0; t < Math.round(PROTOCOL_TUNING.dash.cooldownMs / FIXED_DT_MS) + 5; t++) {
+        s.world.events.clear();
+        s.step();
+        for (let i = 0; i < s.world.events.length; i++) if (s.world.events.at(i).type === 'dash') dashes++;
+      }
+      expect(s.world.player.facing, `input ${dx}, ${dy}`).toBe(0);
+    }
+    expect(dashes).toBe(0);
+  });
+});
+
+describe('facing', () => {
+  it('follows a deliberate horizontal press and ignores vertical movement and a slight lean', () => {
+    const s = run(null, 'station', '');
+    const p = s.world.player;
+    s.setInput(-1, 0);
+    s.step();
+    expect(p.facing).toBe(Math.PI);
+    for (const [dx, dy] of [[0, 1], [0, -1], [Math.cos(Math.PI / 2), 1], [1e-9, -1], [0.25, 1], [0.2, -1]]) {
+      s.setInput(dx, dy);
+      s.stepMany(3);
+      expect(p.facing, `input ${dx}, ${dy}`).toBe(Math.PI);
+    }
+    // a keyboard diagonal is meant as sideways, and so is any push well off the vertical
+    s.setInput(1, -1);
+    s.step();
+    expect(p.facing).toBe(0);
+    s.setInput(-0.5, 1);
+    s.step();
+    expect(p.facing).toBe(Math.PI);
+    s.setInput(1, 0);
+    s.step();
+    expect(p.facing).toBe(0);
+  });
 });
 
 describe('the save', () => {

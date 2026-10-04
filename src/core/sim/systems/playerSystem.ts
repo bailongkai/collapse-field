@@ -2,6 +2,14 @@ import type { PlayerStats } from '../../../data/types';
 import { FIXED_DT, IFRAME_MS, PLAYER_BASE_SPEED } from '../../../config';
 import type { Player } from '../entities/player';
 
+/**
+ * How much of the (normalised) input has to be horizontal before she turns: about 17 degrees off
+ * the vertical. Any sign used to do it, so a thumb pushing up with a slight lean, or a direction
+ * written as cos(pi/2) = 6e-17, turned her round, and under 回身冲刺 dashed her. A keyboard diagonal
+ * (0.71) still turns, as does any push a player means as sideways.
+ */
+export const FACING_MIN_X = 0.3;
+
 /** Movement, facing, i-frame countdown and health regeneration. */
 export function stepPlayer(player: Player, stats: PlayerStats, dt: number): void {
   const { inputX, inputY } = player;
@@ -12,8 +20,8 @@ export function stepPlayer(player: Player, stats: PlayerStats, dt: number): void
     player.x += inputX * speed * dt;
     player.y += inputY * speed * dt;
     // left or right only, and vertical movement leaves it alone, so turning is one deliberate input
-    if (inputX > 0) player.facing = 0;
-    else if (inputX < 0) player.facing = Math.PI;
+    if (inputX >= FACING_MIN_X) player.facing = 0;
+    else if (inputX <= -FACING_MIN_X) player.facing = Math.PI;
   }
   // the pools re-apply it every tick they are stood in, so clearing it here is what ends it
   player.drag = 0;
