@@ -19,6 +19,10 @@ test('perf: 500 enemies with a full kit stay inside the frame budget', async ({ 
     window.__game.giveWeapon('railgun', 8);
     window.__game.giveWeapon('orbitalDrones', 8);
     window.__game.giveWeapon('empField', 8);
+    // and every limit-break verb they have at its maximum: returns, ricochets, splits, blasts, pulses
+    for (const id of ['plasmaBlade', 'guidedLaser', 'railgun', 'orbitalDrones', 'empField']) window.__game.setVerb(id, 3);
+    // the station opens with six drones beside the player; the count below is the 500 placed here
+    window.__game.clearEnemies();
     window.__game.spawn('mech', 500, { ring: true, radius: 420 });
     window.__game.spawnGems(300, 'blue');
   });
