@@ -4,13 +4,13 @@ const mix = (...pairs: [string, number][]) => pairs.map(([enemy, weight]) => ({ 
 /** Events are authored by theme and sorted here, so inserting one never depends on where it is typed. */
 const byTime = (events: readonly WaveEvent[]): readonly WaveEvent[] => events.slice().sort((a, b) => a.at - b.at);
 
-/** One row per minute; the spawner tops the field up to minCount in batches of `batch` every `interval` ms. */
 /**
  * How far out the opening columns stand. At 300 the drones reached a standing laser before it had
  * cleared them, and its first hit came at a median 3.7 s; at 380 it is 26 s.
  */
 export const OPENING_DISTANCE = 380;
 
+/** One row per minute; the spawner tops the field up to minCount in batches of `batch` every `interval` ms. */
 const WAVES: readonly WaveEntry[] = [
   // sixteen at 1.1 s rather than twelve at 1.5: the first minute held nine bodies at 0:23 and the
   // first level-up came at a median 29 s, which is a long time to walk around an empty floor
@@ -341,12 +341,15 @@ const FOUNDRY_EVENTS: readonly WaveEvent[] = byTime([
 
 /** 塌缩带: Every other stage is survived by moving — this one moves you instead: gravity wells left by your own kills drag, void tugs haul you off your line, paired rift anchors fence the lanes with beams that shove, and the skiffs shell where you were heading, so the run is a fight for the right to stand somewhere rather than for room to run. */
 const SINGULARITY_WAVES: readonly WaveEntry[] = [
-  // the collapser (44 hp, 9 damage, a gravity well when it dies) waits until minute two: at 15% of
-  // the first minute it was fifteen times the health of anything else on the floor at level one
+  // The collapser (44 hp, 9 damage, a gravity well when it dies) stays out of minute zero: at 15% of
+  // the first minute it was fifteen times the health of anything else on the floor at level one.
+  // Then it comes in over two minutes, and the void tug (95 hp, a 110 px/s pull) a minute after it,
+  // lightly. Both used to arrive together at minute two, a fifth of the floor collapsers, and
+  // fifteen of sixteen hands-off runs died in that minute.
   { minute: 0, mix: mix(['drone', 1]), minCount: 14, interval: 1400, batch: 2, hpMult: 1, dmgMult: 1 },
-  { minute: 1, mix: mix(['drone', 0.75], ['interceptor', 0.25]), minCount: 24, interval: 900, batch: 3, hpMult: 1.1, dmgMult: 1 },
-  { minute: 2, mix: mix(['drone', 0.4], ['interceptor', 0.2], ['collapser', 0.2], ['voidTug', 0.1], ['robot', 0.1]), minCount: 34, interval: 800, batch: 4, hpMult: 1.2, dmgMult: 1.05 },
-  { minute: 3, mix: mix(['drone', 0.25], ['interceptor', 0.15], ['collapser', 0.18], ['voidTug', 0.1], ['robot', 0.18]), minCount: 46, interval: 700, batch: 4, hpMult: 1.35, dmgMult: 1.05 },
+  { minute: 1, mix: mix(['drone', 0.65], ['interceptor', 0.25], ['collapser', 0.1]), minCount: 24, interval: 900, batch: 3, hpMult: 1.1, dmgMult: 1 },
+  { minute: 2, mix: mix(['drone', 0.6], ['interceptor', 0.2], ['collapser', 0.1], ['robot', 0.1]), minCount: 34, interval: 800, batch: 4, hpMult: 1.2, dmgMult: 1.05 },
+  { minute: 3, mix: mix(['drone', 0.32], ['interceptor', 0.15], ['collapser', 0.15], ['voidTug', 0.05], ['robot', 0.18], ['spitter', 0.15]), minCount: 46, interval: 700, batch: 4, hpMult: 1.35, dmgMult: 1.05 },
   { minute: 4, mix: mix(['drone', 0.16], ['interceptor', 0.12], ['collapser', 0.16], ['voidTug', 0.1], ['imploder', 0.08], ['spitter', 0.16], ['robot', 0.1]), minCount: 58, interval: 650, batch: 5, hpMult: 1.5, dmgMult: 1.1 },
   { minute: 5, mix: mix(['interceptor', 0.16], ['collapser', 0.15], ['voidTug', 0.1], ['imploder', 0.08], ['spitter', 0.12], ['robot', 0.15], ['dasher', 0.12]), minCount: 70, interval: 620, batch: 5, hpMult: 1.65, dmgMult: 1.1 },
   { minute: 6, mix: mix(['collapser', 0.14], ['voidTug', 0.1], ['imploder', 0.08], ['spitter', 0.1], ['robot', 0.14], ['dasher', 0.1], ['mech', 0.12], ['escort', 0.1], ['riftAnchor', 0.12]), minCount: 84, interval: 580, batch: 5, hpMult: 1.8, dmgMult: 1.15 },
