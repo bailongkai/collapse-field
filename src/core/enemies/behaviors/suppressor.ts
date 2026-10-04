@@ -37,8 +37,11 @@ export function suppressorStep(world: World, e: Enemy, player: Player, dt: numbe
     e.aiTimer = Math.max(0, e.aiTimer - ms * cfg.decayMult);
     return;
   }
+  const before = e.aiTimer;
   e.aiTimer += ms;
-  if (e.aiTimer >= cfg.windupMs * cfg.tellAt) e.flashMs = 40;
+  const tell = cfg.windupMs * cfg.tellAt;
+  if (before < tell && e.aiTimer >= tell) world.events.push('windup', e.x, e.y, e.id, e.defId);
+  if (e.aiTimer >= tell) e.flashMs = 40;
   if (e.aiTimer < cfg.windupMs) return;
 
   const base = Math.atan2(ny, nx);

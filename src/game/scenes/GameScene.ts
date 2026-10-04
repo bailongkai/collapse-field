@@ -561,6 +561,7 @@ export class GameScene extends Phaser.Scene {
     this.pickupView.sync(this.sim.world, this.sim.run.timeMs);
     this.projectileView.sync(this.sim.world, this.weaponIdBySlot(), cam.midPoint.x, cam.midPoint.y, viewW, viewH);
     this.fxView.updateAura(p.x, p.y, this.sim.auraRadius(), deltaMs);
+    this.fxView.syncAims(this.sim.world, deltaMs);
     this.pumpEvents(true);
     this.damageNumbers.update(deltaMs);
   }
@@ -748,6 +749,10 @@ export class GameScene extends Phaser.Scene {
         case 'telegraph':
           shake(this, 200, 0.003);
           sfx.play('boss');
+          break;
+        case 'windup':
+          this.fxView.windup(this.sim.world, e.n);
+          sfx.play('laser', { volume: 0.22, rate: 1.7 });
           break;
         case 'enemyShot':
           sfx.play('rail', { volume: 0.5 });

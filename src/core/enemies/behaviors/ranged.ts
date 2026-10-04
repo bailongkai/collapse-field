@@ -3,8 +3,17 @@ import type { Player } from '../../sim/entities/player';
 import type { World } from '../../sim/world';
 
 /**
+ * How long a shooter telegraphs before it fires: it stops strafing, flashes the way the rusher does
+ * before its lunge, and announces the wind-up so the view can draw the aim. Bolts were the first
+ * cause of death on four of eight stages for a kiting player and the one attack with no tell at
+ * all; a spitter that has just walked into range used to fire on that very tick.
+ */
+export const RANGED_TELL_MS = 350;
+
+/**
  * 酸液喷吐者: holds a distance from the player and spits on an interval. It advances when too far,
- * backs off when crowded, and strafes in between so it is never a stationary target.
+ * backs off when crowded, and strafes in between so it is never a stationary target — except for
+ * the tell, when it plants its feet.
  */
 export function rangedStep(world: World, e: Enemy, player: Player, dt: number): void {
   const cfg = e.def!.ranged;
@@ -16,10 +25,28 @@ export function rangedStep(world: World, e: Enemy, player: Player, dt: number): 
   const ny = dy / dist;
   const speed = e.def!.speed * e.speedMult;
   e.facing = Math.atan2(dy, dx);
+  const inRange = dist <= cfg.range + 60;
+
+  // The shot clock only runs inside firing range, and is held just above a full tell outside it
+  // and at spawn, so a shooter that arrives, or appears already in range, always crosses the tell
+  // in view before its first bolt. aiState marks the arming; nothing else of the ranged body uses it.
+  if (e.aiState === 0) {
+    e.aiState = 1;
+    e.aiTimer2 = Math.max(e.aiTimer2, RANGED_TELL_MS + 1);
+  }
+  if (!inRange) e.aiTimer2 = Math.max(e.aiTimer2, RANGED_TELL_MS + 1);
+  // the clock runs before the feet, so the tick that crosses the tell is already a planted one
+  const before = e.aiTimer2;
+  if (inRange) e.aiTimer2 -= dt * 1000;
+  if (before > RANGED_TELL_MS && e.aiTimer2 <= RANGED_TELL_MS) world.events.push('windup', e.x, e.y, e.id, e.defId);
+  const telling = inRange && e.aiTimer2 <= RANGED_TELL_MS;
+  if (telling) e.flashMs = 40;
 
   if (dist > cfg.range + 40) {
     e.x += nx * speed * dt;
     e.y += ny * speed * dt;
+  } else if (telling) {
+    // feet planted: the flash means something only if the body it is on has stopped
   } else if (dist < cfg.range - 70) {
     e.x -= nx * speed * 0.6 * dt;
     e.y -= ny * speed * 0.6 * dt;
@@ -30,8 +57,7 @@ export function rangedStep(world: World, e: Enemy, player: Player, dt: number): 
     e.y += nx * side * speed * 0.5 * dt;
   }
 
-  e.aiTimer2 -= dt * 1000;
-  if (e.aiTimer2 <= 0 && dist <= cfg.range + 60) {
+  if (telling && e.aiTimer2 <= 0) {
     e.aiTimer2 = cfg.intervalMs;
     spawnHostileBolt(world, e, nx, ny, cfg.boltSpeed, cfg.boltDamage * e.dmgMult, (cfg.range * 1.6) / cfg.boltSpeed);
   }

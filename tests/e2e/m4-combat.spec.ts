@@ -21,8 +21,13 @@ test('M4: weapons fire, kill enemies and show damage numbers', async ({ page }) 
   expect(s.counts.gems).toBeGreaterThan(0);
   // floating numbers appear for fresh hits and stay inside the pool and the per-step spawn cap
   await page.evaluate(() => window.__game.spawn('mech', 12, { radius: 60 }));
-  await step(page, 60);
-  const withNumbers = await state(page);
+  // the blade swings every 81 ticks and the laser every 60, so a single 60-tick window can miss
+  // both; a step shows the numbers of its last batch, so it is retried a batch at a time
+  let withNumbers = await state(page);
+  for (let i = 0; i < 4 && withNumbers.counts.dmgNumbers === 0; i++) {
+    await step(page, 60);
+    withNumbers = await state(page);
+  }
   expect(withNumbers.counts.dmgNumbers).toBeGreaterThan(0);
   expect(withNumbers.counts.dmgNumbers).toBeLessThanOrEqual(24);
   // the test build never creates audio nodes

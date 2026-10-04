@@ -45,11 +45,16 @@ test('content: the mid-run field has spitters firing and dashers lunging', async
     window.__game.spawn('spitter', 6, { radius: 300 });
     window.__game.spawn('dasher', 6, { radius: 320 });
   });
-  await stepResolving(page, 60 * 5);
-  const s = await state(page);
+  // spitters have been shooting: hostile bolts are part of the projectile count. A bolt lives
+  // about 1.7 s and a spitter fires every 2.4 s after a 350 ms tell, so one fixed instant can fall
+  // between two bolts; the count is read every half second until one is in the air.
+  let s = await state(page);
+  for (let i = 0; i < 12 && s.counts.projectiles === 0; i++) {
+    await stepResolving(page, 30);
+    s = await state(page);
+  }
   expect(s.enemies.byBehavior.ranged).toBeGreaterThan(0);
   expect(s.enemies.byBehavior.dasher).toBeGreaterThan(0);
-  // spitters have been shooting: hostile bolts are part of the projectile count
   expect(s.counts.projectiles).toBeGreaterThan(0);
   await snap(page, 'content-newenemies');
   expect(errors, errors.join('\n')).toEqual([]);
