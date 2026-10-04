@@ -910,6 +910,9 @@ export class Simulation {
         limit: { damage: 0, area: 0, cooldown: 0, speed: 0 },
         activeCount: 0,
         plantSerial: 0,
+        auxMs: 0,
+        leanAngle: 0,
+        lean: 0,
         lastHitTick: new Int32Array(ENEMY_CAP).fill(-1e9),
       };
       this.world.weaponInstances.push(inst);

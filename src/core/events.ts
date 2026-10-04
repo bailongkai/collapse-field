@@ -3,7 +3,9 @@ export type SimEventType =
   | 'pickup' | 'hurt' | 'final' | 'enrage' | 'died' | 'survived' | 'rush' | 'chest' | 'elite' | 'shield' | 'signature' | 'explode' | 'shot' | 'revivePrompt' | 'heal' | 'nuke' | 'vacuum' | 'revive'
   | 'evolve' | 'telegraph' | 'enemyShot' | 'collapseWarn' | 'collapse' | 'swallowed' | 'collapseResult'
   /** a shooter has begun its wind-up: `n` is its slot, so the view can draw the aim from where it stands */
-  | 'windup';
+  | 'windup'
+  /** the EMP field drew the crowd in: `n` is the reach it pulled from */
+  | 'auraPulse';
 
 export interface SimEvent {
   type: SimEventType;

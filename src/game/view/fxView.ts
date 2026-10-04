@@ -6,6 +6,7 @@ import type { World } from '../../core/sim/world';
 const AIM_MS = 420;
 const MAX_AIMS = 48;
 const AIM_COLOR = 0xb7ff5a;
+const PULSE_FX_MS = 320;
 
 /**
  * Shared particle emitters for deaths and impacts. One emitter per effect is created up front and
@@ -16,6 +17,10 @@ export class FxView {
   private smoke: Phaser.GameObjects.Particles.ParticleEmitter;
   private auraRing: Phaser.GameObjects.Image;
   private pulse = 0;
+  /** the field's pull, drawn as a ring closing from its reach onto the field */
+  private pulseRing: Phaser.GameObjects.Image;
+  private pulseMs = 0;
+  private pulseFrom = 0;
   private aimG: Phaser.GameObjects.Graphics;
   /** shooters winding up: the slot and serial they were in, and how long their line has left */
   private aims: { id: number; serial: number; ms: number }[] = [];
@@ -27,6 +32,8 @@ export class FxView {
       .setTint(0x40c0ff)
       .setVisible(false);
     layer.add(this.auraRing);
+    this.pulseRing = scene.add.image(0, 0, 'game', 'fx_ring').setBlendMode(Phaser.BlendModes.ADD).setTint(0x9fe6ff).setVisible(false);
+    layer.add(this.pulseRing);
     this.aimG = scene.add.graphics();
     layer.add(this.aimG);
     this.spark = scene.add.particles(0, 0, 'game', {
@@ -62,6 +69,19 @@ export class FxView {
     this.auraRing.setPosition(x, y);
     this.auraRing.setDisplaySize(radius * 2, radius * 2);
     this.auraRing.setAlpha(0.25 + 0.15 * (0.5 + 0.5 * Math.sin(this.pulse * 4)));
+    if (this.pulseMs > 0) {
+      this.pulseMs = Math.max(0, this.pulseMs - deltaMs);
+      const k = this.pulseMs / PULSE_FX_MS; // 1 at the pulse, 0 when it has closed
+      const r = radius + (this.pulseFrom - radius) * k;
+      this.pulseRing.setVisible(true).setPosition(x, y).setDisplaySize(r * 2, r * 2).setAlpha(0.5 * (1 - k) + 0.1);
+      if (this.pulseMs === 0) this.pulseRing.setVisible(false);
+    }
+  }
+
+  /** The field pulsed: a ring closes from `reach` onto the field over a third of a second. */
+  auraPulse(reach: number): void {
+    this.pulseFrom = reach;
+    this.pulseMs = PULSE_FX_MS;
   }
 
   /**
@@ -107,6 +127,7 @@ export class FxView {
     this.spark.destroy();
     this.smoke.destroy();
     this.auraRing.destroy();
+    this.pulseRing.destroy();
     this.aimG.destroy();
     this.aims.length = 0;
   }

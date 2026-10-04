@@ -783,6 +783,10 @@ export class GameScene extends Phaser.Scene {
           shake(this, 200, 0.003);
           sfx.play('boss');
           break;
+        case 'auraPulse':
+          this.fxView.auraPulse(e.n);
+          sfx.play('emp', { volume: 0.35, rate: 1.4 });
+          break;
         case 'windup':
           this.fxView.windup(this.sim.world, e.n);
           sfx.play('laser', { volume: 0.22, rate: 1.7 });
