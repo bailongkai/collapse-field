@@ -1,8 +1,65 @@
 import type { World } from '../world';
+import type { Enemy } from '../entities/enemy';
+import type { ChestGrade } from '../../levelup/chest';
 import { spawnPickup } from './pickupSystem';
 
 /** What a collapse is called when it is the thing that hurt the player. */
 export const COLLAPSE_SOURCE = 'collapse';
+/**
+ * A cache taken with this much warning left or less pays as a boss chest. The round trip into the
+ * circle and out is about two and a half seconds, so a player who waits for the last three is one
+ * who has decided to run it close; the bigger chest is what that nerve is worth.
+ */
+export const COLLAPSE_LATE_MS = 3000;
+/** how far from a marked circle a chasing body is drawn towards it, and how strongly */
+const CROWD_PULL_RANGE = 640;
+const CROWD_PULL = 0.35;
+/** a body this close to the circle goes for the cache itself and stands guard over it */
+const GUARD_MARGIN = 120;
+
+/** The grade a chest pays at: the stated one, or a boss chest for a cache taken late off a marked floor. */
+export function collapseRewardGrade(world: World, pickupId: string, x: number, y: number, base: ChestGrade): ChestGrade {
+  for (const zone of world.collapses) {
+    if (zone.reward !== pickupId) continue;
+    const dx = x - zone.x;
+    const dy = y - zone.y;
+    if (dx * dx + dy * dy > zone.radius * zone.radius) continue;
+    return zone.leftMs <= COLLAPSE_LATE_MS ? 'boss' : base;
+  }
+  return base;
+}
+
+/**
+ * Where a chasing body heads while the floor is marked. A body already at the circle goes for the
+ * cache and stands over it; the rest of the crowd within range heads part of the way towards the
+ * circle, so it thickens around it. The circle used to be empty when it went, forty-eight times
+ * out of forty-eight, under every policy tried: a cache with nobody near it costs nothing to take
+ * and a circle with nobody on it is nothing to lead a crowd into. The guards are swallowed with
+ * the floor if nobody clears them, and swallowed bodies drop nothing, which is the price of
+ * leaving the cache alone. The blend for the rest is a blend rather than a destination, so the
+ * crowd still comes for the player and the player can still be followed in.
+ */
+export function crowdTarget(world: World, e: Enemy, out: { x: number; y: number }): { x: number; y: number } {
+  const p = world.player;
+  out.x = p.x;
+  out.y = p.y;
+  for (const zone of world.collapses) {
+    const dx = zone.x - e.x;
+    const dy = zone.y - e.y;
+    const d2 = dx * dx + dy * dy;
+    if (d2 > CROWD_PULL_RANGE * CROWD_PULL_RANGE) continue;
+    const guard = zone.radius + GUARD_MARGIN;
+    if (d2 <= guard * guard) {
+      out.x = zone.x;
+      out.y = zone.y;
+    } else {
+      out.x = p.x + (zone.x - p.x) * CROWD_PULL;
+      out.y = p.y + (zone.y - p.y) * CROWD_PULL;
+    }
+    return out;
+  }
+  return out;
+}
 
 /**
  * Marks a circle of floor and leaves the reward in the middle of it.

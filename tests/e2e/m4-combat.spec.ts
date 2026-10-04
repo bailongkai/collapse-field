@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openGame, snap, startRun, state, step, waitScene } from './helpers';
+import { openGame, snap, startRun, state, step, stepResolving, waitScene } from './helpers';
 
 test('M4: weapons fire, kill enemies and show damage numbers', async ({ page }) => {
   const errors = await openGame(page, '?test=1&seed=21');
@@ -15,7 +15,8 @@ test('M4: weapons fire, kill enemies and show damage numbers', async ({ page }) 
   await page.evaluate(() => window.__game.spawn('drone', 60, { radius: 220 }));
   expect((await state(page)).counts.enemies).toBe(60);
 
-  await step(page, 600);
+  // resolving: ten seconds of kills is a level-up, and a run frozen on its offer lands no hits
+  await stepResolving(page, 600);
   const s = await state(page);
   expect(s.kills).toBeGreaterThan(0);
   expect(s.counts.gems).toBeGreaterThan(0);
@@ -25,7 +26,7 @@ test('M4: weapons fire, kill enemies and show damage numbers', async ({ page }) 
   // both; a step shows the numbers of its last batch, so it is retried a batch at a time
   let withNumbers = await state(page);
   for (let i = 0; i < 4 && withNumbers.counts.dmgNumbers === 0; i++) {
-    await step(page, 60);
+    await stepResolving(page, 60);
     withNumbers = await state(page);
   }
   expect(withNumbers.counts.dmgNumbers).toBeGreaterThan(0);

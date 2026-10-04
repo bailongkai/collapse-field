@@ -13,7 +13,7 @@ import { dropForEnemy } from './systems/dropSystem';
 import { stepWeapons } from './systems/weaponSystem';
 import { stepProjectiles } from './systems/projectileSystem';
 import { stepGems, vacuumGems } from './systems/gemSystem';
-import { stepCollapses } from './systems/collapseSystem';
+import { collapseRewardGrade, stepCollapses } from './systems/collapseSystem';
 import { EventScheduler } from './systems/eventSystem';
 import { rollDrops, spawnPickup, stepPickups, type PickupCollected } from './systems/pickupSystem';
 import { rollLevelUp } from '../levelup/roll';
@@ -529,7 +529,8 @@ export class Simulation {
         break;
       }
       case 'chest':
-        this.openChest(effect.grade, c.x, c.y);
+        // a cache taken off a marked floor in its last seconds pays as a boss chest
+        this.openChest(collapseRewardGrade(world, c.def.id, c.x, c.y, effect.grade), c.x, c.y);
         break;
     }
   }

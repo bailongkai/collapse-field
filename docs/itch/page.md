@@ -85,7 +85,7 @@ on the new `html5` upload, delete the old one, and save. Every push after that r
 > build you commit to gets finished.
 >
 > **The floor gives way.** On the first stage, sections of the station collapse with a supply chest
-> in the middle. Nine seconds: walk in for it, or go round, or lead the crowd onto it.
+> in the middle. Five and a half seconds: walk in for it, or go round, or lead the crowd onto it; taken in the last three, the chest is a big one.
 >
 > - 8 characters, each with a starting weapon and a signature ability
 > - 16 weapons, 8 of them evolutions, and 11 items
@@ -117,7 +117,7 @@ on the new `html5` upload, delete the old one, and save. Every push after that r
 > **武器会进化。** 武器升满、再带上对应装备，下一个补给箱就会让它进化成全新的武器。补给箱会优先升级最接近满级的武器，
 > 认定的构筑一定能成型。
 >
-> **地板会塌。** 第一关里，空间站的地板会整块塌落，补给箱就在圈中央。九秒钟：冲进去拿，绕开走，或者把敌群引上去。
+> **地板会塌。** 第一关里，空间站的地板会整块塌落，补给箱就在圈中央。五秒半：冲进去拿，绕开走，或者把敌群引上去；最后三秒拿到的是大箱子。
 >
 > - 8 名角色，各有起始武器和专属能力
 > - 16 种武器（其中 8 种是进化形态）、11 种装备

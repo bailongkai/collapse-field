@@ -102,7 +102,7 @@ export const en: Partial<Record<I18nKey, string>> = {
   'cause.bolt': 'enemy fire',
   'results.menu': 'Main menu',
   'pickup.riftCache.name': 'Rift cache',
-  'toast.collapseWarn': 'The floor is giving way! A cache lies inside',
+  'toast.collapseWarn': 'The floor is giving way! A cache lies inside; taken in the last three seconds, it pays more',
   'toast.collapse': 'Sector collapsed',
   'toast.elite': '{name} incoming, carrying a chest',
   'toast.rush': '{name} rush from the {dir}',

@@ -110,11 +110,20 @@ both subset in `public/assets/fonts` and loaded in `BootScene`. `textStyle` rout
 
 The station's floor gives way three times a run (`WaveEvent` kind `'collapse'`,
 `collapseSystem.ts`): a circle is marked inside the view with a non-magnetic chest in the middle,
-and nine seconds later it takes the chest and every ordinary body standing on it, and hurts a
+and 5.5 seconds later it takes the chest and every ordinary body standing on it, and hurts a
 player who is still there through `world.blasts`. It is an experiment on the first stage only, in
-what the game is named after. Two rules it must keep: it never shares a minute with a boss, and it
-removes the crowd it lands on rather than adding to it, because a hazard stacked on a set piece is
-a death nobody could have read. The bodies it takes are not kills and drop nothing.
+what the game is named after. It had nine seconds once, and measured over forty-eight circles that
+was a stroll: a player who went at once was out with seven to spare, one who stayed away was never
+caught, and the circle was empty when it went under every policy tried. So three things make it a
+decision now: the warning is 5.5 s against a 2.5 s round trip; a cache taken in its last three
+seconds pays as a boss chest (`collapseRewardGrade`), so the late grab is the one worth something;
+and chasing bodies within 640 px head a third of the way towards the circle (`crowdTarget`), so
+there is a crowd to cross and a crowd to lead in. The autopilot has a cache term (`CACHE_W`) that
+goes in only when the round trip fits, or the telemetry baseline would say nobody takes it for a
+reason that has nothing to do with players. Two rules it must keep: it never shares a minute with
+a boss, and it removes the crowd it lands on rather than adding to it, because a hazard stacked
+on a set piece is a death nobody could have read. The bodies it takes are not kills and drop
+nothing.
 
 A level-up card for a passive names the weapons it will make stronger, from `WEAPON_STAT_USE` in
 `src/core/weapons/statUse.ts`, and a passive no weapon in the build can use is offered at a

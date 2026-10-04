@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { Simulation } from '../../src/core/sim/simulation';
 import { STAGE_ORDER } from '../../src/data/stages';
+import { COLLAPSE_LATE_MS } from '../../src/core/sim/systems/collapseSystem';
 
 const newSim = (seed = 9) => {
   const s = new Simulation({ seed, characterId: 'survivor', stageId: 'station' });
@@ -160,5 +161,67 @@ describe('the floor gives way', () => {
         for (const at of bosses) expect(Math.abs(e.at - at), `${stage.id} collapse at ${e.at}`).toBeGreaterThanOrEqual(60);
       }
     }
+  });
+});
+
+describe('the floor is a decision', () => {
+  it('the warning is just over the round trip, not three times it', () => {
+    const s = newSim();
+    const zone = open(s);
+    const there = Math.hypot(zone.x - s.world.player.x, zone.y - s.world.player.y);
+    const roundTrip = ((there + zone.radius) / 200) * 1000;
+    expect(zone.totalMs).toBeGreaterThan(roundTrip + 1000);
+    expect(zone.totalMs).toBeLessThan(roundTrip * 2.5);
+  });
+
+  it('a cache taken in the last three seconds pays as a boss chest; an early one as a standard chest', () => {
+    const grades: string[] = [];
+    for (const late of [false, true]) {
+      const s = newSim();
+      s.run.god = true;
+      s.giveWeapon('plasmaBlade', 2);
+      const zone = open(s);
+      if (late) s.stepMany(Math.ceil((zone.totalMs - COLLAPSE_LATE_MS + 100) / (1000 / 60)));
+      s.world.player.x = zone.x;
+      s.world.player.y = zone.y;
+      s.stepMany(3);
+      expect(s.run.chestsOpened).toBe(1);
+      grades.push(s.run.chestQueue[0].grade);
+    }
+    expect(grades).toEqual(['standard', 'boss']);
+  });
+
+  it('a body near the circle goes for the cache, and the crowd further off leans towards it', () => {
+    const s = newSim();
+    s.run.god = true;
+    const zone = open(s);
+    // one body just outside the rim, one far off on the other side of the player
+    s.spawn('infected', 1, { x: zone.x + zone.radius + 60, y: zone.y });
+    const far = { x: s.world.player.x - (zone.x - s.world.player.x), y: s.world.player.y - (zone.y - s.world.player.y) };
+    s.spawn('infected', 1, { x: far.x, y: far.y });
+    const [near, distant] = s.world.enemies.items.filter((e) => e.active && e.defId === 'infected');
+    const nearD0 = Math.hypot(near.x - zone.x, near.y - zone.y);
+    const distantToPlayer0 = Math.hypot(distant.x - s.world.player.x, distant.y - s.world.player.y);
+    s.stepMany(90);
+    expect(Math.hypot(near.x - zone.x, near.y - zone.y), 'the guard did not close on the cache').toBeLessThan(nearD0 - 60);
+    // the far body still comes for the player, and its heading is bent towards the circle
+    const toPlayer = Math.hypot(distant.x - s.world.player.x, distant.y - s.world.player.y);
+    expect(toPlayer).toBeLessThan(distantToPlayer0);
+    const headX = distant.x - far.x;
+    const headY = distant.y - far.y;
+    const towardZone = (headX * (zone.x - far.x) + headY * (zone.y - far.y)) / (Math.hypot(headX, headY) * Math.hypot(zone.x - far.x, zone.y - far.y));
+    const towardPlayer = (headX * (s.world.player.x - far.x) + headY * (s.world.player.y - far.y)) / (Math.hypot(headX, headY) * Math.hypot(s.world.player.x - far.x, s.world.player.y - far.y));
+    expect(towardPlayer).toBeGreaterThan(0.9);
+    expect(towardZone).toBeGreaterThan(towardPlayer - 0.05);
+  });
+
+  it('the hands-off policy goes for a cache it can reach and leave in time', () => {
+    const s = newSim(4);
+    s.run.god = true;
+    s.setAutopilot(true);
+    const zone = open(s);
+    s.stepMany(Math.ceil(zone.totalMs / (1000 / 60)) + 2);
+    expect(s.run.chestsOpened, 'the instrument never takes the cache, so no baseline could').toBe(1);
+    expect(results(s)).toEqual([{ lost: false, caught: false }]);
   });
 });

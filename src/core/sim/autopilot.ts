@@ -1,6 +1,6 @@
-import type { World } from './world';
+import type { CollapseZone, World } from './world';
 import { setPlayerInput } from './systems/playerSystem';
-import { FIXED_DT_MS } from '../../config';
+import { FIXED_DT_MS, PLAYER_BASE_SPEED } from '../../config';
 import { carriesChest, weaponDef } from '../content/registry';
 
 /**
@@ -63,6 +63,15 @@ const PRIZE_W = 35;
 const PRIZE_THREAT_SCALE = 0.5;
 /** how many bodies within sense count as "no room to fight here" */
 const CROWDED = 14;
+/**
+ * How much a cache on a marked floor is worth going for, when there is time to get in and out.
+ * Modest, and discounted by the crowd the way a chest on legs is: the policy is an instrument for
+ * comparing content, and without this term every balance run and every telemetry baseline said
+ * that nobody takes the cache, for a reason that had nothing to do with the players.
+ */
+const CACHE_W = 30;
+/** the margin the policy wants over the round trip before it commits to a cache */
+const CACHE_MARGIN_MS = 600;
 
 // scratch, reused every step: the simulation must not allocate inside its own loop
 const eDx = new Float64Array(MAX_TRACKED);
@@ -120,6 +129,7 @@ export function driveAutopilot(world: World, tick: number): void {
 
   // --- the pulls that do not depend on direction
   const gem = nearestGem(world, 320);
+  const cache = reachableCache(world);
   const side = aboutToFire(world) ? crowdSide(world) : 0;
   // when the field has thinned out, go and find the fight: the weapons only reach 140 px, and a
   // player who keeps their distance collects no experience and never builds anything
@@ -148,11 +158,14 @@ export function driveAutopilot(world: World, tick: number): void {
     // a chest on legs is worth going after, but only when there is room to fight it. Standing to
     // trade blows in the middle of a full field is how a run ends, prize or no prize.
     if (prizeD < Infinity) s += (ux * prizeX + uy * prizeY) * PRIZE_W * safety;
+    if (cache) s += (ux * cache.x + uy * cache.y) * CACHE_W * safety;
     // turning costs a step of distance and buys a swing that lands: worth it, but not at any price
     if (side !== 0 && Math.sign(ux) === side) s += Math.abs(ux) * 26;
     // ground that is about to go is not somewhere to be standing, or to walk into
     for (const zone of world.collapses) {
       if (zone.leftMs > HAZARD_HEED_MS) continue;
+      // a circle it has decided to take is not a wall yet; it becomes one again once the cache is gone
+      if (cache && cache.zone === zone) continue;
       const hx = p.x + ux * HAZARD_LOOK - zone.x;
       const hy = p.y + uy * HAZARD_LOOK - zone.y;
       const reach = zone.radius + 40;
@@ -170,6 +183,29 @@ export function driveAutopilot(world: World, tick: number): void {
   }
 
   setPlayerInput(p, DIR_X[best], DIR_Y[best]);
+}
+
+/**
+ * The direction to a cache on a marked floor the policy can still take and leave: the walk in, the
+ * walk out to the rim and a margin, all at the player's speed, inside the warning left. Null when
+ * there is none, or when going now would mean being on the floor when it goes.
+ */
+function reachableCache(world: World): { x: number; y: number; zone: CollapseZone } | null {
+  if (world.collapses.length === 0) return null;
+  const p = world.player;
+  const pickups = world.pickups.aliveList();
+  for (let i = 0; i < world.pickups.count; i++) {
+    const item = world.pickups.items[pickups[i]];
+    const zone = world.collapses.find((z) => z.reward === item.defId);
+    if (!zone) continue;
+    const dx = item.x - p.x;
+    const dy = item.y - p.y;
+    const d = Math.hypot(dx, dy) || 1;
+    const needMs = ((d + zone.radius) / PLAYER_BASE_SPEED) * 1000 + CACHE_MARGIN_MS;
+    if (zone.leftMs < needMs) continue;
+    return { x: dx / d, y: dy / d, zone };
+  }
+  return null;
 }
 
 /** Whether a weapon that fires to the side is about to come off cooldown. */

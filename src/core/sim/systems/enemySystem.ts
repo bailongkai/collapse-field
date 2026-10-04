@@ -19,6 +19,9 @@ import { suppressorStep } from '../../enemies/behaviors/suppressor';
 import type { Enemy } from '../entities/enemy';
 import type { Player } from '../entities/player';
 import type { World } from '../world';
+import { crowdTarget } from './collapseSystem';
+
+const target = { x: 0, y: 0 };
 
 /**
  * Moves every enemy according to its per-instance behavior and integrates knockback as a decaying
@@ -97,7 +100,11 @@ export function stepEnemies(world: World, player: Player, dt: number, detonated:
         break;
       case 'chase':
       default:
-        chaseStep(e, player.x, player.y, dt);
+        if (world.collapses.length > 0) {
+          // a marked floor draws the crowd part of the way towards it; see crowdTarget
+          crowdTarget(world, e, target);
+          chaseStep(e, target.x, target.y, dt);
+        } else chaseStep(e, player.x, player.y, dt);
         break;
     }
 

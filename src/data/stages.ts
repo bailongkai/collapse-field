@@ -42,13 +42,17 @@ const WAVES: readonly WaveEntry[] = [
  * the marked circle. An experiment, on this stage only, in what the game is named after: every
  * other event is about what walks on the floor and this one is about the floor.
  *
- * Nine seconds is long enough to walk in from where the circle is drawn, take the chest and walk
- * out again at 200 px/s with a second or two to spare, and not long enough to finish a fight
- * first. None of the three shares a minute with a boss: a hazard on top of a set piece is a death
- * nobody could have read. The damage is a little under half a starting health bar, so being
- * caught is a mistake and not the end of the run.
+ * Five and a half seconds. Walking in from where the circle is drawn, taking the chest and walking
+ * out again takes 2.1 to 2.7 s at 200 px/s, so with the nine seconds it used to have a player who
+ * went at once was out with seven to spare and one who stayed away was never caught: measured over
+ * forty-eight circles, nothing anyone did had a cost, which made it a stroll and not a decision.
+ * At 5.5 the round trip plus a second and a half to react is just inside the warning, and a chest
+ * taken in the last three seconds pays as a boss chest (collapseSystem), so the late grab is the
+ * one worth something. None of the three shares a minute with a boss: a hazard on top of a set
+ * piece is a death nobody could have read. The damage is a little under half a starting health
+ * bar, so being caught is a mistake and not the end of the run.
  */
-const COLLAPSE = (at: number): WaveEvent => ({ at, kind: 'collapse', radius: 170, distance: 360, warnMs: 9000, damage: 45, reward: 'riftCache' });
+const COLLAPSE = (at: number): WaveEvent => ({ at, kind: 'collapse', radius: 170, distance: 360, warnMs: 5500, damage: 45, reward: 'riftCache' });
 
 const EVENTS: readonly WaveEvent[] = byTime([
   { at: 90, kind: 'swarm', enemy: 'interceptor', count: 25, pattern: 'hLine' },

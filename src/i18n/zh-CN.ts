@@ -99,7 +99,7 @@ export const zhCN = {
   'cause.bolt': '敌方弹幕',
   'results.menu': '主菜单',
   'pickup.riftCache.name': '塌缩区补给箱',
-  'toast.collapseWarn': '地板即将塌缩！补给箱在圈内',
+  'toast.collapseWarn': '地板即将塌缩！补给箱在圈内，最后三秒拿到的更大',
   'toast.collapse': '区域已塌缩',
   'toast.elite': '{name}来了，背着补给箱',
   'toast.rush': '{name}冲锋潮：{dir}',
