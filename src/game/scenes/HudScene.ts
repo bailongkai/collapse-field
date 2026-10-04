@@ -57,9 +57,14 @@ export class HudScene extends Phaser.Scene {
       .text(viewOf(this).width / 2, top + 34, t('hud.objective_final'), textStyle(22, { bold: true, color: COLORS.warn, stroke: true }))
       .setOrigin(0.5, 0)
       .setVisible(false);
-    // outlined: the field scrolls behind the HUD, and a thin grey number over a crowd or a crate is not there
-    this.killsText = this.add.text(right - 12, top + 76, '', textStyle(16, { color: COLORS.text, align: 'right', stroke: true })).setOrigin(1, 0);
-    this.signatureText = this.add.text(right - 12, top + 98, '', textStyle(14, { color: COLORS.accent, align: 'right', stroke: true })).setOrigin(1, 0);
+    // The right column, top down: the pause button for touch players, then the kill count, then the
+    // signature line. The button used to sit at top+130 over a signature line at top+98, so on every
+    // phone the ability's name was printed under the one button a finger has to find. Both texts are
+    // outlined: the field scrolls behind the HUD, and a thin grey number over a crowd is not there.
+    const pauseH = 56;
+    const pauseY = top + 34 + pauseH / 2;
+    this.killsText = this.add.text(right - 12, pauseY + pauseH / 2 + 8, '', textStyle(16, { color: COLORS.text, align: 'right', stroke: true })).setOrigin(1, 0);
+    this.signatureText = this.add.text(right - 12, pauseY + pauseH / 2 + 30, '', textStyle(14, { color: COLORS.accent, align: 'right', stroke: true })).setOrigin(1, 0);
     this.bossBarW = Math.min(400, viewOf(this).width - 80);
     const bottom = viewOf(this).height - inset.bottom;
     this.bossBarBg = this.add.rectangle(viewOf(this).width / 2, bottom - 40, this.bossBarW, 12, 0x2a0f14).setOrigin(0.5).setVisible(false);
@@ -72,12 +77,12 @@ export class HudScene extends Phaser.Scene {
 
     // touch players have no Escape key, so they get a button once touch is detected
     const touch = app().touch;
-    this.pauseButton = new UiButton(this, right - 60, top + 130, {
+    this.pauseButton = new UiButton(this, right - 48, pauseY, {
       id: 'hud.pause',
       label: '',
       icon: 'icon_pause',
       width: 72,
-      height: 56,
+      height: pauseH,
       fontSize: 22,
       onPress: () => (this.scene.get('Game') as GameScene | undefined)?.openPause(),
     });

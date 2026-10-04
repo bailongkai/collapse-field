@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { openGame, snap, state, waitScene, realWait, startRun, step, press } from './helpers';
+import { openGame, snap, state, waitScene, realWait, startRun, step, press, hudCorner } from './helpers';
 
 /**
  * A phone held upright. The view takes the shape of the display rather than being letterboxed, so
@@ -171,5 +171,22 @@ test('portrait: the chest reveal fits an upright phone', async ({ page }) => {
   await snap(page, 'portrait-chest');
   await press(page, 'chest.continue');
   await waitScene(page, 'game');
+  expect(errors, errors.join('\n')).toEqual([]);
+});
+
+test('portrait: the pause button does not cover the HUD text held upright either', async ({ page }) => {
+  const errors = await openGame(page, '?test=1&touch=1');
+  await page.evaluate(() => window.__game.startRun({ seed: 7 }));
+  await waitScene(page, 'game');
+  await realWait(200);
+  const corner = await hudCorner(page);
+  expect(corner.pause).not.toBeNull();
+  expect(corner.iconVisible).toBe(true);
+  for (const t of corner.texts) {
+    const p = corner.pause!;
+    const apart = t.x >= p.x + p.w || t.x + t.w <= p.x || t.y >= p.y + p.h || t.y + t.h <= p.y;
+    expect(apart, `${t.name} overlaps the pause button`).toBe(true);
+  }
+  await snap(page, 'portrait-hud-corner');
   expect(errors, errors.join('\n')).toEqual([]);
 });

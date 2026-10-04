@@ -203,6 +203,32 @@ export function toScreen(page: Page, gameX: number, gameY: number): Promise<{ x:
   );
 }
 
+/**
+ * The HUD's top-right corner, in logical units: the pause button's hit rectangle and the bounds
+ * of the texts that share the corner with it. Read from the live scene, because the registry only
+ * knows about buttons and the bug this guards was a button drawn over a line of text.
+ */
+export function hudCorner(page: Page): Promise<{ pause: { x: number; y: number; w: number; h: number } | null; texts: { name: string; x: number; y: number; w: number; h: number }[]; iconVisible: boolean }> {
+  return page.evaluate(() => {
+    type Rect = { x: number; y: number; width: number; height: number };
+    type Obj = { getBounds(): Rect; visible: boolean; tintMode?: number; frame?: { name: string } };
+    const hud = window.__game.phaser.scene.getScene('Hud') as unknown as Record<string, Obj | { list: Obj[] } | undefined>;
+    const btn = window.__game.ui.buttons().find((b) => b.id === 'hud.pause');
+    const pause = btn ? { x: btn.x - btn.hitW / 2, y: btn.y - btn.hitH / 2, w: btn.hitW, h: btn.hitH } : null;
+    const texts: { name: string; x: number; y: number; w: number; h: number }[] = [];
+    for (const name of ['killsText', 'signatureText', 'levelText']) {
+      const o = hud[name] as Obj | undefined;
+      if (!o || !o.visible) continue;
+      const r = o.getBounds();
+      if (r.width <= 0) continue;
+      texts.push({ name, x: r.x, y: r.y, w: r.width, h: r.height });
+    }
+    const container = hud['pauseButton'] as { list: Obj[] } | undefined;
+    const icon = container?.list.find((c) => c.frame?.name === 'icon_pause');
+    return { pause, texts, iconVisible: !!icon && icon.visible && icon.tintMode === 1 };
+  });
+}
+
 export function realWait(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }

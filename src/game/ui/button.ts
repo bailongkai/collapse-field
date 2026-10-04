@@ -40,7 +40,11 @@ export class UiButton extends Phaser.GameObjects.Container {
       .text(0, 0, opts.icon ? '' : opts.label, textStyle(opts.fontSize ?? 22, { bold: true, color: COLORS.text, letterSpacing: 1 }))
       .setOrigin(0.5);
     this.add([this.bg, this.label]);
-    if (opts.icon) this.add(scene.add.image(0, 0, 'game', opts.icon).setDisplaySize(Math.round(h * 0.55), Math.round(h * 0.55)));
+    // the icon frames are drawn in a dark ink for a light button; this button is dark, so the
+    // shape is filled with the label colour instead, or the pause button is an empty frame
+    if (opts.icon) {
+      this.add(scene.add.image(0, 0, 'game', opts.icon).setDisplaySize(Math.round(h * 0.55), Math.round(h * 0.55)).setTintMode(1 /* FILL */).setTint(0xe8f1ff));
+    }
     // The hit area is grown past the drawing so an off-centre thumb still lands: on a phone the
     // difference between "tapped it" and "nothing happened" is a few millimetres.
     const minUnits = minTouchUnits(scene);

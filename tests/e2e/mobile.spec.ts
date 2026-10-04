@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openGame, snap, state, waitScene, realWait, sceneName, TouchSession, toScreen } from './helpers';
+import { openGame, snap, state, waitScene, realWait, sceneName, TouchSession, toScreen, hudCorner } from './helpers';
 
 /**
  * Touch play on a phone held landscape. Everything here goes through real touch events rather than
@@ -244,5 +244,29 @@ test('mobile: the stick lets go when the finger is lifted over an overlay button
   const held = await page.evaluate(() => window.__game.getPerf().stickHeld);
   expect(held, 'the stick is still held after the finger was lifted').toBe(false);
 
+  expect(errors, errors.join('\n')).toEqual([]);
+});
+
+test('mobile: the pause button has the corner to itself, and shows its icon', async ({ page }) => {
+  // The button used to sit at top+130 over the signature line at top+98, on every phone, and its
+  // icon was drawn in a dark ink on a dark button, so what the player saw was an empty frame printed
+  // over the name of their ability.
+  const errors = await openGame(page, '?test=1&touch=1&seed=53');
+  await page.evaluate(() => window.__game.startRun({ seed: 53 }));
+  await waitScene(page, 'game');
+  await realWait(200);
+  const corner = await hudCorner(page);
+  expect(corner.pause, 'no pause button on a touch run').not.toBeNull();
+  expect(corner.iconVisible, 'the pause icon is not drawn as a filled shape').toBe(true);
+  expect(corner.texts.map((t) => t.name)).toContain('signatureText');
+  for (const t of corner.texts) {
+    const p = corner.pause!;
+    const apart = t.x >= p.x + p.w || t.x + t.w <= p.x || t.y >= p.y + p.h || t.y + t.h <= p.y;
+    expect(apart, `${t.name} (${t.x.toFixed(0)},${t.y.toFixed(0)} ${t.w.toFixed(0)}x${t.h.toFixed(0)}) overlaps the pause button (${p.x.toFixed(0)},${p.y.toFixed(0)} ${p.w.toFixed(0)}x${p.h.toFixed(0)})`).toBe(true);
+  }
+  // and it still sits inside the strip the stick leaves free
+  const view = await page.evaluate(() => window.__game.viewSize());
+  expect(corner.pause!.y + corner.pause!.h).toBeLessThanOrEqual(view.height * 0.26 + 1);
+  await snap(page, 'mobile-hud-corner');
   expect(errors, errors.join('\n')).toEqual([]);
 });
