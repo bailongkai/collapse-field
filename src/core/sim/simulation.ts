@@ -488,7 +488,14 @@ export class Simulation {
     // 单向火控: no weapon lands behind her, whatever its archetype
     if (slot >= 0 && this.run.protocol === 'oneSide' && (e.x - this.world.player.x) * Math.cos(this.world.player.facing) < 0) return;
     // a shield in the way takes almost all of it; the answer to a bulwark is an angle, not a number
-    const rounded = Math.max(1, Math.round(dmg * bulwarkScale(e, dirX, dirY) * bossArmourScale(e, dirX, dirY)));
+    let rounded = Math.max(1, Math.round(dmg * bulwarkScale(e, dirX, dirY) * bossArmourScale(e, dirX, dirY)));
+    if (slot >= 0 && this.run.protocol === 'oneSide') {
+      const extra = rounded * (PROTOCOL_TUNING.oneSide.damageMult - 1) + this.oneSideCarry;
+      // epsilon: 1.4 - 1 is 0.39999999999999991, and ten of it must still be four
+      const whole = Math.floor(extra + 1e-9);
+      this.oneSideCarry = Math.max(0, extra - whole);
+      rounded += whole;
+    }
     // a 残留 mark goes off on the next hit from anything; the burst cannot set off another
     const burst = e.markUntilTick >= this.run.tick && !this.bursting;
     const bx = e.x;
@@ -507,6 +514,8 @@ export class Simulation {
     if (burst) this.burstMark(bx, by, markDamage, markSlot);
   }
 
+  /** 单向火控's fraction of a point, owed to the next hit */
+  private oneSideCarry = 0;
   private bursting = false;
   private burstBuf = new Int32Array(ENEMY_CAP);
 

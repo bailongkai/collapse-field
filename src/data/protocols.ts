@@ -25,7 +25,7 @@ export const PROTOCOLS: Readonly<Record<ProtocolId, ProtocolDef>> = {
   // the station's own hazard on every stage: what the game is named after, opened by clearing it
   collapse: { id: 'collapse', nameKey: 'protocol.collapse.name', descKey: 'protocol.collapse.desc', achievement: 'clearStation' },
   // the marine's lesson made a rule: everything fires the way she faces, and hits harder for it
-  oneSide: { id: 'oneSide', nameKey: 'protocol.oneSide.name', descKey: 'protocol.oneSide.desc', achievement: 'marineFive', bonus: { might: 0.4 } },
+  oneSide: { id: 'oneSide', nameKey: 'protocol.oneSide.name', descKey: 'protocol.oneSide.desc', achievement: 'marineFive' },
   // every gem has to be walked over, and pays more for it
   noMagnet: { id: 'noMagnet', nameKey: 'protocol.noMagnet.name', descKey: 'protocol.noMagnet.desc', achievement: 'level30', bonus: { growth: 0.3 } },
   // the turn becomes a dodge; opened by the first boss kill, so it is the first one most players see
@@ -41,6 +41,13 @@ export function isProtocolId(v: unknown): v is ProtocolId {
 export const PROTOCOL_TUNING = {
   /** 塌缩加剧: a stage without collapsing floor gets the station's three, and every cache pays this many times its rewards */
   collapse: { at: [120, 450, 780], rewardMult: 1.5 },
+  /**
+   * 单向火控: what lands ahead hits this many times harder. Applied to the whole hit after it is
+   * rounded, with the fraction carried to the next hit, so it is exactly this on every weapon: as
+   * +0.4 might it was rounded with the hit, and a 4.5 field tick that rounds to 5 became a 6.5 that
+   * rounds to 6, +20%.
+   */
+  oneSide: { damageMult: 1.4 },
   /** 回身冲刺: on a turn, this long untouchable and this far along the new facing, at most this often */
   dash: { iframesMs: 150, px: 40, cooldownMs: 2000 },
 } as const;

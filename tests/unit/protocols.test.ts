@@ -6,6 +6,9 @@ import { DEFAULT_SAVE, loadSave, writeSave } from '../../src/core/save/saveData'
 import { MemoryStorage } from '../../src/core/save/memoryStorage';
 import { isProtocolUnlocked } from '../../src/core/save/unlocks';
 import { FIXED_DT_MS } from '../../src/config';
+import { rollChestRewards } from '../../src/core/levelup/chest';
+import { CONTENT } from '../../src/core/content/registry';
+import { Rng } from '../../src/core/rng';
 import type { ProtocolId } from '../../src/data/protocols';
 
 const run = (protocol: ProtocolId | null, stageId = 'station', weapon = 'plasmaBlade') => {
@@ -63,8 +66,25 @@ describe('塌缩加剧', () => {
       return s.takeChestResult()!.rewards.length;
     };
     const plain = open(null, 'riftCache');
-    expect(open('collapse', 'riftCache')).toBe(Math.round(plain * PROTOCOL_TUNING.collapse.rewardMult));
+    const more = open('collapse', 'riftCache');
+    expect(more).toBeGreaterThanOrEqual(Math.floor(plain * PROTOCOL_TUNING.collapse.rewardMult));
+    expect(more).toBeLessThanOrEqual(Math.ceil(plain * PROTOCOL_TUNING.collapse.rewardMult));
     expect(open('collapse', 'chest')).toBe(open(null, 'chest'));
+  });
+
+  it('half again is half again on average: one reward is not rounded up to two', () => {
+    // Math.round made every single-reward cache pay two, so the protocol paid about 1.76x
+    const weapons = ['plasmaBlade', 'railgun', 'guidedLaser', 'orbitalDrones', 'empField', 'arcPylons'].map((id) => ({ id, level: 1 }));
+    const passives = ['reactorCore', 'coolingSystem'].map((id) => ({ id, level: 1 }));
+    let base = 0;
+    let mult = 0;
+    for (let seed = 1; seed <= 4000; seed++) {
+      const roll = (countMult: number) => rollChestRewards({ weapons, passives, grade: 'standard', luck: 1, rng: new Rng(seed), reg: CONTENT, countMult }).length;
+      base += roll(1);
+      mult += roll(PROTOCOL_TUNING.collapse.rewardMult);
+    }
+    expect(mult / base).toBeGreaterThan(1.42);
+    expect(mult / base).toBeLessThan(1.58);
   });
 });
 
@@ -82,6 +102,28 @@ describe('单向火控', () => {
     expect(plain.behind).toBeGreaterThan(0);
     expect(one.behind).toBe(0);
     expect(one.ahead / plain.ahead).toBeCloseTo(1.4, 1);
+  });
+
+  it('the 40% survives rounding on a weapon whose hits are a handful of points', () => {
+    // as +0.4 might it was rounded with the hit: the unit's level-one field ticks 4.5 -> 5 without
+    // it and 6.5 -> 6 with it, +20%; the railgun's 6.5 -> 7 and 9.1 -> 9, +29%
+    for (const [characterId, weapon] of [['unit', 'empField'], ['unit', 'railgun'], ['survivor', 'railgun']]) {
+      const ahead = (protocol: ProtocolId | null) => {
+        const s = new Simulation({ seed: 12, characterId, stageId: 'station', protocol });
+        s.world.enemies.clear();
+        s.run.weapons.length = 0;
+        s.world.weaponInstances.length = 0;
+        s.run.god = true;
+        s.setStatOverride('curse', -1);
+        s.giveWeapon(weapon, 1);
+        const e = tank(s, 60, 0);
+        s.stepMany(600);
+        return 1e9 - e.hp;
+      };
+      const ratio = ahead('oneSide') / ahead(null);
+      expect(ratio, `${characterId} ${weapon}`).toBeGreaterThan(1.37);
+      expect(ratio, `${characterId} ${weapon}`).toBeLessThan(1.43);
+    }
   });
 
   it('the guided laser does not spend a bolt on a body behind her', () => {
