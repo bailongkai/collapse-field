@@ -196,6 +196,19 @@ describe('跳弹 (stream)', () => {
     w.run(60);
     expect(w.hits.some((h) => h.e === side)).toBe(true);
     expect(w.hits.some((h) => h.e === far)).toBe(false);
+
+    // and it says so, for the view to draw it in the verb's colour: a turned round looked like
+    // every other one
+    const t = boltWorld();
+    t.put(80, 0);
+    t.put(120, 90);
+    const round = t.fire({ pierce: 0, bounces: 1 });
+    let seen = 0;
+    for (let i = 0; i < 30 && round.active; i++) {
+      t.run(1);
+      seen = Math.max(seen, round.turned);
+    }
+    expect(seen).toBe(1);
   });
 
   it('turns once per stack', () => {

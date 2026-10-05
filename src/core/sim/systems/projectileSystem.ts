@@ -170,6 +170,7 @@ function ricochet(world: World, p: Projectile): void {
   p.angle = Math.atan2(dy, dx);
   p.pierce = 0;
   p.bounces--;
+  p.turned++;
   p.ttlMs = Math.max(p.ttlMs, (reach / Math.max(1, speed)) * 1000 + 100);
   world.events.push('verbBurst', p.x, p.y, 0, 'stream');
 }

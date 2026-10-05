@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { PROJECTILE_CAP } from '../../config';
 import { GAME_FRAME_SCALE } from '../atlas';
 import { weaponDef } from '../../core/content/registry';
+import { VERB_TINT } from '../../data/verbs';
 import type { World } from '../../core/sim/world';
 
 const CULL_MARGIN = 128;
@@ -61,7 +62,9 @@ export class ProjectileView {
         this.frames[p.id] = frame;
         img.setFrame(frame);
       }
-      const wantTint = p.hostile ? 0x9dff5a : (visual?.tint ?? 0xffffff);
+      // a 跳弹 round that has turned wears the verb's colour and a size up: in a crowd it looked
+      // exactly like every other round, and nobody could see that anything had come back
+      const wantTint = p.hostile ? 0x9dff5a : p.turned > 0 ? VERB_TINT : (visual?.tint ?? 0xffffff);
       if (this.tints[p.id] !== wantTint) {
         this.tints[p.id] = wantTint;
         img.setTint(wantTint);
@@ -81,7 +84,7 @@ export class ProjectileView {
         img.setAlpha(Math.max(0, Math.min(1, p.ttlMs / 150)));
       } else {
         img.setRotation(p.angle + Math.PI / 2);
-        img.setScale(p.scale * GAME_FRAME_SCALE);
+        img.setScale(p.scale * GAME_FRAME_SCALE * (p.turned > 0 ? 1.3 : 1));
         img.setAlpha(1);
       }
     }
