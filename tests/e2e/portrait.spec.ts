@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, devices, type Page } from '@playwright/test';
 import { openGame, snap, state, waitScene, realWait, startRun, step, press, hudCorner } from './helpers';
 
 /**
@@ -125,6 +125,34 @@ test('portrait: the shop and results screens fit', async ({ page }) => {
     expect(b.x + b.hitW / 2, `${b.id} overflows the right edge`).toBeLessThanOrEqual(v.logicalW + 1);
     expect(b.y + b.hitH / 2, `${b.id} overflows the bottom`).toBeLessThanOrEqual(v.logicalH + 1);
   }
+  // The store block (shown because ?test=1 fakes a store, as a native build has one) used to run
+  // under the back button. Upright, it is a page of its own; no two targets on either page overlap.
+  const noOverlap = async () => {
+    const all = (await page.evaluate(() => window.__game.ui.buttons())).filter((b) => b.id.startsWith('shop.'));
+    for (let i = 0; i < all.length; i++) {
+      for (let j = i + 1; j < all.length; j++) {
+        const a = all[i];
+        const b = all[j];
+        // hit areas are padded to a thumb, so neighbours may touch; neither centre may sit on the other
+        const inside = (p: typeof a, q: typeof a) => Math.abs(p.x - q.x) * 2 < q.hitW && Math.abs(p.y - q.y) * 2 < q.hitH;
+        expect(inside(a, b) || inside(b, a), `${a.id} overlaps ${b.id}`).toBe(false);
+      }
+      expect(all[i].y + all[i].hitH / 2, `${all[i].id} overflows the bottom`).toBeLessThanOrEqual(v.logicalH + 1);
+    }
+    return all;
+  };
+  await noOverlap();
+  const page2 = await target(page, 'shop.page');
+  await page.touchscreen.tap(page2.x, page2.y);
+  await page.waitForFunction(() => window.__game.ui.buttons().some((b) => b.id === 'shop.iap.remove_ads'));
+  await realWait(100);
+  const storeButtons = await noOverlap();
+  expect(storeButtons.filter((b) => b.id.startsWith('shop.iap.')).length).toBe(4);
+  await snap(page, 'portrait-shop-store');
+  const back2 = await target(page, 'shop.page');
+  await page.touchscreen.tap(back2.x, back2.y);
+  await page.waitForFunction(() => window.__game.ui.buttons().some((b) => b.id === 'shop.buy.hull'));
+  await realWait(100);
   await snap(page, 'portrait-shop');
 
   const back = await target(page, 'shop.back');
@@ -189,4 +217,50 @@ test('portrait: the pause button does not cover the HUD text held upright either
   }
   await snap(page, 'portrait-hud-corner');
   expect(errors, errors.join('\n')).toEqual([]);
+});
+
+test('portrait: the launch screen fits a narrow phone, protocol labels and the stage goal included', async ({ browser }) => {
+  // On an iPhone SE the protocol labels ran over their buttons and the stage block cut its goal line
+  // off; on an iPhone 14 the last protocol button ran past the challenge row.
+  for (const device of ['iPhone 14', 'iPhone SE']) {
+    for (const lang of ['en', 'zh-CN']) {
+      const ctx = await browser.newContext({ ...devices[device] });
+      const page = await ctx.newPage();
+      const errors = await openGame(page, `?test=1&lang=${lang}`);
+      await page.evaluate(() => window.__game.save.set({ ...window.__game.save.get(), tutorialDone: true, stageBestScore: { station: 12345 } }));
+      await page.evaluate(() => window.__game.goto('menu'));
+      await waitScene(page, 'menu');
+      expect(await page.evaluate(() => window.__game.ui.press('menu.start'))).toBe(true);
+      await page.waitForFunction(() => window.__game.ui.buttons().some((b) => b.id === 'launch.start'));
+      await realWait(150);
+      const m = await page.evaluate(() => {
+        type Box = { x: number; y: number; width: number; height: number; displayHeight: number };
+        type Btn = { x: number; list: { width: number; text?: string }[] };
+        const scene = window.__game.phaser.scene.getScene('Launch') as unknown as {
+          children: { getByName(n: string): Box | null; list: unknown[] };
+        };
+        const buttons = window.__game.ui.buttons().filter((b) => b.id.startsWith('launch.protocol.') || b.id.startsWith('launch.curse.'));
+        const containers = scene.children.list.filter((c): c is Btn => Array.isArray((c as Btn).list) && (c as Btn).list.length >= 2 && typeof (c as Btn).list[1].text === 'string');
+        const rows = buttons.map((b) => {
+          const c = containers.find((k) => Math.abs(k.x - b.x) < 0.5 && Math.abs((k as unknown as { y: number }).y - b.y) < 0.5)!;
+          return { id: b.id, x: b.x, w: c.list[0].width, label: c.list[1].width, text: c.list[1].text };
+        });
+        const box = scene.children.getByName('launch.stageDetail.box')!;
+        const text = scene.children.getByName('launch.stageDetail.text')!;
+        return { rows, boxBottom: box.y + box.height / 2, textBottom: text.y + text.height, view: window.__game.viewSize() };
+      });
+      const curseRight = Math.max(...m.rows.filter((r) => r.id.startsWith('launch.curse.')).map((r) => r.x + r.w / 2));
+      const panelRight = m.view.width - 24;
+      for (const r of m.rows) {
+        expect(r.label, `${device} ${lang}: "${r.text}" overflows ${r.id}`).toBeLessThanOrEqual(r.w - 8);
+        expect(r.x + r.w / 2, `${device} ${lang}: ${r.id} runs past the panel`).toBeLessThanOrEqual(panelRight);
+      }
+      const protoRight = Math.max(...m.rows.filter((r) => r.id.startsWith('launch.protocol.')).map((r) => r.x + r.w / 2));
+      expect(protoRight, `${device} ${lang}: the protocol row runs past the challenge row`).toBeLessThanOrEqual(Math.max(curseRight, panelRight - 24) + 1);
+      expect(m.textBottom, `${device} ${lang}: the stage block cuts off its text`).toBeLessThanOrEqual(m.boxBottom);
+      await snap(page, `portrait-launch-${device.replace(' ', '')}-${lang}`);
+      expect(errors, errors.join('\n')).toEqual([]);
+      await ctx.close();
+    }
+  }
 });

@@ -124,3 +124,27 @@ test('shop: an upgrade says what it is worth now and next, a character what its 
   await snap(page, 'm20-shop-numbers');
   expect(errors, errors.join('\n')).toEqual([]);
 });
+
+test('shop: a row that cannot fit its description still names the stat it raises', async ({ page }) => {
+  // the desktop rows fell back to the numbers alone: "now 0 → +10%" beside Hull Plating, and in
+  // Chinese the hull, coolant, magnet and the three charge rows said how much but not of what
+  for (const lang of ['en', 'zh-CN']) {
+    const errors = await openGame(page, `?test=1&lang=${lang}`);
+    expect(await page.evaluate(() => window.__game.ui.press('menu.shop'))).toBe(true);
+    await page.waitForFunction(() => window.__game.ui.buttons().some((b) => b.id === 'shop.buy.hull'));
+    const rows = await page.evaluate(() => {
+      const scene = window.__game.phaser.scene.getScene('Shop') as unknown as { children: { getByName(n: string): { text: string } | null } };
+      const labels: Record<string, string> = {
+        hull: 'stat.maxHealth', coolant: 'stat.cooldown', magnet: 'stat.magnet', firepower: 'stat.might',
+        reroll: 'shop.charge.reroll', skip: 'shop.charge.skip', banish: 'shop.charge.banish',
+      };
+      return Object.entries(labels).map(([id, key]) => ({
+        id,
+        text: scene.children.getByName(`shop.value.${id}`)?.text ?? '',
+        label: window.__game.i18n.t(key as Parameters<typeof window.__game.i18n.t>[0]),
+      }));
+    });
+    for (const r of rows) expect(r.text, `${lang} ${r.id}`).toContain(r.label);
+    expect(errors, errors.join('\n')).toEqual([]);
+  }
+});

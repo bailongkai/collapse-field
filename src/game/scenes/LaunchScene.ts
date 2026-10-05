@@ -96,8 +96,12 @@ export class LaunchScene extends Phaser.Scene {
     const gridH = (n: number): number => rowsOf(n) * (TILE_H + GAP) - GAP;
     const halfH = (n: number, detail: number): number => LABEL_H + gridH(n) + 12 + detail;
     const charDetailH = portrait ? 104 : 96;
-    const stageDetailH = portrait ? 72 : 96;
-    const protocolH = portrait ? 92 : 46;
+    // three lines in an upright phone's column: the description, the goal and the best score wrap
+    // there, and at 72 the goal line was cut off by the bottom of the block
+    const stageDetailH = portrait ? 100 : 96;
+    // upright, the protocol label has a line to itself and the five buttons the full width: beside
+    // the label they were 53 units wide on an iPhone SE, and "Collapse+" does not fit in 53
+    const protocolH = portrait ? 118 : 46;
     const footerH = (portrait ? 96 : 60) + 64 + protocolH;
     const body = portrait ? halfH(chars.length, charDetailH) + 14 + halfH(stages.length, stageDetailH) : Math.max(halfH(chars.length, charDetailH), halfH(stages.length, stageDetailH));
     const wantH = HEADER_H + body + 14 + footerH;
@@ -118,7 +122,7 @@ export class LaunchScene extends Phaser.Scene {
     const charTop = top + HEADER_H * k;
     const stageTop = portrait ? charTop + (halfH(chars.length, charDetailH) + 14) * k : charTop;
 
-    const half = (label: string, x: number, y: number, n: number, detailH: number, tile: (i: number, tx: number, ty: number, tw: number, th: number) => void): Phaser.GameObjects.Text[] => {
+    const half = (label: string, key: string, x: number, y: number, n: number, detailH: number, tile: (i: number, tx: number, ty: number, tw: number, th: number) => void): Phaser.GameObjects.Text[] => {
       this.add.text(x, y + 10 * k, label, textStyle(Math.round(16 * k), { bold: true, color: COLORS.dim })).setOrigin(0, 0.5);
       const tw = (colW - GAP * (COLS - 1)) / COLS;
       const th = TILE_H * k;
@@ -128,16 +132,16 @@ export class LaunchScene extends Phaser.Scene {
         tile(i, tx, ty, tw, th);
       }
       const dy = y + (LABEL_H + gridH(n) + 12) * k;
-      this.add.nineslice(x + colW / 2, dy + (detailH * k) / 2, 'ui', 'panel_rect', colW, detailH * k, 16, 16, 16, 16).setTint(DETAIL_TINT);
+      this.add.nineslice(x + colW / 2, dy + (detailH * k) / 2, 'ui', 'panel_rect', colW, detailH * k, 16, 16, 16, 16).setTint(DETAIL_TINT).setName(`launch.${key}.box`);
       const pad = Math.round(14 * k);
       const name = this.add.text(x + pad, dy + pad + 4 * k, '', textStyle(Math.round(17 * k), { bold: true })).setOrigin(0, 0.5);
       const status = this.add.text(x + colW - pad, dy + pad + 4 * k, '', textStyle(Math.round(13 * k), { bold: true, color: COLORS.gold })).setOrigin(1, 0.5);
-      const text = this.add.text(x + pad, dy + pad + 20 * k, '', textStyle(Math.round(13 * k), { color: COLORS.dim, wrapWidth: colW - pad * 2 })).setOrigin(0, 0).setLineSpacing(2);
+      const text = this.add.text(x + pad, dy + pad + 20 * k, '', textStyle(Math.round(13 * k), { color: COLORS.dim, wrapWidth: colW - pad * 2 })).setOrigin(0, 0).setLineSpacing(2).setName(`launch.${key}.text`);
       return [name, status, text];
     };
 
-    this.charDetail = half(t('launch.character'), charX, charTop, chars.length, charDetailH, (i, tx, ty, tw, th) => this.characterTile(chars[i], tx, ty, tw, th));
-    this.stageDetail = half(t('launch.stage'), stageX, stageTop, stages.length, stageDetailH, (i, tx, ty, tw, th) => this.stageTile(stages[i], tx, ty, tw, th));
+    this.charDetail = half(t('launch.character'), 'charDetail', charX, charTop, chars.length, charDetailH, (i, tx, ty, tw, th) => this.characterTile(chars[i], tx, ty, tw, th));
+    this.stageDetail = half(t('launch.stage'), 'stageDetail', stageX, stageTop, stages.length, stageDetailH, (i, tx, ty, tw, th) => this.stageTile(stages[i], tx, ty, tw, th));
 
     // the challenge toggle: curse for more experience and gold. It is what a player who has
     // cleared a stage comes back for, and it is the only thing here that makes a stage harder.
@@ -159,19 +163,22 @@ export class LaunchScene extends Phaser.Scene {
 
     // protocols: one rule change a run may carry, opened by achievements. A locked one can be
     // tapped to read what opens it, the way a locked tile can; it cannot be taken.
-    const protoY = curseY - protocolH * k;
-    this.add.text(leftX, protoY, t('launch.protocol'), textStyle(Math.round(15 * k), { bold: true, color: COLORS.dim })).setOrigin(0, 0.5);
+    const protoY = curseY - protocolH * k + (portrait ? 26 * k : 0);
+    this.add.text(leftX, portrait ? protoY - 26 * k : protoY, t('launch.protocol'), textStyle(Math.round(15 * k), { bold: true, color: COLORS.dim })).setOrigin(0, 0.5);
     const options: (ProtocolId | '')[] = ['', ...PROTOCOL_LIST.map((p) => p.id)];
-    const pw = Math.min(104, (panel.w - 48 - 80 * k - 18) / options.length);
+    const protoX = portrait ? leftX : leftX + 80 * k;
+    // five buttons have four gaps between them: the room was shared out as if they had three, and
+    // the last one ran past the challenge row's edge
+    const pw = Math.min(104, (cx + panel.w / 2 - 24 - protoX - 6 * (options.length - 1)) / options.length);
     options.forEach((id, i) => {
-      const bx = leftX + 80 * k + i * (pw + 6) + pw / 2;
+      const bx = protoX + i * (pw + 6) + pw / 2;
       const label = id ? t(PROTOCOLS[id].nameKey) : t('launch.protocol_off');
       const btn = new UiButton(this, bx, protoY, { id: `launch.protocol.${id || 'none'}`, label, width: pw, height: Math.round(34 * k), fontSize: 12, onPress: () => this.setProtocol(id) });
       btn.setData('protocol', id);
       if (id && !isProtocolUnlocked(save, id)) btn.setAlpha(0.5);
       this.protocolBtns.push(btn);
     });
-    const pNoteX = portrait ? leftX : leftX + 80 * k + options.length * (pw + 6) + 14;
+    const pNoteX = portrait ? leftX : protoX + options.length * (pw + 6) + 14;
     const pNoteY = portrait ? protoY + 40 * k : protoY;
     const pNoteW = portrait ? panel.w - 48 : cx + panel.w / 2 - 24 - pNoteX;
     this.protocolNote = this.add.text(pNoteX, pNoteY, '', textStyle(Math.round(13 * k), { color: COLORS.dim, wrapWidth: pNoteW })).setOrigin(0, 0.5);

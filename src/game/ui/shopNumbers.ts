@@ -1,4 +1,4 @@
-import { t } from '../../i18n';
+import { t, tDynamic } from '../../i18n';
 import { STAT_KIND } from '../../data/types';
 import type { UpgradeDef } from '../../data/upgrades';
 import { CONTENT } from '../../core/content/registry';
@@ -21,6 +21,16 @@ export function upgradeAmount(def: UpgradeDef, level: number): string {
 export function upgradeValue(def: UpgradeDef, level: number): string {
   if (level >= def.maxLevel) return upgradeAmount(def, level);
   return t('shop.now_next', { a: level > 0 ? upgradeAmount(def, level) : '0', b: upgradeAmount(def, level + 1) });
+}
+
+/**
+ * What an upgrade raises, in a word or two: the stat's name, or the charge's. The short form a row
+ * falls back to when the description does not fit; a bare "now 0 → +10%" said how much of nothing.
+ */
+export function upgradeLabel(def: UpgradeDef): string {
+  if (def.charge) return t(`shop.charge.${def.charge}`);
+  if (def.stat) return tDynamic(`stat.${def.stat}`);
+  return t(def.nameKey);
 }
 
 /**

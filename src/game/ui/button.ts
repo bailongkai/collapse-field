@@ -29,6 +29,7 @@ export class UiButton extends Phaser.GameObjects.Container {
   private hitH = 0;
   private unregister: () => void;
   private onPress: () => void;
+  private labelRoom = 0;
 
   constructor(scene: Phaser.Scene, x: number, y: number, opts: ButtonOpts) {
     super(scene, x, y);
@@ -40,6 +41,8 @@ export class UiButton extends Phaser.GameObjects.Container {
       .text(0, 0, opts.icon ? '' : opts.label, textStyle(opts.fontSize ?? 22, { bold: true, color: COLORS.text, letterSpacing: 1 }))
       .setOrigin(0.5);
     this.add([this.bg, this.label]);
+    this.labelRoom = w - 12;
+    this.fitLabel();
     // the icon frames are drawn in a dark ink for a light button; this button is dark, so the
     // shape is filled with the label colour instead, or the pause button is an empty frame
     if (opts.icon) {
@@ -111,7 +114,22 @@ export class UiButton extends Phaser.GameObjects.Container {
 
   setLabel(text: string): this {
     this.label.setText(text);
+    this.fitLabel();
     return this;
+  }
+
+  /**
+   * A label wider than its button gets smaller type rather than running over the frame: on a narrow
+   * phone the protocol buttons are sixty units wide and "Collapse+" at 12 is seventy.
+   */
+  private fitLabel(): void {
+    let size = parseFloat(String(this.label.style.fontSize));
+    while (this.label.width > this.labelRoom && size > 10) this.label.setFontSize(--size);
+    // still too wide at ten: two lines ("No / Magnet"), as long as they fit the height
+    if (this.label.width > this.labelRoom && this.label.text.includes(' ')) {
+      this.label.setWordWrapWidth(this.labelRoom).setAlign('center').setLineSpacing(-2);
+      while (this.label.height > this.bg.height - 2 && size > 8) this.label.setFontSize(--size);
+    }
   }
 
   press(): void {

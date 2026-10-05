@@ -14,36 +14,48 @@ import { sfx } from '../audio/sfx';
 import { analytics, getPlatform } from '../../platform';
 import { PRODUCT_IDS, applyPurchase, productOwned, type ProductId } from '../../core/save/purchases';
 import { tDynamic as td } from '../../i18n';
-import { upgradeValue, weaponLine } from '../ui/shopNumbers';
+import { upgradeLabel, upgradeValue, weaponLine } from '../ui/shopNumbers';
 
 const ROW_H = 58;
 
 /** Between-run shop: gold from finished runs buys permanent stat upgrades. */
 export class ShopScene extends Phaser.Scene {
+  /** whether this build of the scene is the store's page, so a purchase comes back to it */
+  private onStorePage = false;
+
   constructor() {
     super('Shop');
   }
 
-  create(): void {
-    restartOnResize(this);
+  /** `store`: show the store's own page, which only a one-column layout has */
+  create(data?: { store?: boolean }): void {
+    restartOnResize(this, { store: !!data?.store });
     const ctx = app();
     const cx = viewOf(this).width / 2;
     const cy = viewOf(this).height / 2;
     const priced = CHARACTER_LIST.filter((c) => c.cost !== undefined);
     // the store rows sit under the characters: only where there is a store to buy from
-    const store = getPlatform().purchases.available() ? PRODUCT_IDS : [];
+    const allStore = getPlatform().purchases.available() ? PRODUCT_IDS : [];
     // upgrades and characters side by side when there is room; one column under the other on a
     // phone held upright. Thirteen rows in one column on a landscape screen squeezed the text
     // together until the names sat on the descriptions.
     const wide = viewOf(this).width >= 980 && !isPortraitScene(this);
-    // side by side on a wide screen; two products per row on a phone, where every row is scarce
-    const storeCols = wide ? 1 : 2;
+    // One column has no room for the store under thirteen upgrades and seven characters: an
+    // upright phone is about 930 units tall, and the rows had already reached their minimum height
+    // when the store block ran on under the back button. So there the store is a page of its own,
+    // behind a button beside Back, and each page fits.
+    const paged = allStore.length > 0 && !wide;
+    const storePage = paged && !!data?.store;
+    const store = paged && !storePage ? [] : allStore;
+    this.onStorePage = storePage;
+    // side by side on a wide screen, and on the store's own page; two to a row otherwise
+    const storeCols = wide || storePage ? 1 : 2;
     const storeRows = store.length > 0 ? Math.ceil(store.length / storeCols) + 2 : 0;
     // seven characters in one column no longer fit a phone held upright, so they pair up the way
     // the store rows do: two to a line, which is four lines instead of seven
     const charCols = wide ? 1 : 2;
     const charRows = Math.ceil(priced.length / charCols);
-    const rowsTall = wide ? Math.max(UPGRADE_LIST.length, charRows + storeRows) : UPGRADE_LIST.length + charRows + storeRows;
+    const rowsTall = storePage ? storeRows : wide ? Math.max(UPGRADE_LIST.length, charRows + storeRows) : UPGRADE_LIST.length + charRows + storeRows;
     // the row height comes from the panel the screen can actually hold, not the other way round:
     // sizing rows first and clamping the panel after left the store rows under the back button
     const chrome = wide ? 170 : 210;
@@ -66,7 +78,7 @@ export class ShopScene extends Phaser.Scene {
 
     const btnW = narrow ? 118 : 150;
     const buyX = left + colW - btnW / 2;
-    UPGRADE_LIST.forEach((def, i) => {
+    (storePage ? [] : UPGRADE_LIST).forEach((def, i) => {
       const y = cy - panel.h / 2 + 88 + i * rowH;
       const level = upgradeLevel(ctx.save, def.id);
       const cost = upgradeCost(def, level);
@@ -75,10 +87,14 @@ export class ShopScene extends Phaser.Scene {
       const levelLabel = t('shop.level', { a: level, b: def.maxLevel });
       const levelColor = level >= def.maxLevel ? COLORS.good : COLORS.text;
       // what it is worth, not only what one level adds. Where the row has no room for both, the
-      // worth wins: the name already says what it is, and the numbers are why it is bought
+      // worth and the stat it raises win: the numbers are why it is bought, and a bare "now 0 →
+      // +10%" next to a name like Hull Plating did not say what the ten per cent was of. Last of
+      // all the type gets smaller; the stat's name is never dropped.
       const value = upgradeValue(def, level);
+      const short = `${upgradeLabel(def)} ${value}`;
       const fit = (text: Phaser.GameObjects.Text, room: number, prefix = ''): void => {
-        if (text.width > room) text.setText(`${prefix}${value}`);
+        if (text.width > room) text.setText(`${prefix}${short}`);
+        for (let size = 12; text.width > room && size >= 10; size--) text.setFontSize(size);
         text.setName(`shop.value.${def.id}`);
       };
       const desc = `${t(def.descKey)} · ${value}`;
@@ -112,8 +128,8 @@ export class ShopScene extends Phaser.Scene {
     const charTop = wide ? cy - panel.h / 2 + 60 : cy - panel.h / 2 + 88 + UPGRADE_LIST.length * rowH + 8;
     const charCellW = colW / charCols;
     const charBtnW = charCols === 1 ? btnW : 104;
-    this.add.text(charLeft, charTop, t('shop.characters'), textStyle(18, { bold: true, color: COLORS.accent })).setOrigin(0, 0.5);
-    priced.forEach((def, i) => {
+    if (!storePage) this.add.text(charLeft, charTop, t('shop.characters'), textStyle(18, { bold: true, color: COLORS.accent })).setOrigin(0, 0.5);
+    (storePage ? [] : priced).forEach((def, i) => {
       const col = i % charCols;
       const cellX = charLeft + col * charCellW;
       const y = charTop + 30 + Math.floor(i / charCols) * rowH;
@@ -153,7 +169,7 @@ export class ShopScene extends Phaser.Scene {
     });
 
     if (store.length > 0) {
-      const storeTop = charTop + 30 + Math.ceil(priced.length / charCols) * rowH + 14;
+      const storeTop = storePage ? cy - panel.h / 2 + 76 : charTop + 30 + Math.ceil(priced.length / charCols) * rowH + 14;
       this.add.text(charLeft, storeTop, t('shop.iap'), textStyle(18, { bold: true, color: COLORS.accent })).setOrigin(0, 0.5);
       const restore = new UiButton(this, charLeft + colW - btnW / 2, storeTop, { id: 'shop.restore', label: t('shop.restore'), width: btnW, height: 36, fontSize: 13, onPress: () => void this.restore() });
       void restore;
@@ -161,7 +177,8 @@ export class ShopScene extends Phaser.Scene {
       const cellBtnW = storeCols === 1 ? btnW : 96;
       store.forEach((id, i) => {
         const col = i % storeCols;
-        const y = storeTop + 30 + Math.floor(i / storeCols) * rowH;
+        // on its own page there is room to keep the first row clear of the restore button's reach
+        const y = storeTop + (storePage ? Math.max(52, rowH) : 30) + Math.floor(i / storeCols) * rowH;
         const owned = productOwned(ctx.save, id);
         const cellX = charLeft + col * cellW;
         const textX = cellX + 12;
@@ -184,7 +201,20 @@ export class ShopScene extends Phaser.Scene {
       });
     }
 
-    new UiButton(this, cx, cy + panel.h / 2 - 36, { id: 'shop.back', label: t('common.back'), width: Math.min(200, panel.w - 48), height: 48, onPress: () => this.close() });
+    const bottomY = cy + panel.h / 2 - 36;
+    if (paged) {
+      const w = Math.min(200, (panel.w - 72) / 2);
+      new UiButton(this, cx - w / 2 - 12, bottomY, { id: 'shop.back', label: t('common.back'), width: w, height: 48, onPress: () => this.close() });
+      new UiButton(this, cx + w / 2 + 12, bottomY, {
+        id: 'shop.page',
+        label: storePage ? t('shop.title') : t('shop.iap'),
+        width: w,
+        height: 48,
+        onPress: () => this.scene.restart({ store: !storePage }),
+      });
+    } else {
+      new UiButton(this, cx, bottomY, { id: 'shop.back', label: t('common.back'), width: Math.min(200, panel.w - 48), height: 48, onPress: () => this.close() });
+    }
     this.input.keyboard?.on('keydown-ESC', () => this.close());
   }
 
@@ -222,7 +252,7 @@ export class ShopScene extends Phaser.Scene {
     const ctx = app();
     ctx.save = applyPurchase(ctx.storage, ctx.save, id);
     sfx.play('levelup');
-    this.scene.restart();
+    this.scene.restart({ store: this.onStorePage });
   }
 
   private async restore(): Promise<void> {
@@ -231,7 +261,7 @@ export class ShopScene extends Phaser.Scene {
     if (!this.scene.isActive()) return;
     const ctx = app();
     for (const id of owned) if (PRODUCT_IDS.includes(id)) ctx.save = applyPurchase(ctx.storage, ctx.save, id);
-    if (owned.length > 0) this.scene.restart();
+    if (owned.length > 0) this.scene.restart({ store: this.onStorePage });
   }
 
   private close(): void {
