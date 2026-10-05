@@ -28,6 +28,23 @@ describe('achievement conditions', () => {
     expect(conditionMet({ kind: 'totalKills', count: 10 }, facts({ totalKills: 10 }))).toBe(true);
   });
 
+  it('a stage is cleared by the final boss, not by the clock: a death after 15:00 earns no clear', () => {
+    const st = new MemoryStorage();
+    const death = { timeSec: 930, kills: 900, gold: 0, stageId: 'station', characterId: 'unit', survived: false };
+    const died = awardAchievements(st, fresh(), death).earned;
+    expect(died).not.toContain('clearStation');
+    expect(died).not.toContain('unitClear');
+    // the time-only ones are still time-only
+    expect(died).toContain('fiveMinutes');
+    const won = awardAchievements(st, fresh(), { ...death, survived: true }).earned;
+    expect(won).toContain('clearStation');
+    expect(won).toContain('unitClear');
+    // and every 15-minute condition in the table asks for the clear
+    for (const a of ACHIEVEMENT_LIST) {
+      if (a.condition.kind === 'survive' && a.condition.seconds >= 900) expect(a.condition.cleared, a.id).toBe(true);
+    }
+  });
+
   it('the three later passives are locked until earned, and by achievements that exist', () => {
     expect([...LOCKED_BY_DEFAULT].sort()).toEqual(['magazine', 'magnetCore', 'thrusters']);
     expect(lockedItems(fresh()).sort()).toEqual(['magazine', 'magnetCore', 'thrusters']);
